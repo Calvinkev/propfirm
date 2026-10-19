@@ -1,0 +1,123 @@
+.markets-page {
+  padding: 32px 24px;
+  background-color: var(--base);
+  min-height: calc(100vh - 64px);
+}
+
+.markets-container {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.markets-header h1 {
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.markets-header p {
+  color: var(--text-muted);
+  margin-top: 4px;
+  font-size: 14px;
+}
+
+.markets-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.filter-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.filter-btn.active {
+  background-color: var(--surface-raised);
+  color: var(--binance-yellow);
+  border-color: var(--binance-yellow);
+}
+
+.search-box input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 16px;
+  border-radius: 4px;
+  width: 280px;
+}
+
+.markets-table-wrapper {
+  margin-top: 20px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+.markets-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.markets-table th {
+  padding: 16px;
+  color: var(--text-muted);
+  font-size: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.markets-table td {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 14px;
+}
+
+.pair-info {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pair-base {
+  font-weight: 700;
+}
+
+.pair-quote {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.mono-val {
+  font-family: var(--mono);
+}
+
+.change-val {
+  font-weight: 600;
+  font-family: var(--mono);
+}
+
+.change-val.pos { color: var(--green); }
+.change-val.neg { color: var(--red); }
+
+.table-trade-btn {
+  background: var(--binance-yellow);
+  color: #000;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-size: 13px;
+}

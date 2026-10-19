@@ -9,102 +9,99 @@ export default function AuthLayout() {
   const { isAuthenticated, loading, user, logout } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  if (loading) return null  // safety net
+  if (loading) return null
 
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
   const navItems = [
-    { path: '/dashboard', icon: '◆', label: 'Dashboard' },
-    { path: '/trade',     icon: '📈', label: 'Trading Desk' },
-    { path: '/checkout',  icon: '⚡', label: 'Challenges' },
-    { path: '/rules',     icon: '⚙', label: 'Rules' },
-    { path: '/payouts',   icon: '$', label: 'Payouts' },
+    { path: '/markets', label: 'Markets' },
+    { path: '/trade', label: 'Spot Trade' },
+    { path: '/wallet', label: 'Wallet & Assets' },
   ]
-
-  const initials = user
-    ? `${(user.firstName || '')[0] || ''}${(user.lastName || '')[0] || ''}`.toUpperCase()
-    : 'TR'
 
   const close = () => setMobileMenuOpen(false)
 
   return (
-    <div className="app">
-      {/* Backdrop — tapping it closes the menu */}
+    <div className="binance-app">
+      <header className="binance-navbar">
+        <div className="nav-left">
+          <Link to="/trade" className="brand-link" onClick={close}>
+            <Logo size="small" />
+            <span className="brand-title">STAKEUP <span className="spot-tag">SPOT</span></span>
+          </Link>
+          <nav className="nav-links desktop-only">
+            {navItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+
+        <div className="nav-right desktop-only">
+          <Link to="/wallet" className="deposit-btn">
+            Deposit
+          </Link>
+          <div className="user-profile-menu">
+            <span className="user-name">{user?.firstName} {user?.lastName}</span>
+            <span className="user-email">{user?.email}</span>
+          </div>
+
+          {user?.role === 'admin' && (
+            <Link to="/admin/dashboard" className="admin-badge">
+              👑 Admin
+            </Link>
+          )}
+
+          <button onClick={logout} className="logout-btn" title="Log out">
+            ⏻ Exit
+          </button>
+        </div>
+
+        <button
+          className="mobile-hamburger"
+          onClick={() => setMobileMenuOpen(v => !v)}
+          aria-label="Toggle Navigation"
+        >
+          ☰
+        </button>
+      </header>
+
       {mobileMenuOpen && (
-        <div className="mobile-backdrop" onClick={close} />
-      )}
-
-      <aside className={`sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
-        <Link to="/dashboard" onClick={close} style={{ textDecoration: 'none', padding: '0 10px 26px', display: 'block' }}>
-          <Logo size="small" />
-        </Link>
-
-        <nav className="sb-nav">
+        <div className="mobile-dropdown">
           {navItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
-              className={`sb-link ${location.pathname === item.path ? 'active' : ''}`}
+              className={`mobile-nav-link ${location.pathname === item.path ? 'active' : ''}`}
               onClick={close}
             >
-              <span className="ic">{item.icon}</span>
               {item.label}
             </Link>
           ))}
+          <Link to="/wallet" className="mobile-nav-link deposit" onClick={close}>
+            ⚡ Deposit Crypto
+          </Link>
           {user?.role === 'admin' && (
-            <Link
-              to="/admin/dashboard"
-              className="sb-link"
-              onClick={close}
-              style={{ marginTop: '12px', border: '1px solid rgba(201,162,39,0.3)', background: 'rgba(201,162,39,0.08)', color: 'var(--brass)' }}
-            >
-              <span className="ic">👑</span>
-              Admin Console
+            <Link to="/admin/dashboard" className="mobile-nav-link admin" onClick={close}>
+              👑 Admin Console
             </Link>
           )}
-        </nav>
-
-        <div className="sb-foot">
-          <div className="av">{initials}</div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <b>{user ? `${user.firstName} ${user.lastName}` : 'Trader'}</b>
-            <span>{user?.email}</span>
-          </div>
-          <button
-            onClick={() => { logout(); close() }}
-            title="Log out"
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'var(--text-faint)',
-              fontSize: '18px',
-              padding: '4px 6px',
-              lineHeight: 1,
-              flexShrink: 0,
-            }}
-          >
-            ⏻
+          <button onClick={() => { logout(); close() }} className="mobile-logout">
+            Log Out
           </button>
         </div>
-      </aside>
+      )}
 
-      <main className="main">
+      <main className="binance-main">
         <Outlet />
       </main>
-
-      {/* Floating hamburger button — mobile only */}
-      <button
-        className={`mobile-toggle ${mobileMenuOpen ? 'is-open' : ''}`}
-        onClick={() => setMobileMenuOpen(v => !v)}
-        aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-      >
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
     </div>
   )
 }

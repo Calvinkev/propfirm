@@ -1,22 +1,25 @@
 :root {
-  --base: #0B0D0F;
-  --surface: #14171A;
-  --surface-raised: #1C2024;
-  --surface-hover: #20252A;
-  --border: #26292E;
-  --border-soft: #1E2226;
-  --brass: #C9A227;
-  --brass-bright: #E4C24A;
-  --brass-dim: #8A7220;
-  --green: #3ECF8E;
-  --green-dim: #1E4A38;
-  --red: #E5484D;
-  --red-dim: #4A2224;
-  --text: #F2F0EA;
-  --text-muted: #9A9DA3;
-  --text-faint: #5C5F65;
-  --serif: 'Fraunces', serif;
-  --sans: 'Inter', sans-serif;
+  --base: #0B0E11;
+  --surface: #181A20;
+  --surface-raised: #1E2329;
+  --surface-hover: #2B313A;
+  --border: #2B313A;
+  --border-soft: #22262C;
+  --binance-yellow: #F0B90B;
+  --binance-yellow-hover: #FCD535;
+  --brass: #F0B90B;
+  --brass-bright: #FCD535;
+  --brass-dim: #C99400;
+  --green: #0ECB81;
+  --green-hover: #03A66D;
+  --green-dim: #0A3223;
+  --red: #F6465D;
+  --red-hover: #CF304A;
+  --red-dim: #3B1B22;
+  --text: #EAECEF;
+  --text-muted: #848E9C;
+  --text-faint: #474D57;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --mono: 'JetBrains Mono', monospace;
 }
 
@@ -43,6 +46,22 @@ a {
 }
 
 ::selection {
-  background: var(--brass);
-  color: var(--base);
+  background: var(--binance-yellow);
+  color: #000;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: var(--base);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-faint);
 }

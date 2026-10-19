@@ -1,343 +1,530 @@
-import { useState, useEffect, useCallback } from 'react'
-import { useAuth } from '../context/AuthContext'
-import { api } from '../services/api'
-import { wsService } from '../services/websocket'
-import Card from '../components/Card'
-import TradingChart from '../components/demo/TradingChart'
-import OrderPanel from '../components/demo/OrderPanel'
-import PositionsTable from '../components/demo/PositionsTable'
-import PerformanceDashboard from '../components/demo/PerformanceDashboard'
-import './TradingDesk.css'
+import React, { useEffect, useState, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { api } from '../services/api';
+import { wsService } from '../services/websocket';
+import { createChart } from 'lightweight-charts';
+import './TradingDesk.css';
 
-const TABS = ['Trade', 'History', 'Performance']
+const PAIRS = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT', 'DOGEUSDT', 'ADAUSDT'];
 
 export default function TradingDesk() {
-  const { user, token } = useAuth()
+  const { token } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const symbol = (searchParams.get('symbol') || 'BTCUSDT').toUpperCase();
 
-  // Account state — scoped to the logged-in user via GET /api/demo/accounts/me
-  const [demoAccount, setDemoAccount] = useState(null)
+  const [orderbook, setOrderbook] = useState({ bids: [], asks: [] });
+  const [ticker, setTicker] = useState({ price: 0, high: 0, low: 0, volume: 0, change: 0 });
+  const [balances, setBalances] = useState([]);
+  const [openOrders, setOpenOrders] = useState([]);
+  const [tradeHistory, setTradeHistory] = useState([]);
+  const [activeTab, setActiveTab] = useState('OPEN_ORDERS');
 
-  // Instruments & prices
-  const [instruments,    setInstruments]    = useState([])
-  const [selectedSymbol, setSelectedSymbol] = useState('BTCUSD')
-  const [livePrices,     setLivePrices]     = useState({}) // symbol -> { bid, ask }
+  // Spot Order form state
+  const [orderSide, setOrderSide] = useState('BUY'); // BUY or SELL
+  const [orderType, setOrderType] = useState('LIMIT'); // LIMIT or MARKET
+  const [priceInput, setPriceInput] = useState('');
+  const [amountInput, setAmountInput] = useState('');
+  const [percentage, setPercentage] = useState(0);
+  const [toast, setToast] = useState(null);
 
-  // Positions
-  const [positions, setPositions] = useState([])
-  const [closing,   setClosing]   = useState(new Set())
+  const chartContainerRef = useRef(null);
+  const chartInstance = useRef(null);
+  const candleSeries = useRef(null);
 
-  // Trade history
-  const [history, setHistory] = useState([])
+  const baseAsset = symbol.replace('USDT', '');
+  const quoteAsset = 'USDT';
 
-  // Equity curve / performance
-  const [curve, setCurve] = useState([])
-  const [stats,  setStats] = useState(null)
+  const baseBalance = balances.find(b => b.asset === baseAsset)?.free || 0;
+  const quoteBalance = balances.find(b => b.asset === quoteAsset)?.free || 0;
 
-  // UI
-  const [tab,     setTab]     = useState('Trade')
-  const [loading, setLoading] = useState(true)
-  const [toast,   setToast]   = useState(null) // { type, msg }
+  const showToast = (type, msg) => {
+    setToast({ type, msg });
+    setTimeout(() => setToast(null), 3500);
+  };
 
-  // ── Toast ─────────────────────────────────────────────────────────────────
-  const showToast = useCallback((type, msg) => {
-    setToast({ type, msg })
-    setTimeout(() => setToast(null), 4000)
-  }, [])
+  // 1. Initial Load & Balance Fetch
+  const refreshData = async () => {
+    try {
+      const [balRes, ordRes, trdRes] = await Promise.all([
+        api.getWalletBalances(token),
+        api.getOpenOrders(token),
+        api.getTradeHistory(token)
+      ]);
+      if (balRes.balances) setBalances(balRes.balances);
+      if (ordRes.orders) setOpenOrders(ordRes.orders);
+      if (trdRes.trades) setTradeHistory(trdRes.trades);
+    } catch (err) {
+      console.error('Refresh data error:', err);
+    }
+  };
 
-  // ── Init: fetch user's demo account (auto-creates if first visit) ─────────
   useEffect(() => {
-    if (!token) { setLoading(false); return }
+    refreshData();
+  }, [token]);
 
-    const init = async () => {
+  // 2. Fetch Orderbook & Ticker
+  useEffect(() => {
+    async function loadOrderbook() {
       try {
-        // 0. Ensure WebSocket is connected for this session
-        if (!wsService.isConnected) {
-          wsService.connect(token)
+        const res = await api.getOrderbook(symbol);
+        if (res.bids) setOrderbook(res);
+        if (res.lastPrice) {
+          setTicker(prev => ({
+            ...prev,
+            price: res.lastPrice,
+            high: res.lastPrice * 1.03,
+            low: res.lastPrice * 0.97,
+            volume: 45012300
+          }));
+          if (!priceInput || orderType === 'MARKET') {
+            setPriceInput(res.lastPrice.toString());
+          }
         }
-
-        // 1. Fetch instruments + current prices
-        const instrRes = await api.getDemoInstruments(token)
-        if (instrRes.instruments) {
-          setInstruments(instrRes.instruments)
-          const prices = {}
-          instrRes.instruments.forEach(i => {
-            if (i.bid || i.ask) prices[i.symbol] = { bid: i.bid, ask: i.ask }
-          })
-          setLivePrices(prices)
-        }
-
-        // 2. Get (or auto-create) this user's demo account — no localStorage needed
-        const demoRes = await api.getMyDemoAccount(token)
-        if (demoRes.error) {
-          showToast('error', demoRes.error)
-          return
-        }
-
-        const account = demoRes.account
-        setDemoAccount(account)
-
-        // 3. Load account data in parallel
-        const [posRes, equityRes] = await Promise.all([
-          api.getDemoPositions(token, account.id),
-          api.getDemoEquityCurve(token, account.id),
-        ])
-
-        if (posRes.positions)   setPositions(posRes.positions)
-        if (equityRes.curve)    setCurve(equityRes.curve)
-        if (equityRes.stats)    setStats(equityRes.stats)
-
       } catch (err) {
-        console.error('TradingDesk init error:', err)
-        showToast('error', 'Failed to load trading desk')
-      } finally {
-        setLoading(false)
+        console.error('Load orderbook error:', err);
       }
     }
+    loadOrderbook();
+    const timer = setInterval(loadOrderbook, 2000);
+    return () => clearInterval(timer);
+  }, [symbol, orderType]);
 
-    init()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token])
-
-  // ── Data refresh helpers ──────────────────────────────────────────────────
-  const refreshPositions = useCallback(async () => {
-    if (!demoAccount) return
-    try {
-      const posRes = await api.getDemoPositions(token, demoAccount.id)
-      if (posRes.positions) setPositions(posRes.positions)
-    } catch (err) {
-      console.error('refreshPositions error:', err)
-    }
-  }, [demoAccount, token])
-
-  const refreshHistory = useCallback(async () => {
-    if (!demoAccount) return
-    try {
-      const res = await api.getDemoHistory(token, demoAccount.id)
-      if (res.trades) setHistory(res.trades)
-    } catch (err) {
-      console.error('refreshHistory error:', err)
-    }
-  }, [demoAccount, token])
-
-  const refreshPerformance = useCallback(async () => {
-    if (!demoAccount) return
-    try {
-      const res = await api.getDemoEquityCurve(token, demoAccount.id)
-      if (res.curve) setCurve(res.curve)
-      if (res.stats) setStats(res.stats)
-    } catch (err) {
-      console.error('refreshPerformance error:', err)
-    }
-  }, [demoAccount, token])
-
-  // ── Tab: lazy-load data on switch ─────────────────────────────────────────
+  // 3. WebSocket Realtime Prices
   useEffect(() => {
-    if (!demoAccount) return
-    if (tab === 'History')     refreshHistory()
-    if (tab === 'Performance') refreshPerformance()
-  }, [tab, demoAccount]) // eslint-disable-line react-hooks/exhaustive-deps
+    if (!wsService.isConnected) wsService.connect(token);
+    wsService.send({ type: 'subscribe_price', symbol });
 
-  // ── WebSocket: live price sync ────────────────────────────────────────────
-  useEffect(() => {
     const handlePriceTick = (data) => {
-      setLivePrices(prev => ({ ...prev, [data.symbol]: { bid: data.bid, ask: data.ask } }))
-      setInstruments(prev =>
-        prev.map(i => i.symbol === data.symbol ? { ...i, bid: data.bid, ask: data.ask } : i)
-      )
-    }
+      if (data.symbol === symbol) {
+        setTicker(prev => ({ ...prev, price: data.ask }));
+      }
+    };
 
-    wsService.on('price_tick', handlePriceTick)
-
+    wsService.on('price_tick', handlePriceTick);
     return () => {
-      wsService.off('price_tick', handlePriceTick)
-    }
-  })
+      wsService.off('price_tick', handlePriceTick);
+      wsService.send({ type: 'unsubscribe_price', symbol });
+    };
+  }, [symbol, token]);
 
-  // ── Order placed ──────────────────────────────────────────────────────────
-  const handleOrderPlaced = async (result) => {
-    if (result.position) {
-      showToast('success', `Position opened at ${parseFloat(result.position.open_price).toFixed(2)}`)
-    } else if (result.order) {
-      showToast('success', `Pending ${result.order.order_type} order placed`)
-    }
-    await refreshPositions()
-  }
+  // 4. Initialize Lightweight Chart
+  useEffect(() => {
+    if (!chartContainerRef.current) return;
 
-  // ── Close position ────────────────────────────────────────────────────────
-  const handleClosePosition = async (positionId) => {
-    setClosing(prev => new Set(prev).add(positionId))
+    if (chartInstance.current) {
+      chartInstance.current.remove();
+    }
+
+    const chart = createChart(chartContainerRef.current, {
+      width: chartContainerRef.current.clientWidth,
+      height: chartContainerRef.current.clientHeight,
+      layout: {
+        background: { color: '#181A20' },
+        textColor: '#848E9C',
+      },
+      grid: {
+        vertLines: { color: '#2B313A' },
+        horzLines: { color: '#2B313A' },
+      },
+      timeScale: {
+        timeVisible: true,
+        borderColor: '#2B313A',
+      },
+    });
+
+    const series = chart.addCandlestickSeries({
+      upColor: '#0ECB81',
+      downColor: '#F6465D',
+      borderVisible: false,
+      wickUpColor: '#0ECB81',
+      wickDownColor: '#F6465D',
+    });
+
+    chartInstance.current = chart;
+    candleSeries.current = series;
+
+    // Fetch initial candles
+    api.getChartCandles(symbol, '1h').then(res => {
+      if (res.candles) {
+        series.setData(res.candles);
+      }
+    });
+
+    const handleResize = () => {
+      if (chartInstance.current && chartContainerRef.current) {
+        chartInstance.current.applyOptions({
+          width: chartContainerRef.current.clientWidth,
+          height: chartContainerRef.current.clientHeight
+        });
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [symbol]);
+
+  // Percentage slider logic
+  const handlePercentageChange = (pct) => {
+    setPercentage(pct);
+    if (orderSide === 'BUY') {
+      const availableQuote = parseFloat(quoteBalance);
+      const curPrice = parseFloat(priceInput) || ticker.price;
+      if (curPrice > 0) {
+        const totalToSpend = (availableQuote * pct) / 100;
+        setAmountInput((totalToSpend / curPrice).toFixed(4));
+      }
+    } else {
+      const availableBase = parseFloat(baseBalance);
+      setAmountInput(((availableBase * pct) / 100).toFixed(4));
+    }
+  };
+
+  // Submit Order
+  const handlePlaceOrder = async (e) => {
+    e.preventDefault();
     try {
-      const res = await api.closeDemoPosition(token, positionId)
+      const res = await api.placeSpotOrder(token, {
+        symbol,
+        side: orderSide,
+        type: orderType,
+        price: priceInput,
+        amount: amountInput
+      });
+
       if (res.error) {
-        showToast('error', res.error)
+        showToast('error', res.error);
       } else {
-        const pnl = res.profit
-        showToast(
-          pnl >= 0 ? 'success' : 'error',
-          `Position closed — ${pnl >= 0 ? '+' : ''}$${parseFloat(pnl).toFixed(2)} P&L`
-        )
-        await refreshPositions()
-        if (tab === 'Performance') refreshPerformance()
+        showToast('success', res.message || 'Order placed successfully');
+        setAmountInput('');
+        setPercentage(0);
+        refreshData();
       }
     } catch (err) {
-      showToast('error', 'Failed to close position')
-    } finally {
-      setClosing(prev => { const s = new Set(prev); s.delete(positionId); return s })
+      showToast('error', 'Failed to place spot order');
     }
-  }
+  };
 
-  const currentPrice = livePrices[selectedSymbol] || {}
+  // Cancel Order
+  const handleCancelOrder = async (orderId) => {
+    try {
+      const res = await api.cancelSpotOrder(token, orderId);
+      if (res.error) {
+        showToast('error', res.error);
+      } else {
+        showToast('success', 'Order canceled');
+        refreshData();
+      }
+    } catch (err) {
+      showToast('error', 'Failed to cancel order');
+    }
+  };
 
-  // ── Loading ───────────────────────────────────────────────────────────────
-  if (loading) {
-    return (
-      <div className="trading-desk loading">
-        <span>Loading trading desk…</span>
-      </div>
-    )
-  }
-
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="trading-desk">
-      {/* Toast */}
-      {toast && (
-        <div className={`desk-toast ${toast.type}`}>{toast.msg}</div>
-      )}
+    <div className="trading-desk-layout">
+      {toast && <div className={`desk-toast ${toast.type}`}>{toast.msg}</div>}
 
-      {/* Header */}
-      <div className="desk-header">
-        <div>
-          <h1>Trading Desk</h1>
-          <span className="desk-sub">
-            {user?.firstName} {user?.lastName} · Demo account
-          </span>
+      {/* Top Pair Selector Header */}
+      <div className="pair-bar">
+        <div className="pair-select-group">
+          <span className="pair-name">{symbol.replace('USDT', '/USDT')}</span>
+          <div className="pair-dropdown">
+            {PAIRS.map(p => (
+              <button
+                key={p}
+                className={`pair-btn ${p === symbol ? 'active' : ''}`}
+                onClick={() => setSearchParams({ symbol: p })}
+              >
+                {p.replace('USDT', '')}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="desk-tabs">
-          {TABS.map(t => (
-            <button
-              key={t}
-              className={`desk-tab ${tab === t ? 'active' : ''}`}
-              onClick={() => setTab(t)}
-            >
-              {t}
-              {t === 'Trade' && positions.length > 0 && (
-                <span className="tab-badge">{positions.length}</span>
-              )}
-            </button>
-          ))}
+
+        <div className="ticker-stats">
+          <div className="stat">
+            <span className="stat-label">Price</span>
+            <span className="stat-value yellow">${parseFloat(ticker.price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+          </div>
+          <div className="stat">
+            <span className="stat-label">24h High</span>
+            <span className="stat-value">${parseFloat(ticker.high || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+          </div>
+          <div className="stat">
+            <span className="stat-label">24h Low</span>
+            <span className="stat-value">${parseFloat(ticker.low || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+          </div>
+          <div className="stat">
+            <span className="stat-label">24h Volume</span>
+            <span className="stat-value">${(ticker.volume / 1e6).toFixed(2)}M</span>
+          </div>
         </div>
       </div>
 
-
-      {/* ── TRADE TAB ── */}
-      {tab === 'Trade' && (
-        <div className="trade-layout">
-          {/* Left: chart + open positions */}
-          <div className="chart-col">
-            <TradingChart
-              symbol={selectedSymbol}
-              bid={currentPrice.bid}
-              ask={currentPrice.ask}
-              token={token}
-              instruments={instruments}
-              onSymbolChange={setSelectedSymbol}
-            />
-            <Card className="panel" style={{ marginTop: '18px' }}>
-              <div className="panel-head">
-                <h3>Open Positions</h3>
-                <span style={{ fontSize: '12px', color: 'var(--text-faint)', fontFamily: 'var(--mono)' }}>
-                  {positions.length} open
-                </span>
-              </div>
-              <PositionsTable
-                positions={positions}
-                onClose={handleClosePosition}
-                closing={closing}
-              />
-            </Card>
+      {/* Main Workspace */}
+      <div className="desk-main-grid">
+        {/* Left Column: Order Book Depth */}
+        <div className="orderbook-col">
+          <div className="col-header">Order Book</div>
+          <div className="ob-table-header">
+            <span>Price(USDT)</span>
+            <span>Amount({baseAsset})</span>
           </div>
 
-          {/* Right: order panel */}
-          <div className="order-col">
-            <OrderPanel
-              instruments={instruments}
-              selectedSymbol={selectedSymbol}
-              onSymbolChange={setSelectedSymbol}
-              demoAccountId={demoAccount?.id}
-              onOrderPlaced={handleOrderPlaced}
-              onError={(msg) => showToast('error', msg)}
-              token={token}
-              api={api}
-            />
+          {/* Asks (Sells) in Red */}
+          <div className="ob-asks">
+            {(orderbook.asks || []).slice(0, 10).map((a, i) => (
+              <div key={i} className="ob-row ask-row">
+                <span className="ask-price">{a.price.toFixed(2)}</span>
+                <span className="ob-amount">{a.amount.toFixed(4)}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Mid Price Ticker */}
+          <div className="ob-mid-price">
+            ${parseFloat(ticker.price || 0).toFixed(2)}
+          </div>
+
+          {/* Bids (Buys) in Green */}
+          <div className="ob-bids">
+            {(orderbook.bids || []).slice(0, 10).map((b, i) => (
+              <div key={i} className="ob-row bid-row">
+                <span className="bid-price">{b.price.toFixed(2)}</span>
+                <span className="ob-amount">{b.amount.toFixed(4)}</span>
+              </div>
+            ))}
           </div>
         </div>
-      )}
 
-      {/* ── HISTORY TAB ── */}
-      {tab === 'History' && (
-        <Card className="panel">
-          <div className="panel-head">
-            <h3>Closed Trades</h3>
-            <span style={{ fontSize: '12px', color: 'var(--text-faint)', fontFamily: 'var(--mono)' }}>
-              {history.length} trades
-            </span>
+        {/* Center Column: Lightweight Chart */}
+        <div className="chart-col">
+          <div className="chart-header">
+            <span>TradingView Chart</span>
           </div>
-          {history.length === 0 ? (
-            <div style={{ padding: '30px', textAlign: 'center', color: 'var(--text-faint)', fontFamily: 'var(--mono)', fontSize: '13px' }}>
-              No closed trades yet.
+          <div className="chart-container" ref={chartContainerRef} />
+        </div>
+
+        {/* Right Column: Binance Spot Order Panel */}
+        <div className="order-panel-col">
+          <div className="order-tabs">
+            <button
+              className={`side-tab buy ${orderSide === 'BUY' ? 'active' : ''}`}
+              onClick={() => setOrderSide('BUY')}
+            >
+              Buy {baseAsset}
+            </button>
+            <button
+              className={`side-tab sell ${orderSide === 'SELL' ? 'active' : ''}`}
+              onClick={() => setOrderSide('SELL')}
+            >
+              Sell {baseAsset}
+            </button>
+          </div>
+
+          <div className="type-toggle">
+            <button
+              className={`type-btn ${orderType === 'LIMIT' ? 'active' : ''}`}
+              onClick={() => setOrderType('LIMIT')}
+            >
+              Limit
+            </button>
+            <button
+              className={`type-btn ${orderType === 'MARKET' ? 'active' : ''}`}
+              onClick={() => setOrderType('MARKET')}
+            >
+              Market
+            </button>
+          </div>
+
+          <form className="spot-order-form" onSubmit={handlePlaceOrder}>
+            <div className="avail-balance">
+              <span>Avail:</span>
+              <span className="mono">
+                {orderSide === 'BUY'
+                  ? `${parseFloat(quoteBalance).toFixed(2)} USDT`
+                  : `${parseFloat(baseBalance).toFixed(4)} ${baseAsset}`}
+              </span>
             </div>
-          ) : (
-            <table>
+
+            {orderType === 'LIMIT' && (
+              <div className="form-group">
+                <label>Price</label>
+                <div className="input-box">
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={priceInput}
+                    onChange={(e) => setPriceInput(e.target.value)}
+                    required
+                  />
+                  <span className="unit">USDT</span>
+                </div>
+              </div>
+            )}
+
+            <div className="form-group">
+              <label>Amount</label>
+              <div className="input-box">
+                <input
+                  type="number"
+                  step="0.0001"
+                  placeholder="0.00"
+                  value={amountInput}
+                  onChange={(e) => setAmountInput(e.target.value)}
+                  required
+                />
+                <span className="unit">{baseAsset}</span>
+              </div>
+            </div>
+
+            {/* Percentage Quick Selector */}
+            <div className="pct-slider">
+              {[25, 50, 75, 100].map(pct => (
+                <button
+                  type="button"
+                  key={pct}
+                  className={`pct-btn ${percentage === pct ? 'active' : ''}`}
+                  onClick={() => handlePercentageChange(pct)}
+                >
+                  {pct}%
+                </button>
+              ))}
+            </div>
+
+            <div className="order-summary">
+              <span>Order Total:</span>
+              <span className="mono">
+                ${((parseFloat(amountInput) || 0) * (parseFloat(priceInput) || ticker.price)).toFixed(2)} USDT
+              </span>
+            </div>
+
+            <button
+              type="submit"
+              className={`submit-order-btn ${orderSide.toLowerCase()}`}
+            >
+              {orderSide} {baseAsset}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {/* Bottom Orders & Trades Panel */}
+      <div className="desk-bottom-panel">
+        <div className="bottom-tabs">
+          <button
+            className={`bottom-tab ${activeTab === 'OPEN_ORDERS' ? 'active' : ''}`}
+            onClick={() => setActiveTab('OPEN_ORDERS')}
+          >
+            Open Orders ({openOrders.length})
+          </button>
+          <button
+            className={`bottom-tab ${activeTab === 'TRADE_HISTORY' ? 'active' : ''}`}
+            onClick={() => setActiveTab('TRADE_HISTORY')}
+          >
+            Trade History
+          </button>
+          <button
+            className={`bottom-tab ${activeTab === 'BALANCES' ? 'active' : ''}`}
+            onClick={() => setActiveTab('BALANCES')}
+          >
+            Asset Balances
+          </button>
+        </div>
+
+        <div className="bottom-table-container">
+          {activeTab === 'OPEN_ORDERS' && (
+            <table className="desk-table">
               <thead>
                 <tr>
-                  <th>Symbol</th>
-                  <th>Dir</th>
-                  <th>Lots</th>
-                  <th>Open Price</th>
-                  <th>Close Price</th>
-                  <th>P&L</th>
-                  <th>Opened</th>
-                  <th>Closed</th>
+                  <th>Time</th>
+                  <th>Pair</th>
+                  <th>Side</th>
+                  <th>Type</th>
+                  <th>Price</th>
+                  <th>Amount</th>
+                  <th>Filled</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
-                {history.map(t => {
-                  const pnl = parseFloat(t.profit || 0)
-                  const dec = t.symbol?.includes('BTC') || t.symbol?.includes('ETH') ? 2 : 5
-                  return (
-                    <tr key={t.id}>
-                      <td><b>{t.symbol}</b></td>
+                {openOrders.length === 0 ? (
+                  <tr><td colSpan="8" className="empty-msg">No open orders</td></tr>
+                ) : (
+                  openOrders.map(o => (
+                    <tr key={o.id}>
+                      <td>{new Date(o.created_at).toLocaleTimeString()}</td>
+                      <td><b>{o.symbol}</b></td>
+                      <td className={o.side === 'BUY' ? 'pos' : 'neg'}>{o.side}</td>
+                      <td>{o.type}</td>
+                      <td className="mono">${parseFloat(o.price).toFixed(2)}</td>
+                      <td className="mono">{parseFloat(o.amount).toFixed(4)}</td>
+                      <td className="mono">{parseFloat(o.filled_amount).toFixed(4)}</td>
                       <td>
-                        <span className={t.direction === 'buy' ? 'tag-buy' : 'tag-sell'}>
-                          {t.direction?.toUpperCase()}
-                        </span>
-                      </td>
-                      <td className="mono">{parseFloat(t.lots).toFixed(2)}</td>
-                      <td className="mono">{parseFloat(t.open_price).toFixed(dec)}</td>
-                      <td className="mono">{parseFloat(t.close_price).toFixed(dec)}</td>
-                      <td className={pnl >= 0 ? 'pl-pos' : 'pl-neg'}>
-                        {pnl >= 0 ? '+' : ''}${Math.abs(pnl).toFixed(2)}
-                      </td>
-                      <td className="mono" style={{ fontSize: '11px', color: 'var(--text-faint)' }}>
-                        {new Date(t.opened_at).toLocaleDateString()}
-                      </td>
-                      <td className="mono" style={{ fontSize: '11px', color: 'var(--text-faint)' }}>
-                        {t.closed_at ? new Date(t.closed_at).toLocaleDateString() : '—'}
+                        <button className="cancel-btn" onClick={() => handleCancelOrder(o.id)}>Cancel</button>
                       </td>
                     </tr>
-                  )
-                })}
+                  ))
+                )}
               </tbody>
             </table>
           )}
-        </Card>
-      )}
 
-      {/* ── PERFORMANCE TAB ── */}
-      {tab === 'Performance' && (
-        <PerformanceDashboard curve={curve} stats={stats} />
-      )}
+          {activeTab === 'TRADE_HISTORY' && (
+            <table className="desk-table">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Pair</th>
+                  <th>Side</th>
+                  <th>Price</th>
+                  <th>Executed Amount</th>
+                  <th>Fee</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tradeHistory.length === 0 ? (
+                  <tr><td colSpan="6" className="empty-msg">No trades executed yet</td></tr>
+                ) : (
+                  tradeHistory.map(t => (
+                    <tr key={t.id}>
+                      <td>{new Date(t.created_at).toLocaleString()}</td>
+                      <td><b>{t.symbol}</b></td>
+                      <td className={t.side === 'BUY' ? 'pos' : 'neg'}>{t.side}</td>
+                      <td className="mono">${parseFloat(t.price).toFixed(2)}</td>
+                      <td className="mono">{parseFloat(t.amount).toFixed(4)}</td>
+                      <td className="mono">${parseFloat(t.fee).toFixed(4)}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          )}
+
+          {activeTab === 'BALANCES' && (
+            <table className="desk-table">
+              <thead>
+                <tr>
+                  <th>Asset</th>
+                  <th>Available Free</th>
+                  <th>Locked in Orders</th>
+                  <th>Total Balance</th>
+                </tr>
+              </thead>
+              <tbody>
+                {balances.map(b => (
+                  <tr key={b.asset}>
+                    <td><b>{b.asset}</b></td>
+                    <td className="mono">{parseFloat(b.free).toFixed(4)}</td>
+                    <td className="mono">{parseFloat(b.locked).toFixed(4)}</td>
+                    <td className="mono">{(parseFloat(b.free) + parseFloat(b.locked)).toFixed(4)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
     </div>
-  )
+  );
 }

@@ -1,0 +1,62 @@
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  user-select: none;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s;
+}
+
+.brand-logo:hover {
+  transform: scale(1.03);
+}
+
+.brand-logo-img {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(201, 162, 39, 0.3));
+  transition: filter 0.2s ease, transform 0.2s ease;
+}
+
+.brand-logo:hover .brand-logo-img {
+  filter: drop-shadow(0 4px 14px rgba(201, 162, 39, 0.55));
+}
+
+.brand-logo-text {
+  font-family: var(--serif, 'Fraunces', serif);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text, #f0f0f5);
+  line-height: 1;
+}
+
+.brand-logo-em {
+  font-style: italic;
+  color: var(--brass, #c9a227);
+  font-weight: 400;
+  margin-left: 1px;
+}
+
+/* Sizes */
+.brand-logo.logo-small .brand-logo-img {
+  height: 26px;
+}
+.brand-logo.logo-small .brand-logo-text {
+  font-size: 16px;
+}
+
+.brand-logo.logo-medium .brand-logo-img {
+  height: 34px;
+}
+.brand-logo.logo-medium .brand-logo-text {
+  font-size: 21px;
+}
+
+.brand-logo.logo-large .brand-logo-img {
+  height: 44px;
+}
+.brand-logo.logo-large .brand-logo-text {
+  font-size: 26px;
+}

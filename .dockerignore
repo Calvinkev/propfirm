@@ -1,0 +1,22 @@
+# Dependencies
+node_modules
+server/node_modules
+
+# Build artifacts
+dist
+
+# Dev configs
+.vscode
+.git
+.gitignore
+*.md
+
+# Environment files (secrets)
+server/.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# EA (MQL5 expert advisor — not needed in container)
+ea/

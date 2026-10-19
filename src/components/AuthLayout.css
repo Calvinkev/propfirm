@@ -1,0 +1,244 @@
+/* ── Desktop layout ─────────────────────────────────────── */
+.app {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border-soft);
+  padding: 26px 18px;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sb-logo {
+  font-family: var(--serif);
+  font-size: 19px;
+  padding: 0 10px 26px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.sb-logo .dot {
+  width: 6px;
+  height: 6px;
+  background: var(--brass);
+  border-radius: 50%;
+}
+
+.sb-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sb-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 7px;
+  font-size: 13.5px;
+  color: var(--text-muted);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.sb-link .ic {
+  width: 16px;
+  text-align: center;
+  font-family: var(--mono);
+  color: var(--text-faint);
+  flex-shrink: 0;
+}
+
+.sb-link:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.sb-link.active {
+  background: var(--surface-raised);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.sb-link.active .ic {
+  color: var(--brass);
+}
+
+.sb-foot {
+  margin-top: auto;
+  padding: 14px 12px;
+  border-top: 1px solid var(--border-soft);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.sb-foot .av {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--brass);
+  flex-shrink: 0;
+}
+
+.sb-foot b {
+  font-size: 12.5px;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sb-foot span {
+  font-size: 11px;
+  color: var(--text-faint);
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.main {
+  padding: 30px 40px 60px;
+  min-width: 0; /* prevent content overflow */
+}
+
+/* ── Mobile toggle button ───────────────────────────────── */
+.mobile-toggle {
+  display: none;
+  position: fixed;
+  bottom: 24px;
+  right: 20px;
+  width: 46px;
+  height: 46px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 1100;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+.mobile-toggle span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: transform 0.25s, opacity 0.25s, width 0.25s;
+}
+
+.mobile-toggle span:nth-child(2) {
+  width: 14px;
+  align-self: flex-start;
+  margin-left: 13px;
+}
+
+.mobile-toggle span:nth-child(3) {
+  width: 10px;
+  align-self: flex-start;
+  margin-left: 13px;
+}
+
+/* X state when open */
+.mobile-toggle.is-open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+  width: 20px;
+}
+
+.mobile-toggle.is-open span:nth-child(2) {
+  opacity: 0;
+  width: 20px;
+}
+
+.mobile-toggle.is-open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+  width: 20px;
+  margin-left: 13px;
+}
+
+/* ── Mobile breakpoint ──────────────────────────────────── */
+@media (max-width: 1100px) {
+  .app {
+    grid-template-columns: 1fr;
+  }
+
+  /* Sidebar hidden off-screen by default */
+  .sidebar {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    height: 100%;
+    width: min(300px, 85vw);
+    border-right: 1px solid var(--border);
+    box-shadow: 4px 0 40px rgba(0,0,0,0.5);
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .mobile-toggle {
+    display: flex;
+  }
+
+  .main {
+    padding: 20px 20px 100px; /* bottom padding so FAB doesn't cover content */
+  }
+}
+
+/* Backdrop overlay when menu is open */
+.mobile-backdrop {
+  display: none;
+}
+
+@media (max-width: 1100px) {
+  .mobile-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 999;
+    animation: fadeIn 0.2s;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Small phones ───────────────────────────────────────── */
+@media (max-width: 480px) {
+  .main {
+    padding: 16px 16px 100px;
+  }
+
+  .sb-foot b {
+    font-size: 12px;
+  }
+}

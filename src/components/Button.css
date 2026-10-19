@@ -1,0 +1,31 @@
+.btn {
+  font-family: var(--sans);
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  padding: 14px 28px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: 0.15s;
+  font-weight: 700;
+}
+
+.btn-brass {
+  background: var(--brass);
+  color: #14120A;
+}
+
+.btn-brass:hover {
+  background: var(--brass-bright);
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.btn-ghost:hover {
+  border-color: var(--brass-dim);
+}

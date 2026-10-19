@@ -1,0 +1,385 @@
+/* ── Normal (inline) chart ─────────────────────────────────────────────────── */
+.trading-chart {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  position: relative; /* stacking context so dropdown sits above canvas */
+  overflow: visible;  /* allow dropdown to escape the border-radius clip */
+}
+
+/* ── Fullscreen overlay ────────────────────────────────────────────────────── */
+.chart-fullscreen-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  background: var(--base);
+  display: flex;
+  flex-direction: column;
+  animation: fs-in 0.15s ease;
+}
+
+@keyframes fs-in {
+  from { opacity: 0; transform: scale(0.99); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.chart-fullscreen-inner {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Header ────────────────────────────────────────────────────────────────── */
+.chart-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-soft);
+  background: var(--surface);
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  position: relative;
+  z-index: 10; /* sit above the lightweight-charts canvas */
+}
+
+.chart-header::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Pair switcher ─────────────────────────────────────────────────────────── */
+.pair-switcher {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.pair-trigger {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  white-space: nowrap;
+}
+
+.pair-trigger:hover { border-color: var(--brass); }
+
+.pair-trigger-symbol {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.pair-cat-badge {
+  font-size: 9px;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.pair-chevron {
+  color: var(--text-faint);
+  transition: transform 0.15s;
+}
+
+.pair-trigger[aria-expanded="true"] .pair-chevron {
+  transform: rotate(180deg);
+}
+
+/* Dropdown menu — rendered as a portal on document.body */
+.pair-menu-portal {
+  position: fixed; /* fixed not absolute — anchored to viewport via JS coords */
+  z-index: 99999;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  min-width: 260px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.55);
+  overflow: hidden;
+  animation: menu-in 0.12s ease;
+  /* top/left set inline by JS getBoundingClientRect */
+}
+
+@keyframes menu-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.pair-group-label {
+  font-size: 9.5px;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+  padding: 10px 14px 6px;
+}
+
+.pair-group + .pair-group {
+  border-top: 1px solid var(--border-soft);
+}
+
+.pair-option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 9px 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  gap: 10px;
+  transition: background 0.1s;
+}
+
+.pair-option:hover        { background: var(--surface-hover); }
+.pair-option.active       { background: rgba(201,162,39,0.08); }
+.pair-option.active .po-symbol { color: var(--brass); }
+
+.po-symbol {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  min-width: 64px;
+}
+
+.po-name {
+  font-size: 11.5px;
+  color: var(--text-faint);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.po-price {
+  font-family: var(--mono);
+  font-size: 12px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* ── Bid / ask prices ──────────────────────────────────────────────────────── */
+.chart-prices {
+  display: flex;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+}
+
+.chart-bid,
+.chart-ask,
+.chart-spread {
+  font-size: 12px;
+  color: var(--text-faint);
+  font-family: var(--mono);
+  white-space: nowrap;
+}
+
+.chart-bid b  { color: var(--red); }
+.chart-ask b  { color: var(--green); }
+.chart-spread { font-size: 11px; }
+
+.chart-no-price {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+/* ── Resolution tabs ───────────────────────────────────────────────────────── */
+.chart-res-tabs {
+  display: flex;
+  gap: 2px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 2px;
+  flex-shrink: 0;
+}
+
+.res-btn {
+  padding: 3px 7px;
+  font-size: 11px;
+  font-family: var(--mono);
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  color: var(--text-faint);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.res-btn.active             { background: var(--border); color: var(--text); }
+.res-btn:hover:not(.active) { color: var(--text-muted); }
+
+/* ── Indicators button ─────────────────────────────────────────────────────── */
+.indicator-trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  white-space: nowrap;
+  font-size: 12px;
+  font-family: var(--mono);
+  color: var(--text-faint);
+}
+
+.indicator-trigger:hover { border-color: var(--brass); color: var(--text); }
+
+.indicator-menu-portal {
+  position: fixed;
+  z-index: 99999;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  min-width: 220px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.55);
+  overflow: hidden;
+  animation: menu-in 0.12s ease;
+}
+
+.indicator-group-label {
+  font-size: 9.5px;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+  padding: 10px 14px 6px;
+}
+
+.indicator-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 9px 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 12px;
+  font-family: var(--mono);
+  color: var(--text);
+  transition: background 0.1s;
+}
+
+.indicator-option:hover        { background: var(--surface-hover); }
+.indicator-option.active       { background: rgba(201,162,39,0.08); color: var(--brass); }
+
+.indicator-check {
+  color: var(--brass);
+  font-weight: 700;
+}
+
+/* ── Drawing tools button ───────────────────────────────────────────────────── */
+.drawing-trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  white-space: nowrap;
+  font-size: 12px;
+  font-family: var(--mono);
+  color: var(--text-faint);
+}
+
+.drawing-trigger:hover { border-color: var(--brass); color: var(--text); }
+.drawing-trigger.active { border-color: var(--brass); color: var(--brass); background: rgba(201,162,39,0.08); }
+
+.drawing-menu-portal {
+  position: fixed;
+  z-index: 99999;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  min-width: 200px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.55);
+  overflow: hidden;
+  animation: menu-in 0.12s ease;
+}
+
+/* ── Live status ───────────────────────────────────────────────────────────── */
+.chart-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-family: var(--mono);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.chart-status.live    { color: var(--green); }
+.chart-status.waiting { color: var(--text-faint); }
+
+.chart-status .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.chart-status.live .dot {
+  box-shadow: 0 0 0 2px rgba(62,207,142,0.25);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+/* ── Expand button ─────────────────────────────────────────────────────────── */
+.chart-expand-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text-faint);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.chart-expand-btn:hover {
+  border-color: var(--brass);
+  color: var(--brass);
+  background: var(--surface-hover);
+}
+
+/* ── Canvas ────────────────────────────────────────────────────────────────── */
+.chart-canvas {
+  width: 100%;
+  display: block;
+  position: relative;
+}
+
+.chart-fullscreen-inner .chart-canvas {
+  flex: 1;
+}

@@ -1,0 +1,48 @@
+:root {
+  --base: #0B0D0F;
+  --surface: #14171A;
+  --surface-raised: #1C2024;
+  --surface-hover: #20252A;
+  --border: #26292E;
+  --border-soft: #1E2226;
+  --brass: #C9A227;
+  --brass-bright: #E4C24A;
+  --brass-dim: #8A7220;
+  --green: #3ECF8E;
+  --green-dim: #1E4A38;
+  --red: #E5484D;
+  --red-dim: #4A2224;
+  --text: #F2F0EA;
+  --text-muted: #9A9DA3;
+  --text-faint: #5C5F65;
+  --serif: 'Fraunces', serif;
+  --sans: 'Inter', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--base);
+  color: var(--text);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.num {
+  font-family: var(--mono);
+}
+
+::selection {
+  background: var(--brass);
+  color: var(--base);
+}

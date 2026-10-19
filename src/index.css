@@ -65,3 +65,28 @@ a {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-faint);
 }
+
+/* ── Global Mobile Safety ───────────────────────────────────────────────── */
+
+/* Prevent horizontal overflow on all pages */
+html, body {
+  overflow-x: hidden;
+}
+
+/* Touch targets — minimum 44px for interactive elements */
+button, a, input, select {
+  touch-action: manipulation;
+}
+
+/* Make inputs/selects look consistent on iOS */
+input, select, textarea {
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 4px;
+}
+
+/* Prevent text size inflation on orientation change */
+body {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}

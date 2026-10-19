@@ -1,0 +1,194 @@
+.oh-page {
+  padding: 32px 24px;
+  background: var(--base);
+  min-height: calc(100vh - 64px);
+  color: var(--text);
+}
+
+.oh-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.oh-header h1 { font-size: 28px; font-weight: 800; }
+.oh-header p  { color: var(--text-muted); font-size: 14px; margin-top: 4px; }
+
+.oh-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.oh-stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.oh-stat-label { font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.05em; }
+.oh-stat-val   { font-family: var(--mono); font-size: 22px; font-weight: 700; }
+.oh-stat-val.pos { color: var(--green); }
+.oh-stat-val.neg { color: var(--red); }
+
+.oh-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.oh-tabs {
+  display: flex;
+  gap: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.oh-tab {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 2px solid transparent;
+}
+
+.oh-tab.active {
+  color: var(--binance-yellow);
+  background: var(--surface-raised);
+  border-bottom-color: var(--binance-yellow);
+}
+
+.oh-count {
+  background: var(--surface-raised);
+  color: var(--text-muted);
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+
+.oh-tab.active .oh-count {
+  background: rgba(240,185,11,0.15);
+  color: var(--binance-yellow);
+}
+
+.oh-filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.oh-search {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  color: var(--text);
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  width: 200px;
+}
+
+.oh-select {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  color: var(--text);
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.oh-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.oh-table-wrap { overflow-x: auto; }
+
+.oh-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
+.oh-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-faint);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.oh-table td {
+  padding: 13px 16px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border-soft);
+  white-space: nowrap;
+}
+
+.oh-table .mono { font-family: var(--mono); }
+.oh-table .neg  { color: var(--red); }
+
+.oh-empty, .oh-loading {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-faint);
+  font-size: 13px;
+}
+
+.side-badge {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-family: var(--mono);
+}
+
+.side-badge.buy  { background: var(--green-dim); color: var(--green); }
+.side-badge.sell { background: var(--red-dim); color: var(--red); }
+
+.status-pill {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-family: var(--mono);
+}
+
+.status-pill.new      { background: rgba(43,138,252,0.15); color: #2B8AFC; }
+.status-pill.partial  { background: rgba(240,185,11,0.15);  color: var(--binance-yellow); }
+.status-pill.filled   { background: var(--green-dim); color: var(--green); }
+.status-pill.canceled { background: var(--surface-raised); color: var(--text-faint); }
+
+@media (max-width: 900px) {
+  .oh-summary { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 600px) {
+  .oh-page { padding: 20px 14px; }
+  .oh-summary { grid-template-columns: 1fr; }
+  .oh-toolbar { flex-direction: column; align-items: stretch; }
+  .oh-filters { flex-direction: column; }
+  .oh-search  { width: 100%; }
+}

@@ -19,6 +19,7 @@ export default function TradingDesk() {
   const [openOrders, setOpenOrders] = useState([]);
   const [tradeHistory, setTradeHistory] = useState([]);
   const [activeTab, setActiveTab] = useState('OPEN_ORDERS');
+  const [mobileDeskTab, setMobileDeskTab] = useState('chart'); // 'chart' | 'orderbook' | 'order'
 
   // Spot Order form state
   const [orderSide, setOrderSide] = useState('BUY'); // BUY or SELL
@@ -114,11 +115,13 @@ export default function TradingDesk() {
 
     if (chartInstance.current) {
       chartInstance.current.remove();
+      chartInstance.current = null;
     }
 
-    const chart = createChart(chartContainerRef.current, {
-      width: chartContainerRef.current.clientWidth,
-      height: chartContainerRef.current.clientHeight,
+    const container = chartContainerRef.current;
+
+    const chart = createChart(container, {
+      autoSize: true,
       layout: {
         background: { color: '#181A20' },
         textColor: '#848E9C',
@@ -144,24 +147,16 @@ export default function TradingDesk() {
     chartInstance.current = chart;
     candleSeries.current = series;
 
-    // Fetch initial candles
     api.getChartCandles(symbol, '1h').then(res => {
-      if (res.candles) {
-        series.setData(res.candles);
-      }
+      if (res.candles) series.setData(res.candles);
     });
 
-    const handleResize = () => {
-      if (chartInstance.current && chartContainerRef.current) {
-        chartInstance.current.applyOptions({
-          width: chartContainerRef.current.clientWidth,
-          height: chartContainerRef.current.clientHeight
-        });
+    return () => {
+      if (chartInstance.current) {
+        chartInstance.current.remove();
+        chartInstance.current = null;
       }
     };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
   }, [symbol]);
 
   // Percentage slider logic
@@ -261,10 +256,28 @@ export default function TradingDesk() {
         </div>
       </div>
 
+      {/* Mobile tab switcher — hidden on desktop via CSS, shown on mobile */}
+      <div className="mobile-desk-tabs">
+        {[
+          { key: 'chart', label: 'Chart' },
+          { key: 'orderbook', label: 'Order Book' },
+          { key: 'order', label: 'Place Order' },
+        ].map(t => (
+          <button
+            key={t.key}
+            className={`mobile-desk-tab ${mobileDeskTab === t.key ? 'active' : ''}`}
+            onClick={() => setMobileDeskTab(t.key)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
       {/* Main Workspace */}
       <div className="desk-main-grid">
+
         {/* Left Column: Order Book Depth */}
-        <div className="orderbook-col">
+        <div className={`orderbook-col${mobileDeskTab === 'orderbook' ? ' mobile-visible' : ''}`}>
           <div className="col-header">Order Book</div>
           <div className="ob-table-header">
             <span>Price(USDT)</span>
@@ -298,7 +311,7 @@ export default function TradingDesk() {
         </div>
 
         {/* Center Column: Lightweight Chart */}
-        <div className="chart-col">
+        <div className={`chart-col${mobileDeskTab === 'chart' ? ' mobile-visible' : ''}`}>
           <div className="chart-header">
             <span>TradingView Chart</span>
           </div>
@@ -306,7 +319,7 @@ export default function TradingDesk() {
         </div>
 
         {/* Right Column: Binance Spot Order Panel */}
-        <div className="order-panel-col">
+        <div className={`order-panel-col${mobileDeskTab === 'order' ? ' mobile-visible' : ''}`}>
           <div className="order-tabs">
             <button
               className={`side-tab buy ${orderSide === 'BUY' ? 'active' : ''}`}

@@ -200,3 +200,112 @@
   color: var(--text-muted);
   line-height: 1.6;
 }
+
+/* Landing Footer */
+.landing-footer {
+  background-color: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* ── Mobile Responsive ──────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .landing-nav {
+    height: 60px;
+  }
+
+  .nav-container {
+    padding: 0 16px;
+  }
+
+  .landing-brand-text {
+    font-size: 16px;
+  }
+
+  .yellow-badge {
+    display: none;
+  }
+
+  .hero-section {
+    padding: 48px 16px;
+  }
+
+  .hero-title {
+    font-size: 34px;
+    line-height: 1.2;
+  }
+
+  .hero-sub {
+    font-size: 15px;
+    margin-top: 14px;
+  }
+
+  .btn-hero-signup {
+    font-size: 14px;
+    padding: 12px 24px;
+    display: block;
+    text-align: center;
+  }
+
+  .markets-ticker-section {
+    padding: 40px 16px;
+  }
+
+  .section-title {
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  .markets-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .market-card {
+    padding: 14px;
+    gap: 8px;
+  }
+
+  .card-price {
+    font-size: 17px;
+  }
+
+  .features-section {
+    padding: 48px 16px;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .feature-item {
+    padding: 24px;
+  }
+
+  .feature-icon {
+    font-size: 28px;
+  }
+
+  .feature-item h3 {
+    font-size: 17px;
+  }
+
+  .nav-actions {
+    gap: 8px;
+  }
+
+  .btn-login {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+
+  .btn-register {
+    padding: 6px 14px;
+    font-size: 13px;
+  }
+}

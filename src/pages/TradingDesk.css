@@ -153,6 +153,7 @@
   background-color: var(--base);
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
 .chart-header {
@@ -164,11 +165,14 @@
   align-items: center;
   color: var(--text-muted);
   font-weight: 600;
+  flex-shrink: 0;
 }
 
 .chart-container {
   flex: 1;
   width: 100%;
+  min-height: 0;
+  position: relative;
 }
 
 /* Order Panel Column */
@@ -380,3 +384,143 @@
 
 .pos { color: var(--green); }
 .neg { color: var(--red); }
+
+/* ── Mobile Responsive ──────────────────────────────────────────────────── */
+
+/* Mobile tab switcher for the 3-column grid */
+.mobile-desk-tabs {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  /* Pair bar: stack pair name + ticker vertically */
+  .pair-bar {
+    height: auto;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .pair-select-group {
+    gap: 10px;
+    width: 100%;
+  }
+
+  .pair-dropdown {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex: 1;
+    gap: 4px;
+  }
+
+  .pair-btn {
+    white-space: nowrap;
+  }
+
+  .ticker-stats {
+    width: 100%;
+    gap: 12px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+
+  .stat {
+    min-width: 70px;
+  }
+
+  /* Show the mobile tab switcher */
+  .mobile-desk-tabs {
+    display: flex;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .mobile-desk-tab {
+    flex: 1;
+    padding: 10px 0;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+  }
+
+  .mobile-desk-tab.active {
+    color: var(--binance-yellow);
+    border-bottom-color: var(--binance-yellow);
+  }
+
+  /* Stack the 3-column grid into full-width panels, controlled by JS */
+  .desk-main-grid {
+    display: block;
+    height: auto;
+  }
+
+  .orderbook-col,
+  .chart-col,
+  .order-panel-col {
+    display: none;
+    width: 100%;
+    border: none;
+  }
+
+  .orderbook-col.mobile-visible,
+  .chart-col.mobile-visible,
+  .order-panel-col.mobile-visible {
+    display: flex;
+  }
+
+  .chart-col.mobile-visible {
+    min-height: 340px;
+  }
+
+  .orderbook-col {
+    max-height: 420px;
+  }
+
+  /* Order panel col fills nicely */
+  .order-panel-col {
+    padding: 16px;
+  }
+
+  /* Bottom panel full width */
+  .desk-bottom-panel {
+    min-height: 240px;
+  }
+
+  .bottom-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .desk-table {
+    min-width: 500px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pair-name {
+    font-size: 14px;
+  }
+
+  .stat-label {
+    font-size: 9px;
+  }
+
+  .stat-value {
+    font-size: 12px;
+  }
+
+  .stat-value.yellow {
+    font-size: 13px;
+  }
+
+  .bottom-tab {
+    padding: 10px 10px;
+    font-size: 12px;
+  }
+}

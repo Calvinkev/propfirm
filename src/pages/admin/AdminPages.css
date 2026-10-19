@@ -343,121 +343,100 @@
   .admin-grid-2,
   .admin-grid-3,
   .admin-grid-4 {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 }
 
 @media (max-width: 768px) {
-  .admin-page {
-    padding: 20px;
-  }
   .admin-topbar {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
     margin-bottom: 20px;
   }
+
   .admin-topbar h1 {
     font-size: 22px;
   }
+
   .admin-actions {
-    flex-direction: column;
-    width: 100%;
+    flex-wrap: wrap;
     gap: 8px;
-  }
-  .admin-actions input,
-  .admin-actions select {
     width: 100%;
   }
-  .admin-actions button {
-    width: 100%;
+
+  .search-input,
+  .filter-select {
+    flex: 1;
+    min-width: 0;
   }
+
   .admin-grid-2,
   .admin-grid-3,
   .admin-grid-4 {
-    gap: 14px;
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
+
   .admin-kpi {
     padding: 16px;
   }
+
   .admin-kpi .val {
     font-size: 22px;
   }
+
   .admin-panel {
-    padding: 18px;
+    padding: 16px;
   }
+
   .panel-head {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 8px;
   }
-  .panel-head h3 {
-    font-size: 14px;
-  }
+
   .table-filters {
-    width: 100%;
+    flex-wrap: wrap;
+    gap: 6px;
   }
+
+  /* Horizontally scrollable admin tables */
+  .admin-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .admin-table {
+    min-width: 580px;
     font-size: 12px;
   }
+
   .admin-table th,
   .admin-table td {
-    padding: 8px;
-  }
-  .user-cell {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-  }
-  .user-avatar {
-    margin-bottom: 6px;
-  }
-  .admin-table {
-    display: block;
-    overflow-x: auto;
-  }
-  .admin-table thead,
-  .admin-table tbody {
-    display: block;
-  }
-  .admin-table tr {
-    display: block;
-  }
-  .admin-table th,
-  .admin-table td {
-    display: block;
-    padding: 8px;
+    padding: 10px 8px;
     white-space: nowrap;
   }
-  .admin-table td {
-    border-top: none;
-    border-bottom: 1px solid var(--border-soft);
+
+  .user-cell {
+    min-width: 130px;
   }
-  .action-buttons {
-    flex-direction: column;
-    gap: 6px;
+
+  .user-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
   }
-  .progress-mini {
-    width: 40px;
-  }
+
   .settings-section {
     gap: 12px;
   }
-  .setting-item label {
-    font-size: 12px;
-  }
+
   .setting-input,
   .setting-select {
     width: 100%;
   }
-  .input-group {
-    flex-direction: column;
-    gap: 4px;
-  }
-  .input-prefix,
-  .input-suffix {
-    margin: 0;
-  }
+
   .checkbox-group label {
     font-size: 12px;
   }

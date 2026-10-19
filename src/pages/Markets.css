@@ -121,3 +121,69 @@
   border-radius: 4px;
   font-size: 13px;
 }
+
+/* ── Mobile Responsive ──────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .markets-page {
+    padding: 20px 14px;
+  }
+
+  .markets-header h1 {
+    font-size: 22px;
+  }
+
+  .markets-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .filter-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 6px;
+    padding-bottom: 4px;
+  }
+
+  .filter-btn {
+    padding: 7px 12px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .search-box input {
+    width: 100%;
+  }
+
+  .markets-table-wrapper {
+    margin-top: 14px;
+    border-radius: 4px;
+  }
+
+  /* Hide lower-priority columns on mobile */
+  .markets-table th:nth-child(4),
+  .markets-table td:nth-child(4) {
+    display: none;
+  }
+
+  .markets-table th,
+  .markets-table td {
+    padding: 12px 10px;
+    font-size: 13px;
+  }
+
+  .table-trade-btn {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* On very small screens also hide volume column */
+  .markets-table th:nth-child(3),
+  .markets-table td:nth-child(3) {
+    display: none;
+  }
+}

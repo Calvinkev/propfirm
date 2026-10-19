@@ -396,6 +396,80 @@
   .admin-grid-2,
   .admin-grid-3,
   .admin-grid-4 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .admin-topbar h1 {
+    font-size: 22px;
+  }
+
+  .admin-grid-2,
+  .admin-grid-3,
+  .admin-grid-4 {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .admin-kpi {
+    padding: 16px;
+  }
+
+  .admin-kpi .val {
+    font-size: 22px;
+  }
+
+  .admin-panel {
+    padding: 16px;
+  }
+
+  .panel-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .revenue-meta {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .payout-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .payout-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  /* Horizontally scrollable tables */
+  .admin-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-table {
+    min-width: 540px;
+  }
+
+  .user-cell {
+    gap: 8px;
+  }
+
+  .user-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
   }
 }

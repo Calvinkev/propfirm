@@ -40,15 +40,27 @@ export const initDatabase = async () => {
         id INT AUTO_INCREMENT PRIMARY KEY,
         symbol VARCHAR(20) NOT NULL UNIQUE,
         display_name VARCHAR(100) NOT NULL,
-        base_asset VARCHAR(10) NOT NULL,
-        quote_asset VARCHAR(10) NOT NULL,
-        pip_size DECIMAL(18, 8) NOT NULL DEFAULT 0.01000000,
-        contract_size DECIMAL(18, 8) NOT NULL DEFAULT 1.00000000,
-        min_order_size DECIMAL(18, 8) NOT NULL DEFAULT 0.00010000,
-        spread_pips DECIMAL(18, 8) NOT NULL DEFAULT 0.00000000,
+        base_asset VARCHAR(20) NOT NULL DEFAULT '',
+        quote_asset VARCHAR(20) NOT NULL DEFAULT 'USDT',
+        category ENUM('forex', 'crypto', 'indices') DEFAULT 'crypto',
+        pip_size DECIMAL(10, 8) NOT NULL DEFAULT 0.01000000,
+        contract_size DECIMAL(15, 2) NOT NULL DEFAULT 1.00,
+        min_order_size DECIMAL(15, 8) NOT NULL DEFAULT 0.00010000,
+        spread_pips DECIMAL(8, 4) NOT NULL DEFAULT 1.0000,
         is_active TINYINT(1) NOT NULL DEFAULT 1
       )
     `);
+
+    // Add missing columns to instruments if upgrading from old schema
+    const alterCols = [
+      `ALTER TABLE instruments ADD COLUMN IF NOT EXISTS base_asset VARCHAR(20) NOT NULL DEFAULT ''`,
+      `ALTER TABLE instruments ADD COLUMN IF NOT EXISTS quote_asset VARCHAR(20) NOT NULL DEFAULT 'USDT'`,
+      `ALTER TABLE instruments ADD COLUMN IF NOT EXISTS min_order_size DECIMAL(15,8) NOT NULL DEFAULT 0.00010000`,
+      `ALTER TABLE instruments MODIFY COLUMN contract_size DECIMAL(15,2) NOT NULL DEFAULT 1.00`,
+    ];
+    for (const sql of alterCols) {
+      try { await connection.query(sql); } catch (_) {}
+    }
 
     // ── PRICE TICKS TABLE ────────────────────────────────────────────────
     await connection.query(`

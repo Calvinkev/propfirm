@@ -216,6 +216,20 @@ router.post('/order', auth, async (req, res) => {
   }
 });
 
+// Get all orders (full history including filled/canceled)
+router.get('/all-orders', auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const [orders] = await pool.query(
+      `SELECT * FROM crypto_orders WHERE user_id = ? ORDER BY created_at DESC LIMIT 200`,
+      [userId]
+    );
+    res.json({ orders });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch orders' });
+  }
+});
+
 // Get user open orders
 router.get('/open-orders', auth, async (req, res) => {
   try {

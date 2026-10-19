@@ -7,7 +7,7 @@ let instrumentCache = {};
 async function loadInstruments() {
   try {
     const [rows] = await pool.query(
-      'SELECT id, symbol, base_asset, quote_asset, pip_size, contract_size, spread_pips FROM instruments WHERE is_active = 1'
+      'SELECT id, symbol, category, pip_size, contract_size, spread_pips FROM instruments WHERE is_active = 1'
     );
     rows.forEach(r => {
       instrumentCache[r.symbol] = r;

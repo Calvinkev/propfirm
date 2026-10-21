@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
+import Icon from '../components/Icon';
 import './Profile.css';
 
 export default function Profile() {
@@ -68,7 +69,11 @@ export default function Profile() {
             <h1>{u.firstName} {u.lastName}</h1>
             <span className="pr-email">{u.email}</span>
             <div className="pr-badges">
-              <span className={`pr-role-badge ${u.role}`}>{u.role === 'admin' ? '👑 Admin' : '👤 Trader'}</span>
+              <span className={`pr-role-badge ${u.role}`}>
+                {u.role === 'admin'
+                  ? <><Icon name="crown" size={12} /> Admin</>
+                  : <><Icon name="user" size={12} /> Trader</>}
+              </span>
               <span className="pr-member-badge">Member {memberDays} days</span>
             </div>
           </div>
@@ -160,31 +165,22 @@ export default function Profile() {
             <div className="pr-security-list">
               <div className="pr-sec-item">
                 <div className="pr-sec-left">
-                  <span className="pr-sec-icon ok">✓</span>
-                  <div>
-                    <b>Email Verified</b>
-                    <span>Your email address is verified</span>
-                  </div>
+                  <span className="pr-sec-icon ok"><Icon name="check" size={13} color="var(--green)" /></span>
+                  <div><b>Email Verified</b><span>Your email address is verified</span></div>
                 </div>
                 <span className="pr-sec-badge ok">Active</span>
               </div>
               <div className="pr-sec-item">
                 <div className="pr-sec-left">
-                  <span className="pr-sec-icon ok">✓</span>
-                  <div>
-                    <b>Password</b>
-                    <span>Strong password set</span>
-                  </div>
+                  <span className="pr-sec-icon ok"><Icon name="check" size={13} color="var(--green)" /></span>
+                  <div><b>Password</b><span>Strong password set</span></div>
                 </div>
                 <span className="pr-sec-badge ok">Set</span>
               </div>
               <div className="pr-sec-item">
                 <div className="pr-sec-left">
-                  <span className="pr-sec-icon warn">!</span>
-                  <div>
-                    <b>Two-Factor Authentication</b>
-                    <span>Add an extra layer of protection</span>
-                  </div>
+                  <span className="pr-sec-icon warn"><Icon name="warning" size={13} color="var(--binance-yellow)" /></span>
+                  <div><b>Two-Factor Authentication</b><span>Add an extra layer of protection</span></div>
                 </div>
                 <span className="pr-sec-badge warn">Not Set</span>
               </div>
@@ -197,7 +193,7 @@ export default function Profile() {
           <div className="pr-card">
             <h2>API Key Management</h2>
             <div className="pr-api-info">
-              <div className="pr-api-icon">🔑</div>
+              <div className="pr-api-icon"><Icon name="key" size={28} color="var(--binance-yellow)" /></div>
               <p>Create API keys to connect third-party trading bots, portfolio trackers, or custom algorithms to your STAKEUP account.</p>
               <ul>
                 <li>Read-only keys can view balances and order history</li>

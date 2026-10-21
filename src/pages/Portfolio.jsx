@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
+import CryptoIcon from '../components/CryptoIcon';
 import './Portfolio.css';
 
 const PRICE_MAP = {
@@ -139,7 +140,12 @@ export default function Portfolio() {
                   const usd = (parseFloat(b.free) + parseFloat(b.locked)) * (PRICE_MAP[b.asset] || 1);
                   return (
                     <tr key={b.asset}>
-                      <td><b>{b.asset}</b></td>
+                      <td>
+                        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                          <CryptoIcon symbol={b.asset} size={20} />
+                          <b>{b.asset}</b>
+                        </div>
+                      </td>
                       <td className="mono">{parseFloat(b.free).toFixed(6)}</td>
                       <td className="mono">{parseFloat(b.locked).toFixed(6)}</td>
                       <td className="mono">${usd.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
@@ -169,7 +175,12 @@ export default function Portfolio() {
                 <tbody>
                   {earnPos.filter(p => p.status === 'active').map(p => (
                     <tr key={p.id}>
-                      <td><b>{p.asset}</b></td>
+                      <td>
+                        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                          <CryptoIcon symbol={p.asset} size={20} />
+                          <b>{p.asset}</b>
+                        </div>
+                      </td>
                       <td><span className={`earn-type ${p.type}`}>{p.type}</span></td>
                       <td className="mono pos">{p.apy}%</td>
                       <td className="mono">{parseFloat(p.amount).toFixed(6)}</td>

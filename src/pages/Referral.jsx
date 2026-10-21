@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
+import Icon from '../components/Icon';
 import './Referral.css';
 
 export default function Referral() {
@@ -42,7 +43,9 @@ export default function Referral() {
         {/* Hero Banner */}
         <div className="ref-hero">
           <div className="ref-hero-left">
-            <div className="ref-hero-icon">🎁</div>
+            <div className="ref-hero-icon">
+              <Icon name="gift" size={36} color="var(--binance-yellow)" />
+            </div>
             <h2>Earn up to <span className="yellow">20% Commission</span></h2>
             <p>For every friend you refer who trades on STAKEUP, you earn a percentage of their trading fees — forever.</p>
           </div>
@@ -97,7 +100,7 @@ export default function Referral() {
             <div className="ref-link-box">
               <span className="ref-link-text">{info?.referralLink ?? '...'}</span>
               <button className="copy-btn" onClick={copyLink}>
-                {copied ? '✓ Copied' : 'Copy'}
+                {copied ? <><Icon name="check" size={13} /> Copied</> : <><Icon name="copy" size={13} /> Copy</>}
               </button>
             </div>
             <div className="ref-share-row">

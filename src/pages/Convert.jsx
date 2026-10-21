@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
+import CryptoIcon from '../components/CryptoIcon';
+import Icon from '../components/Icon';
 import './Convert.css';
 
 const ASSETS = ['USDT', 'BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'ADA'];
@@ -98,16 +100,14 @@ export default function Convert() {
             <div className="swap-section">
               <label className="swap-label">From</label>
               <div className="swap-row">
-                <select className="asset-select" value={fromAsset} onChange={e => { setFromAsset(e.target.value); setQuote(null); }}>
-                  {ASSETS.filter(a => a !== toAsset).map(a => <option key={a} value={a}>{a}</option>)}
-                </select>
-                <input
-                  type="number"
-                  className="swap-input"
-                  placeholder="0.00"
-                  value={amount}
-                  onChange={e => { setAmount(e.target.value); setQuote(null); }}
-                />
+                <div className="swap-asset-left">
+                  <CryptoIcon symbol={fromAsset} size={26} />
+                  <select className="asset-select" value={fromAsset} onChange={e => { setFromAsset(e.target.value); setQuote(null); }}>
+                    {ASSETS.filter(a => a !== toAsset).map(a => <option key={a} value={a}>{a}</option>)}
+                  </select>
+                </div>
+                <input type="number" className="swap-input" placeholder="0.00" value={amount}
+                  onChange={e => { setAmount(e.target.value); setQuote(null); }} />
               </div>
               <div className="swap-balance">
                 Available: <span className="mono">{getBalance(fromAsset).toFixed(6)} {fromAsset}</span>
@@ -116,15 +116,20 @@ export default function Convert() {
             </div>
 
             <div className="swap-arrow-row">
-              <button className="swap-arrow-btn" onClick={handleSwap} title="Swap direction">⇅</button>
+            <button className="swap-arrow-btn" onClick={handleSwap} title="Swap direction">
+              <Icon name="arrowsSwap" size={18} />
+            </button>
             </div>
 
             <div className="swap-section">
               <label className="swap-label">To</label>
               <div className="swap-row">
-                <select className="asset-select" value={toAsset} onChange={e => { setToAsset(e.target.value); setQuote(null); }}>
-                  {ASSETS.filter(a => a !== fromAsset).map(a => <option key={a} value={a}>{a}</option>)}
-                </select>
+                <div className="swap-asset-left">
+                  <CryptoIcon symbol={toAsset} size={26} />
+                  <select className="asset-select" value={toAsset} onChange={e => { setToAsset(e.target.value); setQuote(null); }}>
+                    {ASSETS.filter(a => a !== fromAsset).map(a => <option key={a} value={a}>{a}</option>)}
+                  </select>
+                </div>
                 <div className="swap-input estimated">
                   {quote ? parseFloat(quote.toAmount).toFixed(8) : '—'}
                 </div>
@@ -167,17 +172,17 @@ export default function Convert() {
           {/* Right: Info panel */}
           <div className="convert-info">
             <div className="info-card">
-              <div className="info-icon">⚡</div>
+              <div className="info-icon-wrap"><Icon name="lightning" size={22} color="var(--binance-yellow)" /></div>
               <h3>Instant Execution</h3>
               <p>Conversions execute at real-time market prices with zero order book slippage.</p>
             </div>
             <div className="info-card">
-              <div className="info-icon">💰</div>
+              <div className="info-icon-wrap"><Icon name="currency" size={22} color="var(--binance-yellow)" /></div>
               <h3>Low Fees</h3>
               <p>0.1% flat conversion fee across all asset pairs. No hidden charges.</p>
             </div>
             <div className="info-card">
-              <div className="info-icon">🔒</div>
+              <div className="info-icon-wrap"><Icon name="lock" size={22} color="var(--binance-yellow)" /></div>
               <h3>Quote Lock</h3>
               <p>Prices are locked for 10 seconds so you know exactly what you'll receive.</p>
             </div>

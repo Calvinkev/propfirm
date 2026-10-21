@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, Navigate } from 'react-router-dom'
 import Button from '../components/Button'
+import Icon from '../components/Icon'
 import { api } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import Logo from '../components/Logo'
@@ -157,7 +158,7 @@ export default function Register() {
 
           {error && (
             <div className="auth-error-alert">
-              <span>⚠️</span>
+              <Icon name="warning" size={16} color="var(--red)" />
               <div>{error}</div>
             </div>
           )}
@@ -167,34 +168,17 @@ export default function Register() {
               <div className="auth-input-group">
                 <label className="auth-label">First Name</label>
                 <div className="auth-input-wrapper">
-                  <span className="auth-input-icon">👤</span>
-                  <input
-                    type="text"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    placeholder="Alex"
-                    required
-                    autoComplete="given-name"
-                    className="auth-input"
-                  />
+                  <span className="auth-input-icon"><Icon name="user" size={15} /></span>
+                  <input type="text" name="firstName" value={formData.firstName}
+                    onChange={handleChange} placeholder="Alex" required autoComplete="given-name" className="auth-input" />
                 </div>
               </div>
-
               <div className="auth-input-group">
                 <label className="auth-label">Last Name</label>
                 <div className="auth-input-wrapper">
-                  <span className="auth-input-icon">👤</span>
-                  <input
-                    type="text"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    placeholder="Rivera"
-                    required
-                    autoComplete="family-name"
-                    className="auth-input"
-                  />
+                  <span className="auth-input-icon"><Icon name="user" size={15} /></span>
+                  <input type="text" name="lastName" value={formData.lastName}
+                    onChange={handleChange} placeholder="Rivera" required autoComplete="family-name" className="auth-input" />
                 </div>
               </div>
             </div>
@@ -202,42 +186,22 @@ export default function Register() {
             <div className="auth-input-group">
               <label className="auth-label">Email Address</label>
               <div className="auth-input-wrapper">
-                <span className="auth-input-icon">✉</span>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="alex@example.com"
-                  required
-                  autoComplete="email"
-                  className="auth-input"
-                />
+                <span className="auth-input-icon"><Icon name="mail" size={15} /></span>
+                <input type="email" name="email" value={formData.email}
+                  onChange={handleChange} placeholder="alex@example.com" required autoComplete="email" className="auth-input" />
               </div>
             </div>
 
             <div className="auth-input-group">
               <label className="auth-label">Password</label>
               <div className="auth-input-wrapper">
-                <span className="auth-input-icon">🔒</span>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="Min. 6 characters"
-                  required
-                  minLength="6"
-                  autoComplete="new-password"
-                  className="auth-input"
-                />
-                <button
-                  type="button"
-                  className="auth-password-toggle"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label="Toggle password visibility"
-                >
-                  {showPassword ? '🙈' : '👁'}
+                <span className="auth-input-icon"><Icon name="lock" size={15} /></span>
+                <input type={showPassword ? 'text' : 'password'} name="password" value={formData.password}
+                  onChange={handleChange} placeholder="Min. 6 characters" required minLength="6"
+                  autoComplete="new-password" className="auth-input" />
+                <button type="button" className="auth-password-toggle"
+                  onClick={() => setShowPassword(!showPassword)} aria-label="Toggle password visibility">
+                  <Icon name={showPassword ? 'eyeOff' : 'eye'} size={16} />
                 </button>
               </div>
 

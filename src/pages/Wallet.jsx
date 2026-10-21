@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
+import CryptoIcon from '../components/CryptoIcon';
+import Icon from '../components/Icon';
 import './Wallet.css';
 
 export default function Wallet() {
@@ -159,24 +161,17 @@ export default function Wallet() {
               {balances.map(b => (
                 <tr key={b.asset}>
                   <td>
-                    <span className="asset-code">{b.asset}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <CryptoIcon symbol={b.asset} size={22} />
+                      <span className="asset-code">{b.asset}</span>
+                    </div>
                   </td>
                   <td className="mono">{parseFloat(b.free).toFixed(4)}</td>
                   <td className="mono">{parseFloat(b.locked).toFixed(4)}</td>
                   <td className="mono">{(parseFloat(b.free) + parseFloat(b.locked)).toFixed(4)}</td>
                   <td style={{ textAlign: 'right' }}>
-                    <button
-                      className="table-act-btn"
-                      onClick={() => { setSelectedCoin(b.asset); setShowDepositModal(true); }}
-                    >
-                      Deposit
-                    </button>
-                    <button
-                      className="table-act-btn"
-                      onClick={() => { setSelectedCoin(b.asset); setShowWithdrawModal(true); }}
-                    >
-                      Withdraw
-                    </button>
+                    <button className="table-act-btn" onClick={() => { setSelectedCoin(b.asset); setShowDepositModal(true); }}>Deposit</button>
+                    <button className="table-act-btn" onClick={() => { setSelectedCoin(b.asset); setShowWithdrawModal(true); }}>Withdraw</button>
                   </td>
                 </tr>
               ))}
@@ -256,8 +251,13 @@ export default function Wallet() {
         <div className="modal-backdrop">
           <div className="wallet-modal">
             <div className="modal-header">
-              <h3>Deposit {selectedCoin}</h3>
-              <button className="close-btn" onClick={() => setShowDepositModal(false)}>✕</button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <CryptoIcon symbol={selectedCoin} size={26} />
+                <h3>Deposit {selectedCoin}</h3>
+              </div>
+              <button className="close-btn" onClick={() => setShowDepositModal(false)}>
+                <Icon name="close" size={18} />
+              </button>
             </div>
             <form onSubmit={handleDepositSubmit} className="modal-body">
               <div className="modal-field">
@@ -315,8 +315,13 @@ export default function Wallet() {
         <div className="modal-backdrop">
           <div className="wallet-modal">
             <div className="modal-header">
-              <h3>Withdraw {selectedCoin}</h3>
-              <button className="close-btn" onClick={() => setShowWithdrawModal(false)}>✕</button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <CryptoIcon symbol={selectedCoin} size={26} />
+                <h3>Withdraw {selectedCoin}</h3>
+              </div>
+              <button className="close-btn" onClick={() => setShowWithdrawModal(false)}>
+                <Icon name="close" size={18} />
+              </button>
             </div>
             <form onSubmit={handleWithdrawSubmit} className="modal-body">
               <div className="modal-field">

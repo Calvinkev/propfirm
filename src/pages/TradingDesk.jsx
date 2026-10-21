@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { wsService } from '../services/websocket';
 import { createChart } from 'lightweight-charts';
+import CryptoIcon from '../components/CryptoIcon';
 import './TradingDesk.css';
 
 const PAIRS = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT', 'DOGEUSDT', 'ADAUSDT'];
@@ -222,6 +223,7 @@ export default function TradingDesk() {
       {/* Top Pair Selector Header */}
       <div className="pair-bar">
         <div className="pair-select-group">
+          <CryptoIcon symbol={baseAsset} size={28} />
           <span className="pair-name">{symbol.replace('USDT', '/USDT')}</span>
           <div className="pair-dropdown">
             {PAIRS.map(p => (

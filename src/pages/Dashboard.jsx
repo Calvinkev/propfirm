@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Card from '../components/Card'
 import Button from '../components/Button'
+import Icon from '../components/Icon'
 import { api } from '../services/api'
 import { wsService } from '../services/websocket'
 import { useAuth } from '../context/AuthContext'
@@ -224,7 +225,9 @@ export default function Dashboard() {
 
         <div className="onboarding-hero">
           <div className="onboarding-content">
-            <div className="onboarding-icon">⚡</div>
+            <div className="onboarding-icon">
+              <Icon name="lightning" size={32} color="var(--binance-yellow)" />
+            </div>
             <h2>Start your first challenge</h2>
             <p>
               Choose an account size, pass the objectives, and trade our capital —
@@ -453,7 +456,11 @@ export default function Dashboard() {
       {/* Alerts */}
       {(dailyLossPct >= 80 || drawdownPct >= 80) && (
         <Card className="panel">
-          <div className="panel-head"><h3>⚠ Breach Alerts</h3></div>
+          <div className="panel-head">
+            <h3 style={{ display:'flex', alignItems:'center', gap:6 }}>
+              <Icon name="warning" size={16} color="var(--binance-yellow)" /> Breach Alerts
+            </h3>
+          </div>
           <div style={{ paddingTop: '8px' }}>
             {dailyLossPct >= 80 && (
               <div style={{ color: 'var(--red)', padding: '14px', border: '1px solid var(--red)', borderRadius: '8px', marginBottom: '10px', fontSize: '13.5px' }}>

@@ -78,6 +78,17 @@
   opacity: 0.7;
 }
 
+.nav-caret-icon {
+  margin-left: 4px;
+  opacity: 0.6;
+  vertical-align: middle;
+}
+
+.mobile-nav-icon {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
 /* Dropdown */
 .nav-dropdown-wrap {
   position: relative;
@@ -299,6 +310,9 @@
     font-weight: 500;
     border-radius: 6px;
     font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
   .mobile-nav-link.active {
     background-color: var(--surface-raised);
@@ -326,6 +340,9 @@
     font-size: 15px;
     cursor: pointer;
     margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
 
   .binance-navbar {

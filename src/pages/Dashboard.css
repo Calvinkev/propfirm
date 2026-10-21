@@ -344,8 +344,14 @@ td.mono {
 }
 
 .onboarding-icon {
-  font-size: 36px;
-  line-height: 1;
+  width: 60px;
+  height: 60px;
+  border-radius: 14px;
+  background: rgba(240, 185, 11, 0.1);
+  border: 1px solid rgba(240, 185, 11, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .onboarding-content h2 {

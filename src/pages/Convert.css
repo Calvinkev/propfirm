@@ -66,16 +66,24 @@
   padding: 4px 12px 4px 4px;
 }
 
-.asset-select {
+.swap-asset-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   background: var(--surface-hover);
+  border-radius: 6px;
+  padding: 6px 8px 6px 8px;
+}
+
+.asset-select {
+  background: transparent;
   border: none;
   color: var(--text);
   font-weight: 700;
   font-size: 15px;
-  padding: 10px 12px;
-  border-radius: 6px;
   cursor: pointer;
-  min-width: 90px;
+  min-width: 60px;
+  padding: 0;
 }
 
 .swap-input {
@@ -218,9 +226,16 @@
   padding: 20px;
 }
 
-.info-icon {
-  font-size: 24px;
-  margin-bottom: 10px;
+.info-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: rgba(240, 185, 11, 0.1);
+  border: 1px solid rgba(240, 185, 11, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
 }
 
 .info-card h3 {

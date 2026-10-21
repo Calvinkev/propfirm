@@ -3,6 +3,8 @@ import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { createChart } from 'lightweight-charts';
+import CryptoIcon from '../components/CryptoIcon';
+import Icon from '../components/Icon';
 import './Futures.css';
 
 const PAIRS = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT', 'DOGEUSDT', 'ADAUSDT'];
@@ -149,6 +151,7 @@ export default function Futures() {
       {/* Pair bar */}
       <div className="ft-pair-bar">
         <div className="ft-pair-left">
+          <CryptoIcon symbol={symbol.replace('USDT','')} size={28} />
           <span className="ft-pair-name">{symbol.replace('USDT', '')}<span className="ft-perp">PERP</span></span>
           <div className="ft-pair-dropdown">
             {PAIRS.map(p => (
@@ -355,7 +358,9 @@ export default function Futures() {
           <div className="ft-modal">
             <div className="ft-modal-head">
               <h3>Transfer USDT</h3>
-              <button className="ft-modal-close" onClick={() => setShowTransfer(false)}>✕</button>
+              <button className="ft-modal-close" onClick={() => setShowTransfer(false)}>
+                <Icon name="close" size={18} />
+              </button>
             </div>
             <form onSubmit={handleTransfer} className="ft-modal-body">
               <div className="ft-modal-field">

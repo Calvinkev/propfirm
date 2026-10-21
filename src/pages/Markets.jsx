@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../services/api';
+import CryptoIcon from '../components/CryptoIcon';
 import './Markets.css';
 
 export default function Markets() {
@@ -82,6 +83,7 @@ export default function Markets() {
                   <tr key={m.symbol}>
                     <td>
                       <div className="pair-info">
+                        <CryptoIcon symbol={m.symbol} size={22} />
                         <span className="pair-base">{m.symbol.replace('USDT', '')}</span>
                         <span className="pair-quote">/ USDT</span>
                       </div>

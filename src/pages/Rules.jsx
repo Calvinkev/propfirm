@@ -1,9 +1,14 @@
 import { useState, useEffect } from 'react'
 import Card from '../components/Card'
 import Button from '../components/Button'
+import Icon from '../components/Icon'
 import { api } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import './Rules.css'
+
+// Helper components to replace ✓/⚠ characters
+const CheckMark = () => <Icon name="check" size={13} color="var(--green)" />
+const WarnMark  = () => <Icon name="warning" size={13} color="var(--binance-yellow)" />
 
 const PHASE_STEPS = [
   { label: 'Registered' },
@@ -117,7 +122,7 @@ export default function Rules() {
           {PHASE_STEPS.map((step, i) => (
             <div key={step.label} className={`step-node ${i < phaseIndex ? 'done' : i === phaseIndex ? 'current' : ''}`}>
               {i < PHASE_STEPS.length - 1 && <div className="step-line" />}
-              <div className="step-circle">{i < phaseIndex ? '✓' : i + 1}</div>
+              <div className="step-circle">{i < phaseIndex ? <CheckMark /> : i + 1}</div>
               <p>{step.label}</p>
             </div>
           ))}
@@ -130,7 +135,7 @@ export default function Rules() {
             <div className="name">Minimum trading days<span>At least {daysRequired} separate active days</span></div>
           </div>
           <div className="prog" style={{ color: tradingDaysMet ? 'var(--green)' : 'var(--text-muted)' }}>
-            {tradingDays} / {daysRequired} {tradingDaysMet ? '✓' : ''}
+            {tradingDays} / {daysRequired} {tradingDaysMet ? <CheckMark /> : ''}
           </div>
         </div>
         <div className={`obj-item ${profitMet ? 'done' : ''}`}>
@@ -139,7 +144,7 @@ export default function Rules() {
             <div className="name">Profit target<span>Reach {profitTarget}% total gain on starting balance</span></div>
           </div>
           <div className="prog" style={{ color: profitMet ? 'var(--green)' : 'var(--brass)' }}>
-            {currentProfit.toFixed(2)}% / {profitTarget}% {profitMet ? '✓' : ''}
+            {currentProfit.toFixed(2)}% / {profitTarget}% {profitMet ? <CheckMark /> : ''}
           </div>
         </div>
         <div className={`obj-item ${dailySafe ? 'done' : ''}`}>
@@ -148,7 +153,7 @@ export default function Rules() {
             <div className="name">Daily loss limit respected<span>Never exceed {dailyLossLimit}% loss in a single day</span></div>
           </div>
           <div className="prog" style={{ color: dailySafe ? 'var(--green)' : 'var(--red)' }}>
-            Max used {dailyLossUsed.toFixed(2)}% {dailySafe ? '✓' : '⚠'}
+            Max used {dailyLossUsed.toFixed(2)}% {dailySafe ? <CheckMark /> : <WarnMark />}
           </div>
         </div>
         <div className={`obj-item ${drawdownSafe ? 'done' : ''}`}>
@@ -157,7 +162,7 @@ export default function Rules() {
             <div className="name">Max drawdown respected<span>Equity never falls {drawdownLimit}% below balance</span></div>
           </div>
           <div className="prog" style={{ color: drawdownSafe ? 'var(--green)' : 'var(--red)' }}>
-            Max used {drawdownUsed.toFixed(2)}% {drawdownSafe ? '✓' : '⚠'}
+            Max used {drawdownUsed.toFixed(2)}% {drawdownSafe ? <CheckMark /> : <WarnMark />}
           </div>
         </div>
       </Card>
@@ -172,42 +177,42 @@ export default function Rules() {
                 <h4>Max Daily Loss — {dailyLossLimit}%</h4>
                 <p>Calculated from prior day's balance at 00:00 platform time</p>
               </div>
-              <div className={`rule-check ${dailySafe ? '' : 'pending'}`}>{dailySafe ? '✓' : '⚠'}</div>
+              <div className={`rule-check ${dailySafe ? '' : 'pending'}`}>{dailySafe ? <CheckMark /> : <WarnMark />}</div>
             </div>
             <div className="rule-card">
               <div>
                 <h4>Max Overall Drawdown — {drawdownLimit}%</h4>
                 <p>Static, measured from initial starting balance</p>
               </div>
-              <div className={`rule-check ${drawdownSafe ? '' : 'pending'}`}>{drawdownSafe ? '✓' : '⚠'}</div>
+              <div className={`rule-check ${drawdownSafe ? '' : 'pending'}`}>{drawdownSafe ? <CheckMark /> : <WarnMark />}</div>
             </div>
             <div className="rule-card">
               <div>
                 <h4>Min Trading Days — {daysRequired}</h4>
                 <p>One qualifying trade per day is enough to count</p>
               </div>
-              <div className={`rule-check ${tradingDaysMet ? '' : 'pending'}`}>{tradingDaysMet ? '✓' : `${tradingDays}/${daysRequired}`}</div>
+              <div className={`rule-check ${tradingDaysMet ? '' : 'pending'}`}>{tradingDaysMet ? <CheckMark /> : `${tradingDays}/${daysRequired}`}</div>
             </div>
             <div className="rule-card">
               <div>
                 <h4>Profit Target — {profitTarget}%</h4>
                 <p>Reach {profitTarget}% total gain before the 30-day window closes</p>
               </div>
-              <div className={`rule-check ${profitMet ? '' : 'pending'}`}>{profitMet ? '✓' : `${currentProfit.toFixed(1)}%`}</div>
+              <div className={`rule-check ${profitMet ? '' : 'pending'}`}>{profitMet ? <CheckMark /> : `${currentProfit.toFixed(1)}%`}</div>
             </div>
             <div className="rule-card">
               <div>
                 <h4>News Trading</h4>
                 <p>Permitted with no restriction across all account sizes</p>
               </div>
-              <div className="rule-check">✓</div>
+              <div className="rule-check"><CheckMark /></div>
             </div>
             <div className="rule-card">
               <div>
                 <h4>Weekend Holding</h4>
                 <p>Positions may be held over weekends without penalty</p>
               </div>
-              <div className="rule-check">✓</div>
+              <div className="rule-check"><CheckMark /></div>
             </div>
           </div>
         </Card>

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useLocation, Navigate } from 'react-router-dom'
 import Button from '../components/Button'
+import Icon from '../components/Icon'
 import { api } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import Logo from '../components/Logo'
@@ -134,7 +135,7 @@ export default function Login() {
 
           {error && (
             <div className="auth-error-alert">
-              <span>⚠️</span>
+              <Icon name="warning" size={16} color="var(--red)" />
               <div>{error}</div>
             </div>
           )}
@@ -143,44 +144,28 @@ export default function Login() {
             <div className="auth-input-group">
               <label className="auth-label">Email Address</label>
               <div className="auth-input-wrapper">
-                <span className="auth-input-icon">✉</span>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@company.com"
-                  required
-                  autoComplete="email"
-                  className="auth-input"
-                />
+                <span className="auth-input-icon"><Icon name="mail" size={15} /></span>
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@company.com" required autoComplete="email" className="auth-input" />
               </div>
             </div>
 
             <div className="auth-input-group">
               <div className="auth-label-row">
                 <label className="auth-label">Password</label>
-                <a href="#forgot" className="auth-forgot-link" onClick={(e) => { e.preventDefault(); setError('Password reset instructions sent if email is registered.'); }}>
+                <a href="#forgot" className="auth-forgot-link"
+                  onClick={(e) => { e.preventDefault(); setError('Password reset instructions sent if email is registered.'); }}>
                   Forgot password?
                 </a>
               </div>
               <div className="auth-input-wrapper">
-                <span className="auth-input-icon">🔒</span>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  required
-                  autoComplete="current-password"
-                  className="auth-input"
-                />
-                <button
-                  type="button"
-                  className="auth-password-toggle"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label="Toggle password visibility"
-                >
-                  {showPassword ? '🙈' : '👁'}
+                <span className="auth-input-icon"><Icon name="lock" size={15} /></span>
+                <input type={showPassword ? 'text' : 'password'} value={password}
+                  onChange={(e) => setPassword(e.target.value)} placeholder="••••••••••••"
+                  required autoComplete="current-password" className="auth-input" />
+                <button type="button" className="auth-password-toggle"
+                  onClick={() => setShowPassword(!showPassword)} aria-label="Toggle password visibility">
+                  <Icon name={showPassword ? 'eyeOff' : 'eye'} size={16} />
                 </button>
               </div>
             </div>

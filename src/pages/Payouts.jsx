@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import Card from '../components/Card'
 import Button from '../components/Button'
+import Icon from '../components/Icon'
 import { api } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import './Payouts.css'
@@ -267,8 +268,9 @@ export default function Payouts() {
       )}
 
       {formSuccess && (
-        <div style={{ color: 'var(--green)', background: 'var(--green-dim)', border: '1px solid rgba(62,207,142,0.3)', borderRadius: '7px', padding: '12px 16px', marginBottom: '16px', fontSize: '13.5px' }}>
-          ✓ {formSuccess}
+        <div style={{ color: 'var(--green)', background: 'var(--green-dim)', border: '1px solid rgba(62,207,142,0.3)', borderRadius: '7px', padding: '12px 16px', marginBottom: '16px', fontSize: '13.5px', display:'flex', alignItems:'center', gap:8 }}>
+          <Icon name="checkCircle" size={16} color="var(--green)" />
+          {formSuccess}
         </div>
       )}
 

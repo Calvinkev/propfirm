@@ -1,9 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
+import Icon from '../components/Icon';
 import './Notifications.css';
 
-const TYPE_ICON = { info: 'ℹ️', success: '✅', warning: '⚠️', error: '🚨', trade: '📈', deposit: '💰', withdrawal: '📤' };
+const TYPE_ICON = {
+  info:       <Icon name="info"        size={20} color="#2B8AFC" />,
+  success:    <Icon name="checkCircle" size={20} color="var(--green)" />,
+  warning:    <Icon name="warning"     size={20} color="var(--binance-yellow)" />,
+  error:      <Icon name="xCircle"     size={20} color="var(--red)" />,
+  trade:      <Icon name="trendingUp"  size={20} color="var(--green)" />,
+  deposit:    <Icon name="download"    size={20} color="var(--green)" />,
+  withdrawal: <Icon name="upload"      size={20} color="var(--text-muted)" />,
+};
 
 export default function Notifications() {
   const { token } = useAuth();
@@ -61,7 +70,9 @@ export default function Notifications() {
         <div className="notif-list">
           {displayed.length === 0 ? (
             <div className="notif-empty">
-              <div className="notif-empty-icon">🔔</div>
+              <div className="notif-empty-icon">
+                <Icon name="bell" size={40} color="var(--text-faint)" />
+              </div>
               <p>{filter === 'unread' ? 'No unread notifications' : 'No notifications yet'}</p>
             </div>
           ) : (
@@ -71,18 +82,16 @@ export default function Notifications() {
                 className={`notif-item ${!n.is_read ? 'unread' : ''}`}
                 onClick={() => !n.is_read && handleMarkOne(n.id)}
               >
-                <div className="notif-icon">{TYPE_ICON[n.type] || 'ℹ️'}</div>
+          <div className="notif-icon">{TYPE_ICON[n.type] || <Icon name="info" size={20} color="var(--text-muted)" />}</div>
                 <div className="notif-body">
                   <div className="notif-title">{n.title}</div>
                   <div className="notif-msg">{n.message}</div>
                   <div className="notif-time">{new Date(n.created_at).toLocaleString()}</div>
                 </div>
                 {!n.is_read && <div className="notif-dot" />}
-                <button
-                  className="notif-delete"
-                  onClick={e => { e.stopPropagation(); handleDelete(n.id); }}
-                  title="Delete"
-                >✕</button>
+                <button className="notif-delete" onClick={e => { e.stopPropagation(); handleDelete(n.id); }} title="Delete">
+                  <Icon name="close" size={14} />
+                </button>
               </div>
             ))
           )}

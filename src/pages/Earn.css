@@ -102,8 +102,14 @@
   align-items: center;
 }
 
+.pc-asset-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .pc-asset {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 800;
 }
 
@@ -338,6 +344,9 @@
   padding: 10px 14px;
   font-size: 12px;
   color: var(--binance-yellow);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .em-confirm-btn {

@@ -1,0 +1,20 @@
+.crypto-icon {
+  border-radius: 50%;
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.crypto-icon-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--surface-hover);
+  color: var(--text-muted);
+  font-family: var(--mono);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  flex-shrink: 0;
+  vertical-align: middle;
+}

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
+import CryptoIcon from '../components/CryptoIcon';
+import Icon from '../components/Icon';
 import './Earn.css';
 
 export default function Earn() {
@@ -90,7 +92,10 @@ export default function Earn() {
             {products.map(p => (
               <div key={p.id} className={`product-card ${p.type}`}>
                 <div className="pc-top">
-                  <div className="pc-asset">{p.asset}</div>
+                  <div className="pc-asset-row">
+                    <CryptoIcon symbol={p.asset} size={32} />
+                    <span className="pc-asset">{p.asset}</span>
+                  </div>
                   <span className={`pc-type-badge ${p.type}`}>{p.type === 'flexible' ? 'Flexible' : `${p.duration}D Lock`}</span>
                 </div>
                 <div className="pc-apy">
@@ -141,7 +146,12 @@ export default function Earn() {
                   <tbody>
                     {positions.map(p => (
                       <tr key={p.id}>
-                        <td><b>{p.asset}</b></td>
+                        <td>
+                          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                            <CryptoIcon symbol={p.asset} size={20} />
+                            <b>{p.asset}</b>
+                          </div>
+                        </td>
                         <td><span className={`earn-type ${p.type}`}>{p.type}</span></td>
                         <td className="mono pos">{p.apy}%</td>
                         <td className="mono">{parseFloat(p.amount).toFixed(6)}</td>
@@ -170,7 +180,9 @@ export default function Earn() {
           <div className="earn-modal">
             <div className="earn-modal-head">
               <h3>Subscribe to {modal.product.asset} {modal.product.type === 'flexible' ? 'Flexible' : `${modal.product.duration}-Day Locked`} Earn</h3>
-              <button className="earn-modal-close" onClick={() => setModal(null)}>✕</button>
+              <button className="earn-modal-close" onClick={() => setModal(null)}>
+                <Icon name="close" size={18} />
+              </button>
             </div>
             <div className="earn-modal-body">
               <div className="em-apy-badge">{modal.product.apy}% APY</div>
@@ -189,7 +201,8 @@ export default function Earn() {
               </div>
               {modal.product.type === 'locked' && (
                 <div className="em-warning">
-                  ⚠️ Locked for {modal.product.duration} days. Early redemption not available.
+                  <Icon name="warning" size={14} color="var(--binance-yellow)" style={{ flexShrink:0 }} />
+                  Locked for {modal.product.duration} days. Early redemption not available.
                 </div>
               )}
               <button className="em-confirm-btn" onClick={handleSubscribe}>Confirm Subscription</button>

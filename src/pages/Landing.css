@@ -139,8 +139,20 @@
 
 .card-pair {
   font-weight: 700;
+  color: var(--text);
+  font-size: 15px;
+}
+
+.card-pair-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-quote {
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .card-price {
@@ -186,8 +198,15 @@
   border-radius: 8px;
 }
 
-.feature-icon {
-  font-size: 36px;
+.feature-icon-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: rgba(240, 185, 11, 0.1);
+  border: 1px solid rgba(240, 185, 11, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 16px;
 }
 

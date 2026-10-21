@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
+import Icon from '../../components/Icon'
 import { api } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import './AdminPages.css'
@@ -128,8 +129,9 @@ export default function AdminSettings() {
       </div>
 
       {saved && (
-        <div style={{ background: 'rgba(62,207,142,0.15)', border: '1px solid var(--green)', color: 'var(--green)', padding: '12px 18px', borderRadius: '8px', marginBottom: '20px' }}>
-          ✓ Settings saved successfully!
+        <div style={{ background: 'rgba(62,207,142,0.15)', border: '1px solid var(--green)', color: 'var(--green)', padding: '12px 18px', borderRadius: '8px', marginBottom: '20px', display:'flex', alignItems:'center', gap:8 }}>
+          <Icon name="checkCircle" size={16} color="var(--green)" />
+          Settings saved successfully!
         </div>
       )}
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import Card from '../components/Card'
 import Button from '../components/Button'
+import Icon from '../components/Icon'
 import { api } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import './Checkout.css'
@@ -188,10 +189,10 @@ export default function Checkout() {
                   border: paymentMode === 'instant' ? '1px solid var(--brass)' : '1px solid var(--border-soft)',
                   background: paymentMode === 'instant' ? 'var(--surface-raised)' : 'transparent',
                   color: paymentMode === 'instant' ? 'var(--brass)' : 'var(--text-muted)',
-                  fontWeight: 600, fontSize: '13px'
+                  fontWeight: 600, fontSize: '13px', display:'flex', alignItems:'center', justifyContent:'center', gap:6
                 }}
               >
-                ⚡ Instant Test Onboarding
+                <Icon name="lightning" size={14} /> Instant Test Onboarding
               </button>
             </div>
 
@@ -237,18 +238,16 @@ export default function Checkout() {
                           borderRadius: '6px', color: 'var(--brass)', fontFamily: 'monospace', fontSize: '13px'
                         }}
                       />
-                      <Button
-                        type="button"
-                        onClick={() => handleCopyAddress(selectedWallet.address)}
-                        style={{ padding: '8px 16px', fontSize: '12px' }}
-                      >
-                        {copied ? '✓ Copied' : 'Copy'}
+                      <Button type="button" onClick={() => handleCopyAddress(selectedWallet.address)}
+                        style={{ padding: '8px 16px', fontSize: '12px', display:'flex', alignItems:'center', gap:5 }}>
+                        {copied ? <><Icon name="check" size={13} /> Copied</> : <><Icon name="copy" size={13} /> Copy</>}
                       </Button>
                     </div>
 
                     {selectedWallet.instructions && (
-                      <p style={{ fontSize: '12px', color: 'var(--text-faint)', marginBottom: '16px', lineHeight: '1.4' }}>
-                        ℹ {selectedWallet.instructions}
+                      <p style={{ fontSize: '12px', color: 'var(--text-faint)', marginBottom: '16px', lineHeight: '1.4', display:'flex', alignItems:'flex-start', gap:5 }}>
+                        <Icon name="info" size={13} color="var(--text-faint)" style={{ flexShrink:0, marginTop:1 }} />
+                        {selectedWallet.instructions}
                       </p>
                     )}
 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
+import Icon from '../../components/Icon'
 import { api } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import './AdminDashboard.css'
@@ -60,8 +61,8 @@ export default function AdminDashboard() {
           <div className="sub">Platform overview, revenue analytics, and trader account controls</div>
         </div>
         <div className="date-filter">
-          <Button variant="outline" onClick={loadData} style={{ fontSize: '12px' }}>
-            🔄 Refresh Live Stats
+          <Button variant="outline" onClick={loadData} style={{ fontSize: '12px', display:'flex', alignItems:'center', gap:6 }}>
+            <Icon name="refresh" size={14} /> Refresh Live Stats
           </Button>
         </div>
       </div>

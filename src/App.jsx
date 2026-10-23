@@ -15,6 +15,7 @@ import OrderHistory from './pages/OrderHistory'
 import Referral from './pages/Referral'
 import Notifications from './pages/Notifications'
 import Profile from './pages/Profile'
+import Checkout from './pages/Checkout'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminUsers from './pages/admin/AdminUsers'
 import AdminPayouts from './pages/admin/AdminPayouts'
@@ -42,6 +43,7 @@ function App() {
           <Route path="/referral"      element={<Referral />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/profile"       element={<Profile />} />
+          <Route path="/checkout"      element={<Checkout />} />
         </Route>
         <Route element={<AdminLayout />}>
           <Route path="/admin/dashboard" element={<AdminDashboard />} />

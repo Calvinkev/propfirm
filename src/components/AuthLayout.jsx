@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import Logo from './Logo'
 import Icon from './Icon'
 import './AuthLayout.css'
+import './AppPolish.css'
 
 const NAV_GROUPS = [
   { label: 'Markets', path: '/markets', single: true },

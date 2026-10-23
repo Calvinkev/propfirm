@@ -1,0 +1,92 @@
+/* Shared visual language for the authenticated product. */
+.binance-app {
+  background:
+    radial-gradient(ellipse at 12% -8%, rgba(100, 93, 204, .13), transparent 38rem),
+    radial-gradient(ellipse at 96% 16%, rgba(38, 165, 151, .07), transparent 32rem),
+    var(--base);
+}
+
+.binance-navbar {
+  height: 70px;
+  margin: 12px clamp(12px, 2.2vw, 32px) 0;
+  padding-inline: clamp(18px, 2.5vw, 36px);
+  border: 1px solid rgba(218, 203, 255, .32);
+  border-bottom-color: rgba(204, 184, 255, .24);
+  border-radius: 22px;
+  background:
+    linear-gradient(112deg, rgba(157, 124, 226, .24), rgba(112, 96, 173, .16) 46%, rgba(134, 118, 194, .22)),
+    rgba(31, 27, 52, .48);
+  box-shadow: 0 14px 42px rgba(5, 4, 16, .26), 0 2px 12px rgba(164, 132, 255, .12), inset 0 1px 0 rgba(255,255,255,.35), inset 0 -1px 0 rgba(199,177,255,.12);
+  -webkit-backdrop-filter: blur(28px) saturate(155%);
+  backdrop-filter: blur(28px) saturate(155%);
+}
+.nav-left { gap: clamp(18px, 3vw, 42px); }
+.nav-links { gap: 6px; }
+.nav-link { padding: 9px 13px; border-radius: 10px; font-size: 13px; transition: color .18s ease, background .18s ease, box-shadow .18s ease; }
+.nav-link { color: rgba(247, 241, 255, .76); }
+.nav-link:hover, .nav-link.active { color: #fff; background: rgba(222, 206, 255, .19); box-shadow: inset 0 1px rgba(255,255,255,.22), 0 3px 12px rgba(139, 107, 210, .12); }
+.spot-tag { border-radius: 999px; padding: 3px 8px; background: linear-gradient(135deg, #c7a9ff, #9472ee); color: #171025; }
+.deposit-btn { border: 1px solid rgba(255,255,255,.4); border-radius: 11px; color: #211735; background: linear-gradient(135deg, rgba(245,237,255,.95), rgba(195,166,255,.9)); box-shadow: 0 5px 18px rgba(154, 117, 224, .27), inset 0 1px rgba(255,255,255,.8); }
+.deposit-btn:hover { color: #171025; background: #f4eaff; transform: translateY(-1px); }
+.notif-bell { width: 40px; height: 40px; display: grid; place-items: center; color: rgba(250,246,255,.88); border: 1px solid rgba(231,218,255,.15); border-radius: 12px; background: rgba(246,239,255,.07); }
+.notif-bell:hover { border-color: rgba(255,255,255,.4); color: #fff; background: rgba(246,239,255,.17); }
+.user-profile-menu { padding: 4px 0 4px 16px; border-left: 1px solid rgba(231,218,255,.24); }
+.user-email { color: rgba(234,224,255,.72); }
+.nav-dropdown-menu { top: calc(100% + 8px); padding: 8px; border-radius: 14px; background: rgba(19, 26, 45, .96); border-color: rgba(168,184,229,.18); box-shadow: 0 20px 55px rgba(0,0,0,.42), inset 0 1px rgba(255,255,255,.055); backdrop-filter: blur(20px); }
+.nav-dropdown-item { border-radius: 10px; }
+.nav-dropdown-item:hover, .nav-dropdown-item.active { background: rgba(182,140,255,.1); }
+.nav-dropdown-logout { border-radius: 9px; }
+.binance-main { min-width: 0; }
+
+/* Page framing: align the main account screens to one rhythm. */
+.markets-page, .wallet-page, .earn-page, .convert-page, .oh-page, .ref-page, .notif-page, .profile-page, .portfolio-page {
+  background: transparent;
+  padding-top: clamp(24px, 3vw, 38px);
+}
+.markets-container, .wallet-container, .earn-container, .convert-container, .oh-container, .ref-container, .notif-container, .pr-container { width: min(100%, 1320px); }
+.markets-header h1, .earn-header h1, .convert-header h1, .oh-header h1, .ref-header h1, .notif-header h1 { letter-spacing: -.04em; }
+
+/* Neumorphic surfaces with restrained glass highlights. */
+.markets-table-wrapper, .wallet-summary-card, .wallet-card, .earn-stat, .earn-card, .swap-card, .info-card, .convert-history-card, .checkout .card,
+.oh-stat, .oh-table-wrap, .ref-card, .notif-list, .notif-empty, .pr-hero, .pr-card, .pf-card {
+  border-color: rgba(153,174,220,.15);
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(21,29,49,.91), rgba(13,19,34,.96));
+  box-shadow: inset 1px 1px 0 rgba(255,255,255,.045), 7px 10px 26px rgba(0,0,0,.16);
+  backdrop-filter: blur(14px);
+}
+.wallet-summary-card, .pr-hero { border-radius: 20px; }
+.earn-stat, .oh-stat { transition: transform .18s ease, border-color .18s ease; }
+.earn-stat:hover, .oh-stat:hover { transform: translateY(-2px); border-color: rgba(182,140,255,.32); }
+
+/* Controls share legible focus, rounded geometry, and comfortable hit areas. */
+.binance-app button, .binance-app select, .binance-app input, .binance-app textarea { font-family: inherit; }
+.binance-app button, .binance-app select, .binance-app input, .binance-app textarea, .binance-app a { transition-property: color, background-color, border-color, box-shadow, transform; transition-duration: .16s; }
+.binance-app input, .binance-app select, .binance-app textarea { border-radius: 10px; }
+.binance-app button:focus-visible, .binance-app a:focus-visible, .binance-app input:focus-visible, .binance-app select:focus-visible, .binance-app textarea:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.binance-app table thead th { color: #929bb7; letter-spacing: .09em; }
+.binance-app table tbody tr:hover { background: rgba(182,140,255,.045); }
+.binance-app ::-webkit-scrollbar-thumb { background: rgba(147,160,200,.28); }
+
+/* Trading remains compact, but its panels match the rest of the app. */
+.trading-desk-layout, .futures-layout { background: transparent; }
+.pair-bar, .ft-pair-bar, .desk-bottom-panel, .ft-bottom-panel, .desk-main-grid > *, .ft-main-grid > * { background-color: rgba(15,22,39,.92); border-color: rgba(153,174,220,.14); }
+.chart-container, .order-panel-col, .orderbook-col, .ft-chart-container, .ft-order-panel-col, .orderbook-panel, .chart-panel { border-color: rgba(153,174,220,.14); }
+.pair-btn, .type-btn, .pct-btn, .ft-pair-btn, .ft-type-btn { border-radius: 8px; }
+.submit-order-btn, .ft-submit-order-btn { border-radius: 10px; box-shadow: inset 0 1px rgba(255,255,255,.16), 0 6px 15px rgba(0,0,0,.18); }
+
+.mobile-hamburger { border-radius: 10px; padding: 8px; color: var(--text-muted); }
+.mobile-hamburger:hover { color: var(--text); background: rgba(255,255,255,.06); }
+.mobile-dropdown { top: 88px; left: 12px; right: 12px; border: 1px solid rgba(218,203,255,.28); border-radius: 18px; background: linear-gradient(135deg, rgba(84,68,128,.92), rgba(34,30,57,.94)); box-shadow: 0 18px 48px rgba(0,0,0,.36), inset 0 1px rgba(255,255,255,.18); -webkit-backdrop-filter: blur(28px) saturate(150%); backdrop-filter: blur(28px) saturate(150%); }
+.mobile-nav-link { border-radius: 10px; }
+.mobile-nav-link.active { background: rgba(182,140,255,.12); color: #cbb8ff; }
+.mobile-nav-link.deposit { background: linear-gradient(135deg, #d1b9ff, #ad8bff); color: #171025; }
+
+@media (max-width: 768px) {
+  .binance-navbar { height: 62px; margin: 9px 10px 0; padding-inline: 15px; border-radius: 18px; }
+  .mobile-dropdown { top: 80px; max-height: calc(100vh - 90px); }
+  .markets-page, .wallet-page, .earn-page, .convert-page, .oh-page, .ref-page, .notif-page, .profile-page, .portfolio-page { padding-inline: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .binance-app *, .binance-app *::before, .binance-app *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}

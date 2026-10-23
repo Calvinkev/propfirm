@@ -14,7 +14,8 @@ const SYMBOL_MAP = {
 };
 
 export default function CryptoIcon({ symbol = '', size = 24, className = '' }) {
-  const key = symbol.replace('USDT', '').toUpperCase();
+  const normalized = symbol.toUpperCase();
+  const key = normalized === 'USDT' ? 'USDT' : normalized.replace(/USDT$/, '');
   const iconName = SYMBOL_MAP[key];
 
   if (!iconName) {

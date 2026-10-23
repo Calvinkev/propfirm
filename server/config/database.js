@@ -196,6 +196,25 @@ export const initDatabase = async () => {
       `);
     }
 
+    // Add the shared Ethereum address as an ERC20 USDT destination when an
+    // existing installation has only the older TRC20 seed. EVM addresses can
+    // receive native ETH and ERC20 tokens on the same chain.
+    const [erc20UsdtWallets] = await connection.query(
+      "SELECT id FROM crypto_wallets WHERE symbol = 'USDT' AND network LIKE '%ERC20%' LIMIT 1"
+    );
+    if (erc20UsdtWallets.length === 0) {
+      const [ethereumWallets] = await connection.query(
+        "SELECT address FROM crypto_wallets WHERE symbol = 'ETH' AND is_active = 1 AND address LIKE '0x%' ORDER BY id ASC LIMIT 1"
+      );
+      if (ethereumWallets.length > 0) {
+        await connection.query(
+          `INSERT INTO crypto_wallets (symbol, network, address, instructions, is_active)
+           VALUES (?, ?, ?, ?, 1)`,
+          ['USDT', 'ERC20 (Ethereum)', ethereumWallets[0].address, 'Send USDT using the Ethereum ERC20 network.']
+        );
+      }
+    }
+
     // Seed default admin account
     const [adminExists] = await connection.query('SELECT id FROM users WHERE email = ?', ['admin@binance.com']);
     if (adminExists.length === 0) {

@@ -15,7 +15,8 @@ export default function TradingDesk() {
   const symbol = (searchParams.get('symbol') || 'BTCUSDT').toUpperCase();
 
   const [orderbook, setOrderbook] = useState({ bids: [], asks: [] });
-  const [ticker, setTicker] = useState({ price: 0, high: 0, low: 0, volume: 0, change: 0 });
+  const [marketData, setMarketData] = useState({ high: 0, low: 0, volume: 0, change: 0 });
+  const [ticker, setTicker] = useState({ price: 0 });
   const [balances, setBalances] = useState([]);
   const [openOrders, setOpenOrders] = useState([]);
   const [tradeHistory, setTradeHistory] = useState([]);
@@ -28,6 +29,7 @@ export default function TradingDesk() {
   const [priceInput, setPriceInput] = useState('');
   const [amountInput, setAmountInput] = useState('');
   const [percentage, setPercentage] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
 
   const chartContainerRef = useRef(null);
@@ -72,12 +74,12 @@ export default function TradingDesk() {
         const res = await api.getOrderbook(symbol);
         if (res.bids) setOrderbook(res);
         if (res.lastPrice) {
-          setTicker(prev => ({
-            ...prev,
-            price: res.lastPrice,
-            high: res.lastPrice * 1.03,
-            low: res.lastPrice * 0.97,
-            volume: 45012300
+          setTicker(prev => ({ ...prev, price: res.lastPrice }));
+          setMarketData(prev => ({
+            high: res.high24h || prev.high || 0,
+            low: res.low24h || prev.low || 0,
+            volume: res.volume24h || prev.volume || 0,
+            change: res.change24h || prev.change || 0,
           }));
           if (!priceInput || orderType === 'MARKET') {
             setPriceInput(res.lastPrice.toString());
@@ -124,25 +126,28 @@ export default function TradingDesk() {
     const chart = createChart(container, {
       autoSize: true,
       layout: {
-        background: { color: '#181A20' },
-        textColor: '#848E9C',
+        background: { color: '#0B0F14' },
+        textColor: '#9AA6B5',
       },
       grid: {
-        vertLines: { color: '#2B313A' },
-        horzLines: { color: '#2B313A' },
+        vertLines: { color: '#1B2430' },
+        horzLines: { color: '#1B2430' },
       },
       timeScale: {
         timeVisible: true,
-        borderColor: '#2B313A',
+        borderColor: '#283241',
+      },
+      crosshair: {
+        mode: 1,
       },
     });
 
     const series = chart.addCandlestickSeries({
-      upColor: '#0ECB81',
-      downColor: '#F6465D',
+      upColor: '#10B981',
+      downColor: '#F43F5E',
       borderVisible: false,
-      wickUpColor: '#0ECB81',
-      wickDownColor: '#F6465D',
+      wickUpColor: '#10B981',
+      wickDownColor: '#F43F5E',
     });
 
     chartInstance.current = chart;
@@ -179,6 +184,8 @@ export default function TradingDesk() {
   // Submit Order
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
     try {
       const res = await api.placeSpotOrder(token, {
         symbol,
@@ -198,6 +205,8 @@ export default function TradingDesk() {
       }
     } catch (err) {
       showToast('error', 'Failed to place spot order');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -241,19 +250,25 @@ export default function TradingDesk() {
         <div className="ticker-stats">
           <div className="stat">
             <span className="stat-label">Price</span>
-            <span className="stat-value yellow">${parseFloat(ticker.price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+            <span className="stat-value gold">${parseFloat(ticker.price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+          </div>
+          <div className="stat">
+            <span className="stat-label">24h Change</span>
+            <span className={`stat-value ${marketData.change >= 0 ? 'pos' : 'neg'}`}>
+              {marketData.change >= 0 ? '+' : ''}{parseFloat(marketData.change || 0).toFixed(2)}%
+            </span>
           </div>
           <div className="stat">
             <span className="stat-label">24h High</span>
-            <span className="stat-value">${parseFloat(ticker.high || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+            <span className="stat-value">{marketData.high ? `$${parseFloat(marketData.high).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}</span>
           </div>
           <div className="stat">
             <span className="stat-label">24h Low</span>
-            <span className="stat-value">${parseFloat(ticker.low || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+            <span className="stat-value">{marketData.low ? `$${parseFloat(marketData.low).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}</span>
           </div>
           <div className="stat">
             <span className="stat-label">24h Volume</span>
-            <span className="stat-value">${(ticker.volume / 1e6).toFixed(2)}M</span>
+            <span className="stat-value">{marketData.volume ? `$${(marketData.volume / 1e6).toFixed(2)}M` : '—'}</span>
           </div>
         </div>
       </div>
@@ -315,12 +330,12 @@ export default function TradingDesk() {
         {/* Center Column: Lightweight Chart */}
         <div className={`chart-col${mobileDeskTab === 'chart' ? ' mobile-visible' : ''}`}>
           <div className="chart-header">
-            <span>TradingView Chart</span>
+            <span>{symbol.replace('USDT', '/USDT')} · Candlestick Chart</span>
           </div>
           <div className="chart-container" ref={chartContainerRef} />
         </div>
 
-        {/* Right Column: Binance Spot Order Panel */}
+        {/* Right Column: Order Panel */}
         <div className={`order-panel-col${mobileDeskTab === 'order' ? ' mobile-visible' : ''}`}>
           <div className="order-tabs">
             <button
@@ -417,8 +432,9 @@ export default function TradingDesk() {
             <button
               type="submit"
               className={`submit-order-btn ${orderSide.toLowerCase()}`}
+              disabled={submitting}
             >
-              {orderSide} {baseAsset}
+              {submitting ? 'Placing Order…' : `${orderSide} ${baseAsset}`}
             </button>
           </form>
         </div>

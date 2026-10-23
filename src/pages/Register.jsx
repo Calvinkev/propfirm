@@ -14,7 +14,7 @@ export default function Register() {
     firstName: '',
     lastName: '',
   })
-  const [agreeTerms, setAgreeTerms] = useState(true)
+  const [agreeTerms, setAgreeTerms] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -93,21 +93,22 @@ export default function Register() {
 
         <div className="auth-brand-content">
           <div className="auth-brand-title">
-            Start your evaluation. <em>Funded capital</em> awaits.
+            Start trading crypto.<br />
+            <em>Your account, your edge.</em>
           </div>
           <p className="auth-brand-desc">
-            Join thousands of active traders scaling capital with zero risk to personal savings. Pure execution, direct payouts.
+            Create a free account to access the STAKEUP trading terminal — spot, futures, earn, and wallet all in one place.
           </p>
 
           <div className="auth-highlight-card">
             <div className="auth-highlight-quote">
-              "STAKEUP's risk parameters are clear and fair. Passed the $100K challenge on day 14 and scaling up my account size now."
+              "The charting tools and order entry are exactly what I needed. Clean interface, no distractions — just the market."
             </div>
             <div className="auth-highlight-author">
               <div className="auth-author-avatar">AT</div>
               <div className="auth-author-info">
                 <b>Amara T.</b>
-                <span>Funded Trader · $10,000 Tier</span>
+                <span>Spot &amp; Futures Trader</span>
               </div>
             </div>
           </div>
@@ -119,12 +120,12 @@ export default function Register() {
             <span>Account Setup</span>
           </div>
           <div className="auth-brand-stat">
-            <b>30 Days</b>
-            <span>Challenge Window</span>
+            <b>7 Assets</b>
+            <span>Spot &amp; Futures</span>
           </div>
           <div className="auth-brand-stat">
-            <b>0%</b>
-            <span>Profit Recapture</span>
+            <b>Live</b>
+            <span>Market Data</span>
           </div>
         </div>
       </div>
@@ -134,7 +135,7 @@ export default function Register() {
         <div className="auth-form-card">
           <div className="auth-form-header">
             <h2>Create your account</h2>
-            <p>Get started with your STAKEUP trader evaluation</p>
+            <p>Join STAKEUP and start trading immediately</p>
           </div>
 
           <div className="auth-social-btns">
@@ -235,7 +236,7 @@ export default function Register() {
             </div>
 
             <Button type="submit" disabled={loading} className="auth-submit-btn">
-              {loading ? 'Creating Account…' : 'Create Trader Account →'}
+              {loading ? 'Creating Account…' : 'Create Account →'}
             </Button>
           </form>
 

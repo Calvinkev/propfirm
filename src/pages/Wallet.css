@@ -37,7 +37,7 @@
 
 .denom {
   font-size: 16px;
-  color: var(--binance-yellow);
+  color: var(--brass);
 }
 
 .summary-actions {
@@ -47,22 +47,28 @@
 
 .action-btn {
   padding: 12px 24px;
-  border-radius: 4px;
+  border-radius: var(--r-md);
   font-weight: 700;
   cursor: pointer;
   border: none;
+  font-size: 14px;
+  transition: background var(--t-base), opacity var(--t-base);
 }
 
 .action-btn.deposit {
-  background-color: var(--binance-yellow);
+  background-color: var(--brass);
   color: #000;
 }
+
+.action-btn.deposit:hover { background-color: var(--brass-hover); }
 
 .action-btn.withdraw {
   background-color: var(--surface-raised);
   border: 1px solid var(--border);
-  color: #fff;
+  color: var(--text);
 }
+
+.action-btn.withdraw:hover { background-color: var(--surface-hover); }
 
 .wallet-card {
   background-color: var(--surface);
@@ -103,23 +109,30 @@
 .table-act-btn {
   background: none;
   border: 1px solid var(--border);
-  color: var(--binance-yellow);
+  color: var(--brass);
   padding: 4px 10px;
-  border-radius: 3px;
+  border-radius: var(--r-sm);
   margin-left: 6px;
   cursor: pointer;
   font-size: 12px;
+  transition: background var(--t-base), border-color var(--t-base);
+}
+
+.table-act-btn:hover {
+  background: var(--brass-bg);
+  border-color: var(--brass-border);
 }
 
 .status-badge {
   padding: 2px 8px;
-  border-radius: 3px;
+  border-radius: var(--r-sm);
   font-size: 11px;
   font-weight: 700;
 }
 
-.status-badge.pending { background: rgba(240, 185, 11, 0.2); color: var(--binance-yellow); }
-.status-badge.approved { background: rgba(14, 203, 129, 0.2); color: var(--green); }
+.status-badge.pending   { background: rgba(214,174,85,0.15); color: var(--brass); }
+.status-badge.approved  { background: rgba(16,185,129,0.15); color: var(--green); }
+.status-badge.rejected  { background: rgba(244,63,94,0.15);  color: var(--red); }
 
 /* Modal Styles */
 .modal-backdrop {
@@ -179,15 +192,20 @@
 }
 
 .submit-modal-btn {
-  background-color: var(--binance-yellow);
+  background-color: var(--brass);
   color: #000;
   font-weight: 700;
   padding: 12px;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--r-md);
   margin-top: 8px;
   cursor: pointer;
+  width: 100%;
+  font-size: 14px;
+  transition: background var(--t-base);
 }
+
+.submit-modal-btn:hover { background-color: var(--brass-hover); }
 
 /* ── Mobile Responsive ──────────────────────────────────────────────────── */
 

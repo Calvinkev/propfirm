@@ -46,8 +46,8 @@
 
 .filter-btn.active {
   background-color: var(--surface-raised);
-  color: var(--binance-yellow);
-  border-color: var(--binance-yellow);
+  color: var(--brass);
+  border-color: var(--brass-border);
 }
 
 .search-box input {
@@ -114,12 +114,17 @@
 .change-val.neg { color: var(--red); }
 
 .table-trade-btn {
-  background: var(--binance-yellow);
+  background: var(--brass);
   color: #000;
-  font-weight: 600;
+  font-weight: 700;
   padding: 6px 14px;
-  border-radius: 4px;
-  font-size: 13px;
+  border-radius: var(--r-sm);
+  font-size: 12px;
+  transition: background var(--t-base);
+}
+
+.table-trade-btn:hover {
+  background: var(--brass-hover);
 }
 
 /* ── Mobile Responsive ──────────────────────────────────────────────────── */

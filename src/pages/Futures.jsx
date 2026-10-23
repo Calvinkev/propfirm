@@ -88,14 +88,14 @@ export default function Futures() {
 
     const chart = createChart(container, {
       autoSize: true,
-      layout: { background: { color: '#0B0E11' }, textColor: '#848E9C' },
-      grid: { vertLines: { color: '#2B313A' }, horzLines: { color: '#2B313A' } },
-      timeScale: { timeVisible: true, borderColor: '#2B313A' },
+      layout: { background: { color: '#0B0F14' }, textColor: '#9AA6B5' },
+      grid: { vertLines: { color: '#1B2430' }, horzLines: { color: '#1B2430' } },
+      timeScale: { timeVisible: true, borderColor: '#283241' },
     });
 
     const series = chart.addCandlestickSeries({
-      upColor: '#0ECB81', downColor: '#F6465D', borderVisible: false,
-      wickUpColor: '#0ECB81', wickDownColor: '#F6465D',
+      upColor: '#10B981', downColor: '#F43F5E', borderVisible: false,
+      wickUpColor: '#10B981', wickDownColor: '#F43F5E',
     });
 
     chartInst.current = chart;
@@ -165,7 +165,7 @@ export default function Futures() {
         <div className="ft-ticker-stats">
           <div className="ft-stat">
             <span className="ft-stat-label">Mark Price</span>
-            <span className="ft-stat-val yellow">${parseFloat(ticker.price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+            <span className="ft-stat-val gold">${parseFloat(ticker.price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
           </div>
           <div className="ft-stat">
             <span className="ft-stat-label">24h High</span>

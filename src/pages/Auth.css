@@ -91,21 +91,18 @@
 }
 
 .auth-brand-title {
-  font-family: var(--serif);
-  font-size: 42px;
-  font-weight: 500;
-  line-height: 1.15;
+  font-family: var(--sans);
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.2;
   margin-top: 20px;
-  letter-spacing: -0.01em;
-  background: linear-gradient(135deg, var(--text) 30%, var(--text-muted));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.02em;
+  color: var(--text);
 }
 
 .auth-brand-title em {
-  font-style: italic;
+  font-style: normal;
   color: var(--brass);
-  -webkit-text-fill-color: var(--brass);
 }
 
 .auth-brand-desc {

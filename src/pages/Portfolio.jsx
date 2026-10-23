@@ -5,29 +5,27 @@ import { api } from '../services/api';
 import CryptoIcon from '../components/CryptoIcon';
 import './Portfolio.css';
 
-const PRICE_MAP = {
-  USDT: 1, BTC: 67500, ETH: 3500, SOL: 155, BNB: 580,
-  XRP: 0.55, DOGE: 0.12, ADA: 0.45,
-};
-
 export default function Portfolio() {
   const { token } = useAuth();
   const [balances, setBalances]   = useState([]);
   const [earnPos, setEarnPos]     = useState([]);
   const [overview, setOverview]   = useState(null);
+  const [liveMarkets, setLiveMarkets] = useState({});
   const [loading, setLoading]     = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        const [balRes, earnRes, ovRes] = await Promise.all([
+        const [balRes, earnRes, ovRes, mktRes] = await Promise.all([
           api.getWalletBalances(token),
           api.getEarnPositions(token),
           api.getDashboardOverview(token).catch(() => ({ overview: null })),
+          api.getMarketOverview().catch(() => ({ markets: {} })),
         ]);
         if (balRes.balances) setBalances(balRes.balances);
         if (earnRes.positions) setEarnPos(earnRes.positions);
         if (ovRes.overview) setOverview(ovRes.overview);
+        if (mktRes.markets) setLiveMarkets(mktRes.markets);
       } catch (err) {
         console.error('Portfolio load error:', err);
       } finally {
@@ -37,30 +35,51 @@ export default function Portfolio() {
     load();
   }, [token]);
 
+  // Resolve live price for an asset. USDT = 1 always.
+  // Falls back to null (not a stale hardcoded value) if unavailable.
+  const getLivePrice = (asset) => {
+    if (asset === 'USDT') return 1;
+    const key = `${asset}USDT`;
+    const m = liveMarkets[key];
+    return m?.price ? parseFloat(m.price) : null;
+  };
+
+  const calcAssetUsd = (asset, qty) => {
+    const price = getLivePrice(asset);
+    return price !== null ? qty * price : null;
+  };
+
   const spotUSDT = balances.reduce((s, b) => {
-    const price = PRICE_MAP[b.asset] || 1;
-    return s + (parseFloat(b.free) + parseFloat(b.locked)) * price;
+    const qty = parseFloat(b.free) + parseFloat(b.locked);
+    const usd = calcAssetUsd(b.asset, qty);
+    return usd !== null ? s + usd : s;
   }, 0);
 
   const earnUSDT = earnPos
     .filter(p => p.status === 'active')
     .reduce((s, p) => {
-      const price = PRICE_MAP[p.asset] || 1;
-      return s + parseFloat(p.amount) * price;
+      const usd = calcAssetUsd(p.asset, parseFloat(p.amount));
+      return usd !== null ? s + usd : s;
     }, 0);
 
   const totalUSDT = spotUSDT + earnUSDT;
 
+  const pricesAvailable = Object.keys(liveMarkets).length > 0;
+
   const allocations = balances
     .map(b => {
-      const price = PRICE_MAP[b.asset] || 1;
-      const usd = (parseFloat(b.free) + parseFloat(b.locked)) * price;
-      return { asset: b.asset, usd, pct: totalUSDT > 0 ? (usd / totalUSDT) * 100 : 0 };
+      const qty = parseFloat(b.free) + parseFloat(b.locked);
+      const usd = calcAssetUsd(b.asset, qty);
+      return { asset: b.asset, qty, usd: usd ?? 0, priceKnown: usd !== null, pct: 0 };
     })
-    .filter(a => a.usd > 0)
+    .filter(a => a.qty > 0)
+    .map(a => ({
+      ...a,
+      pct: totalUSDT > 0 && a.usd ? (a.usd / totalUSDT) * 100 : 0,
+    }))
     .sort((a, b) => b.usd - a.usd);
 
-  const COLORS = ['#F0B90B','#0ECB81','#F6465D','#2B8AFC','#9B59B6','#E67E22','#1ABC9C','#E91E63'];
+  const COLORS = ['var(--brass)', 'var(--green)', 'var(--red)', '#2B8AFC', '#9B59B6', '#E67E22', '#1ABC9C', '#E91E63'];
 
   if (loading) return <div className="portfolio-page"><div className="pf-loading">Loading portfolio...</div></div>;
 
@@ -77,20 +96,29 @@ export default function Portfolio() {
           <div className="pf-banner-left">
             <span className="pf-banner-label">Total Estimated Balance</span>
             <div className="pf-banner-value">
-              ${totalUSDT.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              <span className="pf-banner-denom"> USDT</span>
+              {pricesAvailable
+                ? <>
+                    ${totalUSDT.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    <span className="pf-banner-denom"> USDT</span>
+                  </>
+                : <span style={{ fontSize: '20px', color: 'var(--text-muted)' }}>Loading prices…</span>
+              }
             </div>
           </div>
           <div className="pf-banner-right">
             <div className="pf-wallet-split">
               <div className="pf-split-item">
                 <span className="pf-split-label">Spot Wallet</span>
-                <span className="pf-split-val">${spotUSDT.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                <span className="pf-split-val">
+                  {pricesAvailable ? `$${spotUSDT.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
+                </span>
               </div>
               <div className="pf-split-divider" />
               <div className="pf-split-item">
                 <span className="pf-split-label">Earn Wallet</span>
-                <span className="pf-split-val">${earnUSDT.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                <span className="pf-split-val">
+                  {pricesAvailable ? `$${earnUSDT.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
+                </span>
               </div>
             </div>
           </div>
@@ -137,7 +165,8 @@ export default function Portfolio() {
               </thead>
               <tbody>
                 {balances.filter(b => parseFloat(b.free) + parseFloat(b.locked) > 0).map(b => {
-                  const usd = (parseFloat(b.free) + parseFloat(b.locked)) * (PRICE_MAP[b.asset] || 1);
+                  const qty = parseFloat(b.free) + parseFloat(b.locked);
+                  const usd = calcAssetUsd(b.asset, qty);
                   return (
                     <tr key={b.asset}>
                       <td>
@@ -148,7 +177,12 @@ export default function Portfolio() {
                       </td>
                       <td className="mono">{parseFloat(b.free).toFixed(6)}</td>
                       <td className="mono">{parseFloat(b.locked).toFixed(6)}</td>
-                      <td className="mono">${usd.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                      <td className="mono">
+                        {usd !== null
+                          ? `$${usd.toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+                          : <span style={{ color: 'var(--text-faint)' }}>—</span>
+                        }
+                      </td>
                     </tr>
                   );
                 })}

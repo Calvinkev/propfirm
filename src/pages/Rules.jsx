@@ -8,7 +8,7 @@ import './Rules.css'
 
 // Helper components to replace ✓/⚠ characters
 const CheckMark = () => <Icon name="check" size={13} color="var(--green)" />
-const WarnMark  = () => <Icon name="warning" size={13} color="var(--binance-yellow)" />
+const WarnMark  = () => <Icon name="warning" size={13} color="var(--brass)" />
 
 const PHASE_STEPS = [
   { label: 'Registered' },

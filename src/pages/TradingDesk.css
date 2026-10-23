@@ -60,8 +60,8 @@
 }
 
 .pair-btn.active {
-  color: var(--binance-yellow);
-  border-color: var(--binance-yellow);
+  color: var(--brass);
+  border-color: var(--brass);
 }
 
 .ticker-stats {
@@ -84,16 +84,16 @@
   font-weight: 600;
 }
 
-.stat-value.yellow {
-  color: var(--binance-yellow);
-  font-size: 14px;
+.stat-value.gold {
+  color: var(--brass);
+  font-size: 15px;
 }
 
-/* Grid Layout */
+/* Grid Layout — flexible height, no more brittle fixed 540px */
 .desk-main-grid {
   display: grid;
   grid-template-columns: 240px 1fr 300px;
-  height: 540px;
+  height: clamp(480px, calc(100vh - 240px), 700px);
   border-bottom: 1px solid var(--border);
 }
 
@@ -226,8 +226,8 @@
 }
 
 .type-btn.active {
-  color: var(--binance-yellow);
-  border-bottom: 2px solid var(--binance-yellow);
+  color: var(--brass);
+  border-bottom: 2px solid var(--brass);
 }
 
 .spot-order-form {
@@ -287,8 +287,8 @@
 }
 
 .pct-btn.active {
-  border-color: var(--binance-yellow);
-  color: var(--binance-yellow);
+  border-color: var(--brass);
+  color: var(--brass);
 }
 
 .order-summary {
@@ -341,8 +341,8 @@
 }
 
 .bottom-tab.active {
-  color: var(--binance-yellow);
-  border-bottom: 2px solid var(--binance-yellow);
+  color: var(--brass);
+  border-bottom: 2px solid var(--brass);
 }
 
 .bottom-table-container {
@@ -450,8 +450,8 @@
   }
 
   .mobile-desk-tab.active {
-    color: var(--binance-yellow);
-    border-bottom-color: var(--binance-yellow);
+    color: var(--brass);
+    border-bottom-color: var(--brass);
   }
 
   /* Stack the 3-column grid into full-width panels, controlled by JS */

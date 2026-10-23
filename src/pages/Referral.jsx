@@ -44,7 +44,7 @@ export default function Referral() {
         <div className="ref-hero">
           <div className="ref-hero-left">
             <div className="ref-hero-icon">
-              <Icon name="gift" size={36} color="var(--binance-yellow)" />
+              <Icon name="gift" size={36} color="var(--brass)" />
             </div>
             <h2>Earn up to <span className="yellow">20% Commission</span></h2>
             <p>For every friend you refer who trades on STAKEUP, you earn a percentage of their trading fees — forever.</p>

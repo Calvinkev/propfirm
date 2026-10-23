@@ -70,21 +70,22 @@ export default function Login() {
 
         <div className="auth-brand-content">
           <div className="auth-brand-title">
-            Trade capital up to <em>$100,000.</em> Keep up to 90% profits.
+            Professional crypto trading.<br />
+            <em>Built for precision.</em>
           </div>
           <p className="auth-brand-desc">
-            Sign in to access your real-time risk desk, monitor your profit targets, and submit instant payout requests.
+            Sign in to access your trading terminal, live market data, spot and futures order entry, portfolio overview, and wallet.
           </p>
 
           <div className="auth-highlight-card">
             <div className="auth-highlight-quote">
-              "The rules were transparent, execution was instantaneous, and my first $10K payout hit my account in under 24 hours."
+              "The terminal is clean, the order book is live, and the execution feedback is exactly what I need for active trading."
             </div>
             <div className="auth-highlight-author">
               <div className="auth-author-avatar">KM</div>
               <div className="auth-author-info">
                 <b>Kwame M.</b>
-                <span>Funded Trader · $100,000 Tier</span>
+                <span>Spot &amp; Futures Trader</span>
               </div>
             </div>
           </div>
@@ -92,16 +93,16 @@ export default function Login() {
 
         <div className="auth-brand-stats">
           <div className="auth-brand-stat">
-            <b>$1M+</b>
-            <span>Paid to Traders</span>
+            <b>Spot</b>
+            <span>Market &amp; Limit</span>
           </div>
           <div className="auth-brand-stat">
-            <b>1000+</b>
-            <span>Funded Accounts</span>
+            <b>Futures</b>
+            <span>Up to 125x Leverage</span>
           </div>
           <div className="auth-brand-stat">
-            <b>90%</b>
-            <span>Max Profit Split</span>
+            <b>Earn</b>
+            <span>Flexible &amp; Locked</span>
           </div>
         </div>
       </div>
@@ -111,7 +112,7 @@ export default function Login() {
         <div className="auth-form-card">
           <div className="auth-form-header">
             <h2>Welcome back</h2>
-            <p>Enter your details to sign in to your trader portal</p>
+            <p>Sign in to your STAKEUP account</p>
           </div>
 
           <div className="auth-social-btns">
@@ -189,9 +190,9 @@ export default function Login() {
           </form>
 
           <div className="auth-footer-text">
-            Don't have a challenge account?{' '}
+            Don't have an account?{' '}
             <Link to="/register">
-              Sign up now
+              Create one now
             </Link>
           </div>
         </div>

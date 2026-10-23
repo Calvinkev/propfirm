@@ -40,13 +40,14 @@
 }
 
 .spot-tag {
-  background-color: var(--binance-yellow);
+  background-color: var(--brass);
   color: #000;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   padding: 2px 6px;
   border-radius: 3px;
   margin-left: 4px;
+  letter-spacing: 0.04em;
 }
 
 .nav-links {
@@ -68,7 +69,7 @@
 }
 
 .nav-link:hover, .nav-link.active {
-  color: var(--binance-yellow);
+  color: var(--brass);
   background: var(--surface-raised);
 }
 
@@ -211,17 +212,17 @@
 }
 
 .deposit-btn {
-  background-color: var(--binance-yellow);
+  background-color: var(--brass);
   color: #000;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 13px;
   padding: 8px 18px;
-  border-radius: 4px;
-  transition: background 0.2s ease;
+  border-radius: var(--r-md);
+  transition: background var(--t-base);
 }
 
 .deposit-btn:hover {
-  background-color: var(--binance-yellow-hover);
+  background-color: var(--brass-hover);
 }
 
 .user-profile-menu {
@@ -243,8 +244,8 @@
 
 .admin-badge {
   background: rgba(240, 185, 11, 0.15);
-  border: 1px solid var(--binance-yellow);
-  color: var(--binance-yellow);
+  border: 1px solid var(--brass);
+  color: var(--brass);
   font-size: 12px;
   font-weight: 600;
   padding: 6px 12px;
@@ -316,10 +317,10 @@
   }
   .mobile-nav-link.active {
     background-color: var(--surface-raised);
-    color: var(--binance-yellow);
+    color: var(--brass);
   }
   .mobile-nav-link.deposit {
-    background-color: var(--binance-yellow);
+    background-color: var(--brass);
     color: #000;
     font-weight: 700;
     text-align: center;

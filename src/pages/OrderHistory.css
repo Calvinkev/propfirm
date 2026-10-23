@@ -69,9 +69,9 @@
 }
 
 .oh-tab.active {
-  color: var(--binance-yellow);
+  color: var(--brass);
   background: var(--surface-raised);
-  border-bottom-color: var(--binance-yellow);
+  border-bottom-color: var(--brass);
 }
 
 .oh-count {
@@ -84,7 +84,7 @@
 
 .oh-tab.active .oh-count {
   background: rgba(240,185,11,0.15);
-  color: var(--binance-yellow);
+  color: var(--brass);
 }
 
 .oh-filters {
@@ -177,7 +177,7 @@
 }
 
 .status-pill.new      { background: rgba(43,138,252,0.15); color: #2B8AFC; }
-.status-pill.partial  { background: rgba(240,185,11,0.15);  color: var(--binance-yellow); }
+.status-pill.partial  { background: rgba(240,185,11,0.15);  color: var(--brass); }
 .status-pill.filled   { background: var(--green-dim); color: var(--green); }
 .status-pill.canceled { background: var(--surface-raised); color: var(--text-faint); }
 

@@ -172,17 +172,17 @@ export default function Convert() {
           {/* Right: Info panel */}
           <div className="convert-info">
             <div className="info-card">
-              <div className="info-icon-wrap"><Icon name="lightning" size={22} color="var(--binance-yellow)" /></div>
+              <div className="info-icon-wrap"><Icon name="lightning" size={22} color="var(--brass)" /></div>
               <h3>Instant Execution</h3>
               <p>Conversions execute at real-time market prices with zero order book slippage.</p>
             </div>
             <div className="info-card">
-              <div className="info-icon-wrap"><Icon name="currency" size={22} color="var(--binance-yellow)" /></div>
+              <div className="info-icon-wrap"><Icon name="currency" size={22} color="var(--brass)" /></div>
               <h3>Low Fees</h3>
               <p>0.1% flat conversion fee across all asset pairs. No hidden charges.</p>
             </div>
             <div className="info-card">
-              <div className="info-icon-wrap"><Icon name="lock" size={22} color="var(--binance-yellow)" /></div>
+              <div className="info-icon-wrap"><Icon name="lock" size={22} color="var(--brass)" /></div>
               <h3>Quote Lock</h3>
               <p>Prices are locked for 10 seconds so you know exactly what you'll receive.</p>
             </div>

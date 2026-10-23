@@ -109,10 +109,13 @@ export default function Wallet() {
   };
 
   const totalEstUsdt = balances.reduce((sum, b) => {
+    // Note: live prices not yet available in wallet view — values are approximate
     const free = parseFloat(b.free);
     const locked = parseFloat(b.locked);
-    const rate = b.asset === 'USDT' ? 1 : b.asset === 'BTC' ? 67500 : b.asset === 'ETH' ? 3500 : 150;
-    return sum + (free + locked) * rate;
+    if (b.asset === 'USDT') return sum + (free + locked);
+    // Without a live price feed endpoint at wallet level, we omit non-USDT assets
+    // from the total to avoid showing misleading stale-price valuations.
+    return sum;
   }, 0);
 
   return (
@@ -123,10 +126,13 @@ export default function Wallet() {
         {/* Wallet Overview Summary Banner */}
         <div className="wallet-summary-card">
           <div className="summary-info">
-            <span className="summary-title">Estimated Total Balance</span>
+            <span className="summary-title">USDT Balance</span>
             <div className="summary-value">
               ${totalEstUsdt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="denom">USDT</span>
             </div>
+            <span style={{ fontSize: '11px', color: 'var(--text-faint)', marginTop: '4px', display: 'block' }}>
+              Non-USDT asset values shown in individual rows below
+            </span>
           </div>
           <div className="summary-actions">
             <button
@@ -278,7 +284,12 @@ export default function Wallet() {
 
               <div className="modal-field">
                 <label>Deposit Address (Send exact funds here)</label>
-                <input type="text" readOnly value={depAddress || 'TX9aB47zL9mN28qR75vP31xK04wE86yU21'} />
+                {depAddress
+                  ? <input type="text" readOnly value={depAddress} />
+                  : <div style={{ padding: '10px', background: 'var(--surface-raised)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', color: 'var(--text-muted)', fontSize: '13px' }}>
+                      No deposit address configured for this network. Contact support.
+                    </div>
+                }
               </div>
 
               <div className="modal-field">

@@ -20,6 +20,7 @@ import AdminUsers from './pages/admin/AdminUsers'
 import AdminPayouts from './pages/admin/AdminPayouts'
 import AdminTrades from './pages/admin/AdminTrades'
 import AdminSettings from './pages/admin/AdminSettings'
+import NotFound from './pages/NotFound'
 
 function App() {
   return (
@@ -49,7 +50,7 @@ function App() {
           <Route path="/admin/trades"    element={<AdminTrades />} />
           <Route path="/admin/settings"  element={<AdminSettings />} />
         </Route>
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   )

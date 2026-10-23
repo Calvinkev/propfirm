@@ -20,8 +20,8 @@ export const api = {
     return res.json();
   },
 
-  getProfile: async (token) => {
-    const res = await fetch(`${API_BASE}/accounts/profile`, {
+  getMe: async (token) => {
+    const res = await fetch(`${API_BASE}/auth/me`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     return res.json();
@@ -47,22 +47,10 @@ export const api = {
     return res.json();
   },
 
+  // NOTE: getAccountTrades, getTradingStats, getAccountPerformance previously
+  // all hit the same /accounts/:id endpoint — consolidated to getAccount above.
   getAccountTrades: async (token, accountId) => {
-    const res = await fetch(`${API_BASE}/accounts/${accountId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    return res.json();
-  },
-
-  getTradingStats: async (token, accountId) => {
-    const res = await fetch(`${API_BASE}/accounts/${accountId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    return res.json();
-  },
-
-  getAccountPerformance: async (token, accountId) => {
-    const res = await fetch(`${API_BASE}/accounts/${accountId}`, {
+    const res = await fetch(`${API_BASE}/spot/trade-history`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     return res.json();
@@ -322,6 +310,111 @@ export const api = {
   getTradeHistory: async (token) => {
     const res = await fetch(`${API_BASE}/spot/trade-history`, {
       headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.json();
+  },
+
+  // ── Admin ─────────────────────────────────────────────────────────────────
+  getAdminOverview: async (token) => {
+    const res = await fetch(`/api/admin/overview`, { headers: { Authorization: `Bearer ${token}` } });
+    return res.json();
+  },
+  getAdminUsers: async (token, params = {}) => {
+    const q = new URLSearchParams(params).toString();
+    const res = await fetch(`/api/admin/users${q ? `?${q}` : ''}`, { headers: { Authorization: `Bearer ${token}` } });
+    return res.json();
+  },
+  createAdminUser: async (token, data) => {
+    const res = await fetch('/api/admin/users', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  updateAdminUserRole: async (token, userId, role) => {
+    const res = await fetch(`/api/admin/users/${userId}/role`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ role })
+    });
+    return res.json();
+  },
+  getAdminAccounts: async (token, params = {}) => {
+    const q = new URLSearchParams(params).toString();
+    const res = await fetch(`/api/admin/accounts${q ? `?${q}` : ''}`, { headers: { Authorization: `Bearer ${token}` } });
+    return res.json();
+  },
+  createAdminAccount: async (token, data) => {
+    const res = await fetch('/api/admin/accounts', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  updateAdminAccount: async (token, accountId, data) => {
+    const res = await fetch(`/api/admin/accounts/${accountId}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  getAdminPayouts: async (token, params = {}) => {
+    const q = new URLSearchParams(params).toString();
+    const res = await fetch(`/api/admin/payouts${q ? `?${q}` : ''}`, { headers: { Authorization: `Bearer ${token}` } });
+    return res.json();
+  },
+  approveAdminPayout: async (token, payoutId, transactionId) => {
+    const res = await fetch(`/api/admin/payouts/${payoutId}/approve`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ transactionId })
+    });
+    return res.json();
+  },
+  rejectAdminPayout: async (token, payoutId) => {
+    const res = await fetch(`/api/admin/payouts/${payoutId}/reject`, {
+      method: 'PUT', headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.json();
+  },
+  getAdminTrades: async (token) => {
+    const res = await fetch('/api/admin/trades', { headers: { Authorization: `Bearer ${token}` } });
+    return res.json();
+  },
+  getAdminCryptoWallets: async (token) => {
+    const res = await fetch('/api/admin/wallets', { headers: { Authorization: `Bearer ${token}` } });
+    return res.json();
+  },
+  saveAdminCryptoWallet: async (token, data) => {
+    const res = await fetch('/api/admin/wallets', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  toggleAdminCryptoWallet: async (token, walletId) => {
+    const res = await fetch(`/api/admin/wallets/${walletId}/toggle`, {
+      method: 'PUT', headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.json();
+  },
+  deleteAdminCryptoWallet: async (token, walletId) => {
+    const res = await fetch(`/api/admin/wallets/${walletId}`, {
+      method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.json();
+  },
+  getAdminCryptoDeposits: async (token) => {
+    const res = await fetch('/api/admin/deposits', { headers: { Authorization: `Bearer ${token}` } });
+    return res.json();
+  },
+  approveAdminCryptoDeposit: async (token, depositId) => {
+    const res = await fetch(`/api/admin/deposits/${depositId}/approve`, {
+      method: 'PUT', headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.json();
+  },
+  rejectAdminCryptoDeposit: async (token, depositId) => {
+    const res = await fetch(`/api/admin/deposits/${depositId}/reject`, {
+      method: 'PUT', headers: { Authorization: `Bearer ${token}` }
     });
     return res.json();
   },

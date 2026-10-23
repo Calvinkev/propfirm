@@ -8,6 +8,7 @@ import './Landing.css';
 
 export default function Landing() {
   const [markets, setMarkets] = useState({});
+  const [marketsLoading, setMarketsLoading] = useState(true);
 
   useEffect(() => {
     async function loadMarkets() {
@@ -18,6 +19,8 @@ export default function Landing() {
         }
       } catch (err) {
         console.error('Landing load markets error:', err);
+      } finally {
+        setMarketsLoading(false);
       }
     }
     loadMarkets();
@@ -28,96 +31,198 @@ export default function Landing() {
   const popularSymbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'DOGEUSDT'];
 
   return (
-    <div className="binance-landing">
-      {/* Top Navbar */}
+    <div className="stakeup-landing">
+      {/* ── Navbar ── */}
       <header className="landing-nav">
         <div className="nav-container">
-          <div className="brand-group">
+          <Link to="/" className="landing-brand">
             <Logo size="medium" />
-            <span className="landing-brand-text">STAKEUP <span className="yellow-badge">BINANCE SPOT</span></span>
-          </div>
+          </Link>
+          <nav className="landing-nav-links">
+            <Link to="/markets" className="landing-nav-link">Markets</Link>
+          </nav>
           <div className="nav-actions">
             <Link to="/login" className="btn-login">Log In</Link>
-            <Link to="/register" className="btn-register">Register</Link>
+            <Link to="/register" className="btn-register">Create Account</Link>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
+      {/* ── Hero ── */}
       <section className="hero-section">
-        <div className="hero-content">
+        <div className="hero-container">
+          <div className="hero-eyebrow">Spot &amp; Futures Trading</div>
           <h1 className="hero-title">
-            <span className="yellow-text">242,108,124</span> USERS <br />TRUST US
+            Trade the Market<br />
+            <span className="hero-accent">on Your Terms.</span>
           </h1>
           <p className="hero-sub">
-            Trade 350+ Cryptocurrencies with Low Fees, High Speed Matching Engine and Industry-Leading Security.
+            STAKEUP is a professional cryptocurrency exchange with spot and futures trading,
+            a depth-first matching engine, and a live market feed.
           </p>
-
-          <div className="cta-box">
-            <Link to="/register" className="btn-hero-signup">
-              Sign Up with Email or Phone
+          <div className="hero-ctas">
+            <Link to="/register" className="btn-cta-primary">Start Trading</Link>
+            <Link to="/markets" className="btn-cta-secondary">
+              <Icon name="trendingUp" size={16} />
+              Explore Markets
             </Link>
           </div>
+          <div className="hero-tagline">PROVE YOUR EDGE. TRADE WITH PRECISION.</div>
         </div>
       </section>
 
-      {/* Market Overview Ticker */}
-      <section className="markets-ticker-section">
+      {/* ── Market Strip ── */}
+      <section className="markets-section">
         <div className="section-container">
-          <h2 className="section-title">Popular Cryptocurrencies</h2>
-          <div className="markets-grid">
-            {popularSymbols.map(sym => {
-              const m = markets[sym] || { price: '---', change24h: 0 };
-              const isPos = m.change24h >= 0;
-              const ticker = sym.replace('USDT', '');
-              return (
-                <div key={sym} className="market-card">
-                  <div className="card-pair-row">
-                    <CryptoIcon symbol={ticker} size={32} />
-                    <div>
-                      <div className="card-pair">{ticker}<span className="card-quote"> / USDT</span></div>
-                    </div>
-                  </div>
-                  <div className="card-price">${parseFloat(m.price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-                  <div className={`card-change ${isPos ? 'pos' : 'neg'}`}>
-                    {isPos ? '+' : ''}{parseFloat(m.change24h || 0).toFixed(2)}%
-                  </div>
-                  <Link to={`/trade?symbol=${sym}`} className="card-trade-btn">Trade Now</Link>
-                </div>
-              );
-            })}
+          <div className="section-head">
+            <h2 className="section-title">Live Market Prices</h2>
+            <Link to="/markets" className="section-link">View all markets →</Link>
           </div>
+
+          {marketsLoading ? (
+            <div className="market-skeleton-row">
+              {popularSymbols.map(s => (
+                <div key={s} className="market-skeleton-card" />
+              ))}
+            </div>
+          ) : (
+            <div className="markets-grid">
+              {popularSymbols.map(sym => {
+                const m = markets[sym] || null;
+                const ticker = sym.replace('USDT', '');
+                const isPos = m ? m.change24h >= 0 : null;
+                return (
+                  <Link to={`/trade?symbol=${sym}`} key={sym} className="market-card">
+                    <div className="market-card-top">
+                      <div className="market-pair-row">
+                        <CryptoIcon symbol={ticker} size={28} />
+                        <div>
+                          <span className="market-base">{ticker}</span>
+                          <span className="market-quote"> / USDT</span>
+                        </div>
+                      </div>
+                      {m && (
+                        <span className={`market-change ${isPos ? 'pos' : 'neg'}`}>
+                          {isPos ? '+' : ''}{parseFloat(m.change24h).toFixed(2)}%
+                        </span>
+                      )}
+                    </div>
+                    <div className="market-price">
+                      {m
+                        ? `$${parseFloat(m.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+                        : '—'
+                      }
+                    </div>
+                    <div className="market-card-trade">Trade →</div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
-      {/* Features Grid */}
+      {/* ── Features ── */}
       <section className="features-section">
         <div className="section-container">
-          <h2 className="section-title">Trade Anywhere, Anytime</h2>
+          <h2 className="section-title">Built for Active Traders</h2>
           <div className="features-grid">
             <div className="feature-item">
-              <div className="feature-icon-wrap"><Icon name="lightning" size={28} color="var(--binance-yellow)" /></div>
-              <h3>Ultra-Fast Spot Engine</h3>
-              <p>Execute market and limit orders with high frequency low-latency matching engine.</p>
+              <div className="feature-icon-wrap">
+                <Icon name="lightning" size={22} color="var(--brass)" />
+              </div>
+              <h3>Spot Trading Engine</h3>
+              <p>Market and limit orders across major crypto pairs with a real-time matching engine and live depth feed.</p>
             </div>
             <div className="feature-item">
-              <div className="feature-icon-wrap"><Icon name="shieldCheck" size={28} color="var(--binance-yellow)" /></div>
-              <h3>Institutional Security</h3>
-              <p>Protected by cold storage wallet architecture and end-to-end encrypted balance vaults.</p>
+              <div className="feature-icon-wrap">
+                <Icon name="trendingUp" size={22} color="var(--brass)" />
+              </div>
+              <h3>Futures &amp; Leverage</h3>
+              <p>Open long or short perpetual positions with configurable leverage and real-time mark price tracking.</p>
             </div>
             <div className="feature-item">
-              <div className="feature-icon-wrap"><Icon name="sparkles" size={28} color="var(--binance-yellow)" /></div>
-              <h3>Zero Slippage</h3>
-              <p>Deep liquidity across BTC, ETH, SOL, BNB, XRP and major altcoins.</p>
+              <div className="feature-icon-wrap">
+                <Icon name="arrowsSwap" size={22} color="var(--brass)" />
+              </div>
+              <h3>Instant Convert</h3>
+              <p>Swap between supported assets at live market rates with a quoted price and transparent fee before confirmation.</p>
+            </div>
+            <div className="feature-item">
+              <div className="feature-icon-wrap">
+                <Icon name="sparkles" size={22} color="var(--brass)" />
+              </div>
+              <h3>Simple Earn</h3>
+              <p>Put idle assets to work with flexible and fixed-term earn products. Redeem at any time on flexible positions.</p>
+            </div>
+            <div className="feature-item">
+              <div className="feature-icon-wrap">
+                <Icon name="chartBar" size={22} color="var(--brass)" />
+              </div>
+              <h3>Live Charts</h3>
+              <p>Candlestick charts with multiple timeframes, volume visualization, and a real-time price crosshair.</p>
+            </div>
+            <div className="feature-item">
+              <div className="feature-icon-wrap">
+                <Icon name="shieldCheck" size={22} color="var(--brass)" />
+              </div>
+              <h3>Account Security</h3>
+              <p>JWT-authenticated sessions, server-side balance enforcement, and confirmation flows for consequential actions.</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="landing-footer">
+      {/* ── Getting Started ── */}
+      <section className="steps-section">
         <div className="section-container">
-          <p>© 2026 STAKEUP Crypto Exchange. All rights reserved.</p>
+          <h2 className="section-title">Start in three steps</h2>
+          <div className="steps-grid">
+            <div className="step-item">
+              <div className="step-num">01</div>
+              <h3>Create an account</h3>
+              <p>Register with your email address. Your account gives you access to spot trading, futures, earn, and wallet immediately.</p>
+            </div>
+            <div className="step-item">
+              <div className="step-num">02</div>
+              <h3>Fund your wallet</h3>
+              <p>Deposit supported cryptocurrencies to your spot wallet. New accounts start with a USDT balance for getting started.</p>
+            </div>
+            <div className="step-item">
+              <div className="step-num">03</div>
+              <h3>Place your first trade</h3>
+              <p>Open the trading terminal, select a pair, set your order type and quantity, and submit with a single confirmation.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Footer ── */}
+      <footer className="landing-footer">
+        <div className="footer-container">
+          <div className="footer-brand">
+            <Logo size="small" />
+            <p className="footer-desc">A professional cryptocurrency exchange for spot and futures trading.</p>
+          </div>
+          <div className="footer-links-group">
+            <div className="footer-links-col">
+              <span className="footer-col-label">Trade</span>
+              <Link to="/markets" className="footer-link">Markets</Link>
+              <Link to="/register" className="footer-link">Spot Trading</Link>
+              <Link to="/register" className="footer-link">Futures</Link>
+              <Link to="/register" className="footer-link">Convert</Link>
+            </div>
+            <div className="footer-links-col">
+              <span className="footer-col-label">Account</span>
+              <Link to="/register" className="footer-link">Create Account</Link>
+              <Link to="/login" className="footer-link">Log In</Link>
+              <Link to="/register" className="footer-link">Earn</Link>
+              <Link to="/register" className="footer-link">Wallet</Link>
+            </div>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          <p>© 2026 STAKEUP. All rights reserved. Trading cryptocurrency involves significant risk.</p>
         </div>
       </footer>
     </div>

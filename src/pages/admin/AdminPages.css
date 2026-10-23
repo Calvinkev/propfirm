@@ -12,9 +12,9 @@
 }
 
 .admin-topbar h1 {
-  font-family: var(--serif);
-  font-size: 26px;
-  font-weight: 500;
+  font-family: var(--sans);
+  font-size: 24px;
+  font-weight: 700;
 }
 
 .admin-topbar .sub {

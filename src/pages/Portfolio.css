@@ -41,7 +41,7 @@
   font-family: var(--mono);
   margin-top: 6px;
 }
-.pf-banner-denom { font-size: 18px; color: var(--binance-yellow); }
+.pf-banner-denom { font-size: 18px; color: var(--brass); }
 
 .pf-wallet-split {
   display: flex;
@@ -177,7 +177,7 @@
 }
 
 .earn-type.flexible { background: rgba(14,203,129,0.15); color: var(--green); }
-.earn-type.locked   { background: rgba(240,185,11,0.15);  color: var(--binance-yellow); }
+.earn-type.locked   { background: rgba(214,174,85,0.12);  color: var(--brass); }
 
 /* Stats card */
 .pf-stats-grid {
@@ -213,7 +213,7 @@
 }
 
 .pf-earn-cta {
-  color: var(--binance-yellow);
+  color: var(--brass);
   font-size: 13px;
   font-weight: 600;
 }

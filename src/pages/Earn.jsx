@@ -201,7 +201,7 @@ export default function Earn() {
               </div>
               {modal.product.type === 'locked' && (
                 <div className="em-warning">
-                  <Icon name="warning" size={14} color="var(--binance-yellow)" style={{ flexShrink:0 }} />
+                  <Icon name="warning" size={14} color="var(--brass)" style={{ flexShrink:0 }} />
                   Locked for {modal.product.duration} days. Early redemption not available.
                 </div>
               )}

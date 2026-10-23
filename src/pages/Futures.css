@@ -53,7 +53,7 @@
   font-size: 11px;
   font-weight: 600;
   background: rgba(240,185,11,0.15);
-  color: var(--binance-yellow);
+  color: var(--brass);
   border: 1px solid rgba(240,185,11,0.3);
   padding: 2px 6px;
   border-radius: 3px;
@@ -80,8 +80,8 @@
 }
 
 .ft-pair-btn.active {
-  color: var(--binance-yellow);
-  border-color: var(--binance-yellow);
+  color: var(--brass);
+  border-color: var(--brass);
 }
 
 .ft-ticker-stats {
@@ -93,7 +93,7 @@
 .ft-stat { display: flex; flex-direction: column; }
 .ft-stat-label { font-size: 10px; color: var(--text-muted); }
 .ft-stat-val { font-family: var(--mono); font-weight: 600; font-size: 13px; }
-.ft-stat-val.yellow { color: var(--binance-yellow); font-size: 15px; }
+.ft-stat-val.yellow { color: var(--brass); font-size: 15px; }
 .ft-stat-val.pos { color: var(--green); }
 .ft-stat-val.neg { color: var(--red); }
 
@@ -168,12 +168,12 @@
 .ft-wallet-info { display: flex; flex-direction: column; gap: 2px; }
 .ft-wallet-label { font-size: 10px; color: var(--text-muted); }
 .ft-wallet-val { font-family: var(--mono); font-size: 15px; font-weight: 700; }
-.ft-wallet-val .usdt { font-size: 11px; color: var(--binance-yellow); }
+.ft-wallet-val .usdt { font-size: 11px; color: var(--brass); }
 
 .ft-transfer-btn {
   background: none;
   border: 1px solid var(--border);
-  color: var(--binance-yellow);
+  color: var(--brass);
   padding: 5px 12px;
   border-radius: 4px;
   font-size: 11px;
@@ -193,7 +193,7 @@
   margin-bottom: 8px;
 }
 
-.ft-section-label b { color: var(--binance-yellow); }
+.ft-section-label b { color: var(--brass); }
 
 .ft-lev-grid {
   display: grid;
@@ -215,8 +215,8 @@
 
 .ft-lev-btn.active {
   background: rgba(240,185,11,0.15);
-  border-color: var(--binance-yellow);
-  color: var(--binance-yellow);
+  border-color: var(--brass);
+  color: var(--brass);
 }
 
 .ft-side-tabs {
@@ -259,8 +259,8 @@
 }
 
 .ft-type-btn.active {
-  color: var(--binance-yellow);
-  border-bottom: 2px solid var(--binance-yellow);
+  color: var(--brass);
+  border-bottom: 2px solid var(--brass);
 }
 
 .ft-form-group label { display: block; color: var(--text-muted); margin-bottom: 4px; font-size: 11px; }
@@ -346,8 +346,8 @@
 }
 
 .ft-bottom-tab.active {
-  color: var(--binance-yellow);
-  border-bottom-color: var(--binance-yellow);
+  color: var(--brass);
+  border-bottom-color: var(--brass);
 }
 
 .ft-bottom-table-wrap { overflow-x: auto; flex: 1; }
@@ -474,7 +474,7 @@
 }
 
 .ft-modal-confirm {
-  background: var(--binance-yellow);
+  background: var(--brass);
   color: #000;
   border: none;
   padding: 12px;
@@ -506,8 +506,8 @@
   }
 
   .ft-mobile-tab.active {
-    color: var(--binance-yellow);
-    border-bottom-color: var(--binance-yellow);
+    color: var(--brass);
+    border-bottom-color: var(--brass);
   }
 
   .ft-main-grid {

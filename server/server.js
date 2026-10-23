@@ -72,7 +72,7 @@ app.use('/api/', apiLimiter);
 
 // ── Startup ──────────────────────────────────────────────────────────────────
 console.log('='.repeat(50));
-console.log('BINANCE CRYPTO EXCHANGE SERVER STARTING...');
+console.log('STAKEUP CRYPTO EXCHANGE SERVER STARTING...');
 console.log('='.repeat(50));
 
 initDatabase()
@@ -81,7 +81,7 @@ initDatabase()
     return priceFeed.start();
   })
   .then(() => {
-    console.log('✅ Live Binance price feed started');
+    console.log('✅ Live price feed started');
   })
   .catch((error) => {
     console.error('❌ Startup error:', error.message);
@@ -109,7 +109,7 @@ app.get('/health', async (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.json({ message: 'Binance Crypto Exchange API', status: 'running', version: '2.0.0' });
+  res.json({ message: 'STAKEUP Crypto Exchange API', status: 'running', version: '2.0.0' });
 });
 
 // ── Routes ───────────────────────────────────────────────────────────────────
@@ -147,7 +147,7 @@ if (existsSync(distPath)) {
 }
 
 server.listen(PORT, () => {
-  console.log(`🌐 Binance API Server: http://localhost:${PORT}`);
+  console.log(`🌐 STAKEUP API Server: http://localhost:${PORT}`);
 });
 
 const gracefulShutdown = async (signal) => {

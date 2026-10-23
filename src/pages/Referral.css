@@ -40,7 +40,7 @@
 }
 .ref-hero-left h2 { font-size: 26px; font-weight: 800; margin-bottom: 10px; }
 .ref-hero-left p  { color: var(--text-muted); font-size: 14px; line-height: 1.6; }
-.yellow { color: var(--binance-yellow); }
+.yellow { color: var(--brass); }
 
 .ref-hero-steps {
   display: flex;
@@ -58,7 +58,7 @@
   font-family: var(--mono);
   font-size: 12px;
   font-weight: 700;
-  color: var(--binance-yellow);
+  color: var(--brass);
   background: rgba(240,185,11,0.1);
   border: 1px solid rgba(240,185,11,0.3);
   border-radius: 6px;
@@ -96,7 +96,7 @@
 .rs-label { font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.05em; }
 .rs-val   { font-family: var(--mono); font-size: 26px; font-weight: 700; }
 .rs-val.pos    { color: var(--green); }
-.rs-val.yellow { color: var(--binance-yellow); }
+.rs-val.yellow { color: var(--brass); }
 
 .ref-card {
   background: var(--surface);
@@ -125,7 +125,7 @@
   font-size: 22px;
   font-weight: 800;
   letter-spacing: 0.1em;
-  color: var(--binance-yellow);
+  color: var(--brass);
 }
 
 .ref-link-box {
@@ -149,7 +149,7 @@
 }
 
 .copy-btn {
-  background: var(--binance-yellow);
+  background: var(--brass);
   color: #000;
   border: none;
   padding: 8px 16px;
@@ -198,7 +198,7 @@
 }
 
 .ref-apply-btn {
-  background: var(--binance-yellow);
+  background: var(--brass);
   color: #000;
   border: none;
   padding: 10px 20px;
@@ -232,7 +232,7 @@
 }
 
 .ref-table .mono { font-family: var(--mono); }
-.ref-table .yellow { color: var(--binance-yellow); }
+.ref-table .yellow { color: var(--brass); }
 
 .ref-user-cell {
   display: flex;
@@ -265,7 +265,7 @@
 }
 
 .ref-status.active  { background: var(--green-dim); color: var(--green); }
-.ref-status.pending { background: rgba(240,185,11,0.15); color: var(--binance-yellow); }
+.ref-status.pending { background: rgba(240,185,11,0.15); color: var(--brass); }
 
 .ref-empty {
   text-align: center;

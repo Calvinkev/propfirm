@@ -179,7 +179,7 @@ export default function Profile() {
               </div>
               <div className="pr-sec-item">
                 <div className="pr-sec-left">
-                  <span className="pr-sec-icon warn"><Icon name="warning" size={13} color="var(--binance-yellow)" /></span>
+                  <span className="pr-sec-icon warn"><Icon name="warning" size={13} color="var(--brass)" /></span>
                   <div><b>Two-Factor Authentication</b><span>Add an extra layer of protection</span></div>
                 </div>
                 <span className="pr-sec-badge warn">Not Set</span>
@@ -193,7 +193,7 @@ export default function Profile() {
           <div className="pr-card">
             <h2>API Key Management</h2>
             <div className="pr-api-info">
-              <div className="pr-api-icon"><Icon name="key" size={28} color="var(--binance-yellow)" /></div>
+              <div className="pr-api-icon"><Icon name="key" size={28} color="var(--brass)" /></div>
               <p>Create API keys to connect third-party trading bots, portfolio trackers, or custom algorithms to your STAKEUP account.</p>
               <ul>
                 <li>Read-only keys can view balances and order history</li>

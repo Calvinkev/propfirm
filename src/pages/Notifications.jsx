@@ -7,7 +7,7 @@ import './Notifications.css';
 const TYPE_ICON = {
   info:       <Icon name="info"        size={20} color="#2B8AFC" />,
   success:    <Icon name="checkCircle" size={20} color="var(--green)" />,
-  warning:    <Icon name="warning"     size={20} color="var(--binance-yellow)" />,
+  warning:    <Icon name="warning"     size={20} color="var(--brass)" />,
   error:      <Icon name="xCircle"     size={20} color="var(--red)" />,
   trade:      <Icon name="trendingUp"  size={20} color="var(--green)" />,
   deposit:    <Icon name="download"    size={20} color="var(--green)" />,

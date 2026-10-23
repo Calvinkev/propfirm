@@ -42,133 +42,117 @@ export default function AdminDashboard() {
     }
   }
 
-  const overview = data?.overview || {
-    totalUsers: 1248,
-    totalAccounts: 3426,
-    activeChallenges: 2329,
-    fundedAccounts: 754,
-    totalRevenue: 482450,
-    payouts: { pendingCount: 3, pendingAmount: 7464, totalPaid: 124500 }
+  const overview = data?.overview ?? null;
+  const recentActivity = data?.recentActivity || [];
+
+  if (loading) {
+    return (
+      <div className="admin-dashboard">
+        <div style={{ padding: '80px', textAlign: 'center', color: 'var(--text-muted)' }}>
+          Loading platform overview…
+        </div>
+      </div>
+    );
   }
 
-  const recentActivity = data?.recentActivity || []
+  if (!overview) {
+    return (
+      <div className="admin-dashboard">
+        <div className="admin-topbar">
+          <div><h1>Admin Dashboard</h1><div className="sub">Platform overview</div></div>
+          <Button variant="outline" onClick={loadData} style={{ fontSize: '12px', display:'flex', alignItems:'center', gap:6 }}>
+            <Icon name="refresh" size={14} /> Retry
+          </Button>
+        </div>
+        <div style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)', background: 'var(--surface)', borderRadius: 'var(--r-lg)', border: '1px solid var(--border)' }}>
+          <Icon name="warning" size={24} color="var(--text-faint)" />
+          <p style={{ marginTop: '12px' }}>Could not load platform statistics. The backend may be unavailable.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-dashboard">
       <div className="admin-topbar">
         <div>
-          <h1>Admin Command Center</h1>
-          <div className="sub">Platform overview, revenue analytics, and trader account controls</div>
+          <h1>Admin Dashboard</h1>
+          <div className="sub">Platform overview — users, trades, payouts, and deposits</div>
         </div>
         <div className="date-filter">
           <Button variant="outline" onClick={loadData} style={{ fontSize: '12px', display:'flex', alignItems:'center', gap:6 }}>
-            <Icon name="refresh" size={14} /> Refresh Live Stats
+            <Icon name="refresh" size={14} /> Refresh
           </Button>
         </div>
       </div>
 
       <div className="admin-grid-4">
         <Card className="admin-kpi">
-          <label>Total Registered Users</label>
-          <div className="val">{overview.totalUsers.toLocaleString()}</div>
-          <div className="delta up">▲ Active Platform Traders</div>
+          <label>Total Users</label>
+          <div className="val">{(overview.totalUsers ?? 0).toLocaleString()}</div>
+          <div className="delta up">Registered accounts</div>
         </Card>
         <Card className="admin-kpi">
-          <label>Active Challenges</label>
-          <div className="val">{overview.activeChallenges.toLocaleString()}</div>
-          <div className="delta up">▲ Phase 1 & Phase 2 Evaluation</div>
+          <label>Total Accounts</label>
+          <div className="val">{(overview.totalAccounts ?? 0).toLocaleString()}</div>
+          <div className="delta up">All trading accounts</div>
         </Card>
         <Card className="admin-kpi">
-          <label>Funded Accounts</label>
-          <div className="val">{overview.fundedAccounts.toLocaleString()}</div>
-          <div className="delta up">▲ 90% Profit Split Accounts</div>
+          <label>Pending Payouts</label>
+          <div className="val">{(overview.payouts?.pendingCount ?? 0).toLocaleString()}</div>
+          <div className="delta" style={{ color: 'var(--brass)' }}>Awaiting approval</div>
         </Card>
         <Card className="admin-kpi">
-          <label>Estimated Revenue</label>
-          <div className="val">${overview.totalRevenue.toLocaleString()}</div>
-          <div className="delta up">▲ Evaluation Fee Revenue</div>
+          <label>Total Paid Out</label>
+          <div className="val">${(overview.payouts?.totalPaid ?? 0).toLocaleString()}</div>
+          <div className="delta up">All time</div>
         </Card>
       </div>
 
       <div className="admin-grid-2">
         <Card className="admin-panel">
           <div className="panel-head">
-            <h3>Revenue Growth</h3>
-            <span style={{ fontSize: '12px', color: 'var(--brass)' }}>Live Projections</span>
-          </div>
-          <div className="revenue-chart">
-            <svg viewBox="0 0 600 200" width="100%" height="200" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="adminFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#C9A227" stopOpacity="0.25"/>
-                  <stop offset="100%" stopColor="#C9A227" stopOpacity="0"/>
-                </linearGradient>
-              </defs>
-              <line x1="0" y1="50" x2="600" y2="50" stroke="#26292E" strokeWidth="1"/>
-              <line x1="0" y1="100" x2="600" y2="100" stroke="#26292E" strokeWidth="1"/>
-              <line x1="0" y1="150" x2="600" y2="150" stroke="#26292E" strokeWidth="1"/>
-              <path d="M0,160 L50,155 L100,140 L150,145 L200,120 L250,125 L300,100 L350,105 L400,80 L450,85 L500,60 L550,65 L600,40 L600,200 L0,200 Z" fill="url(#adminFill)"/>
-              <path d="M0,160 L50,155 L100,140 L150,145 L200,120 L250,125 L300,100 L350,105 L400,80 L450,85 L500,60 L550,65 L600,40" fill="none" stroke="#C9A227" strokeWidth="2.5"/>
-            </svg>
+            <h3>Payout Summary</h3>
           </div>
           <div className="revenue-meta">
             <div>
-              <span>Pending Payouts</span>
-              <b style={{ color: 'var(--brass)' }}>${overview.payouts?.pendingAmount?.toLocaleString() || 0}</b>
+              <span>Pending Amount</span>
+              <b style={{ color: 'var(--brass)' }}>${(overview.payouts?.pendingAmount ?? 0).toLocaleString()}</b>
             </div>
             <div>
-              <span>Total Paid Out</span>
-              <b style={{ color: 'var(--green)' }}>${overview.payouts?.totalPaid?.toLocaleString() || 0}</b>
+              <span>Total Paid</span>
+              <b style={{ color: 'var(--green)' }}>${(overview.payouts?.totalPaid ?? 0).toLocaleString()}</b>
             </div>
             <div>
               <span>Pending Requests</span>
-              <b>{overview.payouts?.pendingCount || 0} Traders</b>
+              <b>{overview.payouts?.pendingCount ?? 0}</b>
             </div>
           </div>
         </Card>
 
         <Card className="admin-panel">
           <div className="panel-head">
-            <h3>Trader Account Status Breakdown</h3>
+            <h3>Quick Links</h3>
           </div>
-          <div className="status-bars">
-            <div className="status-item">
-              <div className="status-label">
-                <span className="status-dot active"></span>
-                <span>Evaluation (Phase 1/2)</span>
-              </div>
-              <div className="status-bar">
-                <div className="status-fill active" style={{width: '65%'}}></div>
-              </div>
-              <span className="status-count">{overview.activeChallenges}</span>
-            </div>
-            <div className="status-item">
-              <div className="status-label">
-                <span className="status-dot funded"></span>
-                <span>Funded Live Traders</span>
-              </div>
-              <div className="status-bar">
-                <div className="status-fill funded" style={{width: '25%'}}></div>
-              </div>
-              <span className="status-count">{overview.fundedAccounts}</span>
-            </div>
-            <div className="status-item">
-              <div className="status-label">
-                <span className="status-dot failed"></span>
-                <span>Breached / Failed</span>
-              </div>
-              <div className="status-bar">
-                <div className="status-fill failed" style={{width: '10%'}}></div>
-              </div>
-              <span className="status-count">{overview.failedAccounts || 69}</span>
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '8px' }}>
+            {[
+              { to: '/admin/users', label: 'Manage Users', icon: 'users' },
+              { to: '/admin/payouts', label: 'Review Payouts', icon: 'currency' },
+              { to: '/admin/trades', label: 'Inspect Trades', icon: 'chartBar' },
+              { to: '/admin/settings', label: 'Platform Settings', icon: 'settings' },
+            ].map(item => (
+              <a key={item.to} href={item.to} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', borderRadius:'var(--r-md)', background:'var(--surface-raised)', border:'1px solid var(--border-soft)', color:'var(--text-muted)', fontSize:'13px', textDecoration:'none' }}>
+                <Icon name={item.icon} size={15} />
+                {item.label}
+              </a>
+            ))}
           </div>
         </Card>
       </div>
 
       <Card className="admin-panel">
         <div className="panel-head">
-          <h3>Recent Payout Requests & Platform Logs</h3>
+          <h3>Recent Activity</h3>
         </div>
         {recentActivity.length === 0 ? (
           <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--text-faint)' }}>
@@ -178,7 +162,7 @@ export default function AdminDashboard() {
           <table className="admin-table">
             <thead>
               <tr>
-                <th>Trader</th>
+                <th>User</th>
                 <th>Action</th>
                 <th>Account</th>
                 <th>Amount</th>
@@ -191,7 +175,7 @@ export default function AdminDashboard() {
                 <tr key={item.id}>
                   <td>
                     <div className="user-cell">
-                      <div className="user-avatar">{(item.first_name || 'T')[0]}</div>
+                      <div className="user-avatar">{(item.first_name || 'U')[0]}</div>
                       <div>
                         <b>{item.first_name} {item.last_name}</b>
                         <span>{item.email}</span>

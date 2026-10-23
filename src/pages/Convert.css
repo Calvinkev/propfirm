@@ -117,7 +117,7 @@
 }
 
 .max-btn {
-  background: var(--binance-yellow);
+  background: var(--brass);
   color: #000;
   border: none;
   padding: 2px 8px;
@@ -138,7 +138,7 @@
   border-radius: 50%;
   background: var(--surface-raised);
   border: 1px solid var(--border);
-  color: var(--binance-yellow);
+  color: var(--brass);
   font-size: 20px;
   cursor: pointer;
   transition: background 0.2s;
@@ -178,7 +178,7 @@
 }
 
 .quote-timer b {
-  color: var(--binance-yellow);
+  color: var(--brass);
 }
 
 .swap-actions {
@@ -198,7 +198,7 @@
 }
 
 .get-quote-btn {
-  background: var(--binance-yellow);
+  background: var(--brass);
   color: #000;
 }
 

@@ -58,13 +58,13 @@
 }
 
 .earn-tab.active {
-  color: var(--binance-yellow);
-  border-bottom-color: var(--binance-yellow);
+  color: var(--brass);
+  border-bottom-color: var(--brass);
 }
 
 .earn-badge {
   background: rgba(240,185,11,0.15);
-  color: var(--binance-yellow);
+  color: var(--brass);
   font-size: 10px;
   padding: 2px 7px;
   border-radius: 10px;
@@ -89,11 +89,11 @@
 }
 
 .product-card:hover {
-  border-color: var(--binance-yellow);
+  border-color: var(--brass);
 }
 
 .product-card.locked {
-  border-top: 2px solid var(--binance-yellow);
+  border-top: 2px solid var(--brass);
 }
 
 .pc-top {
@@ -121,7 +121,7 @@
 }
 
 .pc-type-badge.flexible { background: rgba(14,203,129,0.15); color: var(--green); }
-.pc-type-badge.locked   { background: rgba(240,185,11,0.15);  color: var(--binance-yellow); }
+.pc-type-badge.locked   { background: rgba(240,185,11,0.15);  color: var(--brass); }
 
 .pc-apy {
   display: flex;
@@ -163,7 +163,7 @@
 }
 
 .pc-subscribe-btn {
-  background: var(--binance-yellow);
+  background: var(--brass);
   color: #000;
   border: none;
   padding: 12px;
@@ -219,7 +219,7 @@
 }
 
 .earn-type.flexible { background: rgba(14,203,129,0.15); color: var(--green); }
-.earn-type.locked   { background: rgba(240,185,11,0.15);  color: var(--binance-yellow); }
+.earn-type.locked   { background: rgba(240,185,11,0.15);  color: var(--brass); }
 
 .pos-status {
   font-size: 10px;
@@ -234,7 +234,7 @@
 .redeem-btn {
   background: none;
   border: 1px solid var(--border);
-  color: var(--binance-yellow);
+  color: var(--brass);
   padding: 4px 12px;
   border-radius: 4px;
   font-size: 12px;
@@ -320,7 +320,7 @@
 }
 
 .em-max-btn {
-  background: var(--binance-yellow);
+  background: var(--brass);
   color: #000;
   border: none;
   padding: 0 14px;
@@ -343,14 +343,14 @@
   border-radius: 6px;
   padding: 10px 14px;
   font-size: 12px;
-  color: var(--binance-yellow);
+  color: var(--brass);
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
 .em-confirm-btn {
-  background: var(--binance-yellow);
+  background: var(--brass);
   color: #000;
   border: none;
   padding: 13px;

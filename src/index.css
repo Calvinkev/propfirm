@@ -1,26 +1,74 @@
 :root {
-  --base: #0B0E11;
-  --surface: #181A20;
-  --surface-raised: #1E2329;
-  --surface-hover: #2B313A;
-  --border: #2B313A;
-  --border-soft: #22262C;
-  --binance-yellow: #F0B90B;
-  --binance-yellow-hover: #FCD535;
-  --brass: #F0B90B;
-  --brass-bright: #FCD535;
-  --brass-dim: #C99400;
-  --green: #0ECB81;
-  --green-hover: #03A66D;
-  --green-dim: #0A3223;
-  --red: #F6465D;
-  --red-hover: #CF304A;
-  --red-dim: #3B1B22;
-  --text: #EAECEF;
-  --text-muted: #848E9C;
-  --text-faint: #474D57;
+  /* ── Backgrounds ── */
+  --base:           #0B0F14;
+  --surface:        #10151C;
+  --surface-raised: #151B23;
+  --surface-hover:  #1B2430;
+  --surface-alt:    #1A2030;
+
+  /* ── Borders ── */
+  --border:         #283241;
+  --border-soft:    #1E2836;
+  --border-subtle:  #17212D;
+
+  /* ── Brand Gold ── */
+  --brass:          #D6AE55;
+  --brass-hover:    #E7C575;
+  --brass-dim:      #A07C2A;
+  --brass-bg:       rgba(214, 174, 85, 0.08);
+  --brass-border:   rgba(214, 174, 85, 0.25);
+
+  /* ── Financial Colors ── */
+  --green:          #10B981;
+  --green-hover:    #059669;
+  --green-dim:      #0A2E20;
+  --red:            #F43F5E;
+  --red-hover:      #E11D48;
+  --red-dim:        #2E0F1A;
+
+  /* ── Text ── */
+  --text:           #F4F7FA;
+  --text-muted:     #9AA6B5;
+  --text-faint:     #6B7788;
+
+  /* ── Legacy aliases (keep compatibility) ── */
+  --binance-yellow: var(--brass);
+  --binance-yellow-hover: var(--brass-hover);
+
+  /* ── Typography ── */
   --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --mono: 'JetBrains Mono', monospace;
+  --mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  --serif: 'Georgia', 'Times New Roman', serif;
+
+  /* ── Spacing scale ── */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+
+  /* ── Corner radii ── */
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 10px;
+  --r-xl: 14px;
+
+  /* ── Shadows ── */
+  --shadow-sm:  0 1px 4px rgba(0,0,0,0.3);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.4);
+  --shadow-lg:  0 12px 40px rgba(0,0,0,0.5);
+
+  /* ── Transitions ── */
+  --t-fast:   0.1s ease;
+  --t-base:   0.18s ease;
+  --t-slow:   0.3s ease;
+
+  /* ── Focus ── */
+  --focus-ring: 0 0 0 2px var(--brass-dim), 0 0 0 4px var(--brass-border);
 }
 
 * {
@@ -46,9 +94,21 @@ a {
 }
 
 ::selection {
-  background: var(--binance-yellow);
+  background: var(--brass);
   color: #000;
 }
+
+/* ── Focus Visible ─────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* ── Utility classes ──────────────────────────────────────────────────── */
+.pos { color: var(--green); }
+.neg { color: var(--red); }
+.muted { color: var(--text-muted); }
+.faint { color: var(--text-faint); }
 
 /* Custom scrollbars */
 ::-webkit-scrollbar {

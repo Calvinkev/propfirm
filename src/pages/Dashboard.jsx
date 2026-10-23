@@ -226,7 +226,7 @@ export default function Dashboard() {
         <div className="onboarding-hero">
           <div className="onboarding-content">
             <div className="onboarding-icon">
-              <Icon name="lightning" size={32} color="var(--binance-yellow)" />
+              <Icon name="lightning" size={32} color="var(--brass)" />
             </div>
             <h2>Start your first challenge</h2>
             <p>
@@ -458,7 +458,7 @@ export default function Dashboard() {
         <Card className="panel">
           <div className="panel-head">
             <h3 style={{ display:'flex', alignItems:'center', gap:6 }}>
-              <Icon name="warning" size={16} color="var(--binance-yellow)" /> Breach Alerts
+              <Icon name="warning" size={16} color="var(--brass)" /> Breach Alerts
             </h3>
           </div>
           <div style={{ paddingTop: '8px' }}>

@@ -216,7 +216,7 @@
 }
 
 .cert-card {
-  background: linear-gradient(155deg, #1C2024, #0F1113);
+  background: linear-gradient(155deg, var(--surface-hover), var(--surface));
   border: 1px solid var(--brass-dim);
   border-radius: 14px;
   padding: 30px;

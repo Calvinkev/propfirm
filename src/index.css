@@ -1,22 +1,22 @@
 :root {
   /* ── Backgrounds ── */
-  --base:           #0B0F14;
-  --surface:        #10151C;
-  --surface-raised: #151B23;
-  --surface-hover:  #1B2430;
-  --surface-alt:    #1A2030;
+  --base:           #080b17;
+  --surface:        #101526;
+  --surface-raised: #171f35;
+  --surface-hover:  #202b46;
+  --surface-alt:    #141d32;
 
   /* ── Borders ── */
-  --border:         #283241;
-  --border-soft:    #1E2836;
-  --border-subtle:  #17212D;
+  --border:         rgba(153, 174, 220, 0.2);
+  --border-soft:    rgba(153, 174, 220, 0.13);
+  --border-subtle:  rgba(153, 174, 220, 0.08);
 
-  /* ── Brand Gold ── */
-  --brass:          #D6AE55;
-  --brass-hover:    #E7C575;
-  --brass-dim:      #A07C2A;
-  --brass-bg:       rgba(214, 174, 85, 0.08);
-  --brass-border:   rgba(214, 174, 85, 0.25);
+  /* ── Brand Accent (Violet/Lavender) ── */
+  --brass:          #B68CFF;
+  --brass-hover:    #C9AEFF;
+  --brass-dim:      #8D67D8;
+  --brass-bg:       rgba(182, 140, 255, 0.14);
+  --brass-border:   rgba(182, 140, 255, 0.34);
 
   /* ── Financial Colors ── */
   --green:          #10B981;
@@ -27,9 +27,9 @@
   --red-dim:        #2E0F1A;
 
   /* ── Text ── */
-  --text:           #F4F7FA;
-  --text-muted:     #9AA6B5;
-  --text-faint:     #6B7788;
+  --text:           #F2EEFF;
+  --text-muted:     #B4AFCC;
+  --text-faint:     #8580A3;
 
   /* ── Legacy aliases (keep compatibility) ── */
   --binance-yellow: var(--brass);
@@ -78,10 +78,20 @@
 }
 
 body {
-  background: var(--base);
+  background:
+    radial-gradient(ellipse at 12% 0%, rgba(89, 92, 190, 0.15), transparent 36rem),
+    radial-gradient(ellipse at 95% 18%, rgba(47, 180, 164, 0.08), transparent 32rem),
+    var(--base);
   color: var(--text);
   font-family: var(--sans);
+  line-height: 1.45;
+  letter-spacing: 0.005em;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#root {
+  min-height: 100vh;
 }
 
 a {
@@ -95,7 +105,7 @@ a {
 
 ::selection {
   background: var(--brass);
-  color: #000;
+  color: #120B24;
 }
 
 /* ── Focus Visible ─────────────────────────────────────────────────────── */

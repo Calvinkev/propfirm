@@ -30,6 +30,15 @@ export default function Landing() {
 
   const popularSymbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'DOGEUSDT'];
 
+  const heroSymbol = 'BTCUSDT';
+  const heroMarket = markets[heroSymbol] || null;
+  const heroPrice = heroMarket
+    ? `$${parseFloat(heroMarket.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+    : 'Loading...';
+  const heroChange = heroMarket
+    ? `${heroMarket.change24h >= 0 ? '+' : ''}${parseFloat(heroMarket.change24h).toFixed(2)}%`
+    : '--';
+
   return (
     <div className="stakeup-landing">
       {/* ── Navbar ── */}
@@ -39,7 +48,9 @@ export default function Landing() {
             <Logo size="medium" />
           </Link>
           <nav className="landing-nav-links">
-            <Link to="/markets" className="landing-nav-link">Markets</Link>
+            <a href="#markets" className="landing-nav-link">Markets</a>
+            <a href="#features" className="landing-nav-link">Features</a>
+            <a href="#steps" className="landing-nav-link">How It Works</a>
           </nav>
           <div className="nav-actions">
             <Link to="/login" className="btn-login">Log In</Link>
@@ -51,28 +62,87 @@ export default function Landing() {
       {/* ── Hero ── */}
       <section className="hero-section">
         <div className="hero-container">
-          <div className="hero-eyebrow">Spot &amp; Futures Trading</div>
-          <h1 className="hero-title">
-            Trade the Market<br />
-            <span className="hero-accent">on Your Terms.</span>
-          </h1>
-          <p className="hero-sub">
-            STAKEUP is a professional cryptocurrency exchange with spot and futures trading,
-            a depth-first matching engine, and a live market feed.
-          </p>
-          <div className="hero-ctas">
-            <Link to="/register" className="btn-cta-primary">Start Trading</Link>
-            <Link to="/markets" className="btn-cta-secondary">
-              <Icon name="trendingUp" size={16} />
-              Explore Markets
-            </Link>
+          <div className="hero-copy">
+            <div className="hero-eyebrow">Spot &amp; Futures Trading</div>
+            <h1 className="hero-title">
+              Trade with
+              <span className="hero-accent"> Conviction</span>,
+              <br />
+              Execute with Precision.
+            </h1>
+            <p className="hero-sub">
+              STAKEUP is a professional cryptocurrency exchange with spot and futures trading,
+              high-speed matching, and a live market feed built for active decision-making.
+            </p>
+            <div className="hero-ctas">
+              <Link to="/register" className="btn-cta-primary">Start Trading</Link>
+              <Link to="/markets" className="btn-cta-secondary">
+                <Icon name="trendingUp" size={16} />
+                Explore Markets
+              </Link>
+            </div>
+            <div className="hero-tagline">PROVE YOUR EDGE. TRADE WITH PRECISION.</div>
           </div>
-          <div className="hero-tagline">PROVE YOUR EDGE. TRADE WITH PRECISION.</div>
+
+          <aside className="hero-panel" aria-label="Live BTC market panel">
+            <div className="hero-panel-head">
+              <div className="hero-panel-pair">
+                <CryptoIcon symbol="BTC" size={30} />
+                <div>
+                  <div className="hero-panel-symbol">BTC / USDT</div>
+                  <div className="hero-panel-meta">Live market snapshot</div>
+                </div>
+              </div>
+              <span className={`hero-panel-change ${heroMarket && heroMarket.change24h >= 0 ? 'pos' : 'neg'}`}>
+                {heroChange}
+              </span>
+            </div>
+            <div className="hero-panel-price">{heroPrice}</div>
+            <div className="hero-panel-grid">
+              <div className="hero-metric">
+                <span>Execution</span>
+                <strong>&lt; 40ms</strong>
+              </div>
+              <div className="hero-metric">
+                <span>Order Types</span>
+                <strong>Market + Limit</strong>
+              </div>
+              <div className="hero-metric">
+                <span>Products</span>
+                <strong>Spot + Futures</strong>
+              </div>
+              <div className="hero-metric">
+                <span>Live Feed</span>
+                <strong>24/7</strong>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section className="proof-strip" aria-label="Platform highlights">
+        <div className="proof-container">
+          <div className="proof-item">
+            <span className="proof-value">5+</span>
+            <span className="proof-label">Core pairs tracked live</span>
+          </div>
+          <div className="proof-item">
+            <span className="proof-value">2</span>
+            <span className="proof-label">Trading environments</span>
+          </div>
+          <div className="proof-item">
+            <span className="proof-value">24/7</span>
+            <span className="proof-label">Real-time market visibility</span>
+          </div>
+          <div className="proof-item">
+            <span className="proof-value">1</span>
+            <span className="proof-label">Unified wallet &amp; portfolio</span>
+          </div>
         </div>
       </section>
 
       {/* ── Market Strip ── */}
-      <section className="markets-section">
+      <section className="markets-section" id="markets">
         <div className="section-container">
           <div className="section-head">
             <h2 className="section-title">Live Market Prices</h2>
@@ -123,7 +193,7 @@ export default function Landing() {
       </section>
 
       {/* ── Features ── */}
-      <section className="features-section">
+      <section className="features-section" id="features">
         <div className="section-container">
           <h2 className="section-title">Built for Active Traders</h2>
           <div className="features-grid">
@@ -174,7 +244,7 @@ export default function Landing() {
       </section>
 
       {/* ── Getting Started ── */}
-      <section className="steps-section">
+      <section className="steps-section" id="steps">
         <div className="section-container">
           <h2 className="section-title">Start in three steps</h2>
           <div className="steps-grid">

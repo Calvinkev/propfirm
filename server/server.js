@@ -112,10 +112,6 @@ app.get('/health', async (req, res) => {
   }
 });
 
-app.get('/', (req, res) => {
-  res.json({ message: 'STAKEUP Crypto Exchange API', status: 'running', version: '2.0.0' });
-});
-
 // ── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/wallet', walletRoutes);
@@ -133,7 +129,7 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/futures', futuresRoutes);
 app.use('/api/ai', aiAgentRoutes);
 
-// Static frontend fallback
+// ── Static frontend (must be after API routes) ───────────────────────────────
 import { existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -148,6 +144,11 @@ if (existsSync(distPath)) {
       return res.status(404).json({ error: 'Endpoint not found' });
     }
     res.sendFile(join(distPath, 'index.html'));
+  });
+} else {
+  // No dist built — return JSON for all non-API routes (dev/API-only mode)
+  app.get('/', (req, res) => {
+    res.json({ message: 'STAKEUP Crypto Exchange API', status: 'running', version: '2.0.0' });
   });
 }
 

@@ -314,6 +314,13 @@ export const api = {
     return res.json();
   },
 
+  getSpotPositions: async (token) => {
+    const res = await fetch(`${API_BASE}/spot/positions`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.json();
+  },
+
   // ── Admin ─────────────────────────────────────────────────────────────────
   getAdminOverview: async (token) => {
     const res = await fetch(`/api/admin/overview`, { headers: { Authorization: `Bearer ${token}` } });

@@ -20,7 +20,8 @@ export default function TradingDesk() {
   const [balances, setBalances] = useState([]);
   const [openOrders, setOpenOrders] = useState([]);
   const [tradeHistory, setTradeHistory] = useState([]);
-  const [activeTab, setActiveTab] = useState('OPEN_ORDERS');
+  const [positions, setPositions] = useState([]);
+  const [activeTab, setActiveTab] = useState('POSITIONS');
   const [mobileDeskTab, setMobileDeskTab] = useState('chart'); // 'chart' | 'orderbook' | 'order'
   const [chartTimeframe, setChartTimeframe] = useState('1h'); // active timeframe
 
@@ -51,14 +52,16 @@ export default function TradingDesk() {
   // 1. Initial Load & Balance Fetch
   const refreshData = async () => {
     try {
-      const [balRes, ordRes, trdRes] = await Promise.all([
+      const [balRes, ordRes, trdRes, posRes] = await Promise.all([
         api.getWalletBalances(token),
         api.getOpenOrders(token),
-        api.getTradeHistory(token)
+        api.getTradeHistory(token),
+        api.getSpotPositions(token),
       ]);
       if (balRes.balances) setBalances(balRes.balances);
       if (ordRes.orders) setOpenOrders(ordRes.orders);
       if (trdRes.trades) setTradeHistory(trdRes.trades);
+      if (posRes.positions) setPositions(posRes.positions);
     } catch (err) {
       console.error('Refresh data error:', err);
     }
@@ -104,6 +107,15 @@ export default function TradingDesk() {
       if (data.symbol === symbol) {
         setTicker(prev => ({ ...prev, price: data.ask }));
       }
+      // Update floating PnL live for all positions
+      setPositions(prev => prev.map(pos => {
+        if (pos.symbol !== data.symbol) return pos;
+        const mark = (data.bid + data.ask) / 2;
+        const currentValue = mark * pos.quantity;
+        const unrealizedPnl = pos.totalCost ? currentValue - pos.totalCost : null;
+        const unrealizedPnlPct = pos.totalCost && unrealizedPnl !== null ? (unrealizedPnl / pos.totalCost) * 100 : null;
+        return { ...pos, markPrice: mark, currentValue, unrealizedPnl, unrealizedPnlPct };
+      }));
     };
 
     wsService.on('price_tick', handlePriceTick);
@@ -463,6 +475,12 @@ export default function TradingDesk() {
       <div className="desk-bottom-panel">
         <div className="bottom-tabs">
           <button
+            className={`bottom-tab ${activeTab === 'POSITIONS' ? 'active' : ''}`}
+            onClick={() => setActiveTab('POSITIONS')}
+          >
+            Positions {positions.length > 0 && `(${positions.length})`}
+          </button>
+          <button
             className={`bottom-tab ${activeTab === 'OPEN_ORDERS' ? 'active' : ''}`}
             onClick={() => setActiveTab('OPEN_ORDERS')}
           >
@@ -483,6 +501,77 @@ export default function TradingDesk() {
         </div>
 
         <div className="bottom-table-container">
+
+          {activeTab === 'POSITIONS' && (
+            <table className="desk-table">
+              <thead>
+                <tr>
+                  <th>Asset</th>
+                  <th>Quantity</th>
+                  <th>Avg Entry</th>
+                  <th>Mark Price</th>
+                  <th>Cost Basis</th>
+                  <th>Current Value</th>
+                  <th>Unrealized PnL</th>
+                  <th>PnL %</th>
+                </tr>
+              </thead>
+              <tbody>
+                {positions.length === 0 ? (
+                  <tr><td colSpan="8" className="empty-msg">No open positions. Buy an asset to see your floating PnL here.</td></tr>
+                ) : (
+                  positions.map(pos => {
+                    const pnl = pos.unrealizedPnl;
+                    const pnlPct = pos.unrealizedPnlPct;
+                    const pnlClass = pnl === null ? '' : pnl >= 0 ? 'pos' : 'neg';
+                    return (
+                      <tr key={pos.asset}>
+                        <td><b>{pos.asset}</b></td>
+                        <td className="mono">{parseFloat(pos.quantity).toFixed(6)}</td>
+                        <td className="mono">
+                          {pos.avgEntryPrice ? `$${parseFloat(pos.avgEntryPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}` : '—'}
+                        </td>
+                        <td className="mono gold">
+                          {pos.markPrice ? `$${parseFloat(pos.markPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}` : '—'}
+                        </td>
+                        <td className="mono">
+                          {pos.totalCost ? `$${parseFloat(pos.totalCost).toFixed(2)}` : '—'}
+                        </td>
+                        <td className="mono">
+                          {pos.currentValue ? `$${parseFloat(pos.currentValue).toFixed(2)}` : '—'}
+                        </td>
+                        <td className={`mono ${pnlClass}`}>
+                          {pnl !== null ? `${pnl >= 0 ? '+' : ''}$${parseFloat(pnl).toFixed(2)}` : '—'}
+                        </td>
+                        <td className={`mono ${pnlClass}`}>
+                          {pnlPct !== null ? `${pnlPct >= 0 ? '+' : ''}${parseFloat(pnlPct).toFixed(2)}%` : '—'}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+              {positions.length > 0 && (() => {
+                const totalCost = positions.reduce((s, p) => s + (p.totalCost || 0), 0);
+                const totalValue = positions.reduce((s, p) => s + (p.currentValue || 0), 0);
+                const totalPnl = totalValue - totalCost;
+                const totalPct = totalCost > 0 ? (totalPnl / totalCost) * 100 : 0;
+                const cls = totalPnl >= 0 ? 'pos' : 'neg';
+                return (
+                  <tfoot>
+                    <tr className="positions-total-row">
+                      <td colSpan="4"><b>Portfolio Total</b></td>
+                      <td className="mono"><b>${totalCost.toFixed(2)}</b></td>
+                      <td className="mono"><b>${totalValue.toFixed(2)}</b></td>
+                      <td className={`mono ${cls}`}><b>{totalPnl >= 0 ? '+' : ''}${totalPnl.toFixed(2)}</b></td>
+                      <td className={`mono ${cls}`}><b>{totalPnl >= 0 ? '+' : ''}{totalPct.toFixed(2)}%</b></td>
+                    </tr>
+                  </tfoot>
+                );
+              })()}
+            </table>
+          )}
+
           {activeTab === 'OPEN_ORDERS' && (
             <table className="desk-table">
               <thead>

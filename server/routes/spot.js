@@ -310,4 +310,107 @@ router.get('/trade-history', auth, async (req, res) => {
   }
 });
 
+// Get user spot positions with floating PnL
+// A "position" = net holdings per symbol calculated from filled trades + current balance
+router.get('/positions', auth, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    // Get all filled trades aggregated per symbol
+    const [trades] = await pool.query(
+      `SELECT symbol, side, price, amount, fee
+       FROM crypto_trades
+       WHERE user_id = ?
+       ORDER BY created_at ASC`,
+      [userId]
+    );
+
+    // Get current balances for non-USDT assets
+    const [balances] = await pool.query(
+      `SELECT asset, free, locked FROM user_balances WHERE user_id = ? AND asset != 'USDT'`,
+      [userId]
+    );
+
+    // Build position map using FIFO cost basis
+    const positionMap = {};
+
+    for (const trade of trades) {
+      const baseAsset = trade.symbol.replace('USDT', '');
+      if (!positionMap[baseAsset]) {
+        positionMap[baseAsset] = { totalQty: 0, totalCost: 0, totalFees: 0, symbol: trade.symbol };
+      }
+      const pos = positionMap[baseAsset];
+      const qty = parseFloat(trade.amount);
+      const price = parseFloat(trade.price);
+      const fee = parseFloat(trade.fee);
+
+      if (trade.side === 'BUY') {
+        pos.totalCost += qty * price + fee;
+        pos.totalQty += qty;
+        pos.totalFees += fee;
+      } else {
+        // Reduce position proportionally
+        if (pos.totalQty > 0) {
+          const avgCost = pos.totalCost / pos.totalQty;
+          const costReduced = Math.min(qty, pos.totalQty) * avgCost;
+          pos.totalCost = Math.max(0, pos.totalCost - costReduced);
+          pos.totalQty = Math.max(0, pos.totalQty - qty);
+        }
+      }
+    }
+
+    // Build result — only include assets with actual balance > dust threshold
+    const positions = [];
+    for (const bal of balances) {
+      const heldQty = parseFloat(bal.free) + parseFloat(bal.locked);
+      if (heldQty < 0.000001) continue;
+
+      const symbol = bal.asset + 'USDT';
+      const pos = positionMap[bal.asset];
+      const livePrice = getLatestPrice(symbol);
+      const markPrice = livePrice ? (livePrice.bid + livePrice.ask) / 2 : null;
+
+      let avgEntryPrice = null;
+      let unrealizedPnl = null;
+      let unrealizedPnlPct = null;
+      let totalCost = null;
+      let currentValue = null;
+
+      if (pos && pos.totalQty > 0.000001) {
+        avgEntryPrice = pos.totalCost / pos.totalQty;
+        totalCost = avgEntryPrice * heldQty;
+        if (markPrice) {
+          currentValue = markPrice * heldQty;
+          unrealizedPnl = currentValue - totalCost;
+          unrealizedPnlPct = (unrealizedPnl / totalCost) * 100;
+        }
+      } else if (markPrice) {
+        currentValue = markPrice * heldQty;
+      }
+
+      positions.push({
+        asset: bal.asset,
+        symbol,
+        quantity: heldQty,
+        free: parseFloat(bal.free),
+        locked: parseFloat(bal.locked),
+        avgEntryPrice: avgEntryPrice ? parseFloat(avgEntryPrice.toFixed(8)) : null,
+        markPrice: markPrice ? parseFloat(markPrice.toFixed(8)) : null,
+        totalCost: totalCost ? parseFloat(totalCost.toFixed(4)) : null,
+        currentValue: currentValue ? parseFloat(currentValue.toFixed(4)) : null,
+        unrealizedPnl: unrealizedPnl !== null ? parseFloat(unrealizedPnl.toFixed(4)) : null,
+        unrealizedPnlPct: unrealizedPnlPct !== null ? parseFloat(unrealizedPnlPct.toFixed(2)) : null,
+      });
+    }
+
+    // Sort by current value descending
+    positions.sort((a, b) => (b.currentValue || 0) - (a.currentValue || 0));
+
+    res.json({ positions });
+  } catch (error) {
+    console.error('Fetch positions error:', error);
+    res.status(500).json({ error: 'Failed to fetch positions' });
+  }
+});
+
 export default router;

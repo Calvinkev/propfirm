@@ -417,6 +417,19 @@
 
 .pos { color: var(--green); }
 .neg { color: var(--red); }
+.gold { color: var(--brass); }
+
+/* ── Positions Table ─────────────────────────────────────────────────────── */
+.positions-total-row td {
+  border-top: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
+  padding: 10px 12px;
+}
+
+.desk-table tfoot .positions-total-row td {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
 
 /* ── Mobile Responsive ──────────────────────────────────────────────────── */
 

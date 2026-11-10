@@ -318,6 +318,8 @@ async function processBot(bot) {
 
 /**
  * Place a spot order on behalf of the bot.
+ * - BUY signal  → buy if we don't already hold a position for this bot
+ * - SELL signal → close the existing position (sell whatever the bot bought)
  */
 async function autoExecuteTrade(bot, analysis, signalId) {
   const livePrice = getLatestPrice(bot.symbol);
@@ -326,34 +328,100 @@ async function autoExecuteTrade(bot, analysis, signalId) {
     return;
   }
 
-  const conditions = typeof bot.conditions === 'string'
-    ? JSON.parse(bot.conditions)
-    : (bot.conditions || {});
-
-  const tradeAmountUSDT = parseFloat(bot.trade_amount) || 10;
+  const baseAsset  = bot.symbol.replace('USDT', '');
+  const quoteAsset = 'USDT';
   const price = analysis.action === 'BUY' ? livePrice.ask : livePrice.bid;
-  const amount = parseFloat((tradeAmountUSDT / price).toFixed(8));
+
+  // ── Check existing bot position ──────────────────────────────────────────
+  // Track open bot positions in ai_bot_positions (created below if missing)
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS ai_bot_positions (
+      id         INT AUTO_INCREMENT PRIMARY KEY,
+      bot_id     INT NOT NULL,
+      user_id    INT NOT NULL,
+      symbol     VARCHAR(20) NOT NULL,
+      side       ENUM('BUY') NOT NULL DEFAULT 'BUY',
+      amount     DECIMAL(18,8) NOT NULL,
+      entry_price DECIMAL(18,8) NOT NULL,
+      entry_order_id INT NOT NULL,
+      status     ENUM('open','closed') NOT NULL DEFAULT 'open',
+      opened_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      closed_at  TIMESTAMP NULL,
+      realized_pnl DECIMAL(18,8) DEFAULT 0,
+      FOREIGN KEY (bot_id)  REFERENCES ai_bots(id)  ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id)     ON DELETE CASCADE
+    )
+  `).catch(() => {});
+
+  const [openPositions] = await pool.query(
+    `SELECT * FROM ai_bot_positions WHERE bot_id = ? AND symbol = ? AND status = 'open' LIMIT 1`,
+    [bot.id, bot.symbol]
+  );
+
+  const hasOpenPosition = openPositions.length > 0;
+
+  // ── Prevent duplicate buys or selling without a position ────────────────
+  if (analysis.action === 'BUY' && hasOpenPosition) {
+    await logBot(bot.id, `BUY skipped — already holding ${bot.symbol} position (${parseFloat(openPositions[0].amount).toFixed(6)} ${baseAsset})`, 'info');
+    return;
+  }
+
+  if (analysis.action === 'SELL' && !hasOpenPosition) {
+    await logBot(bot.id, `SELL skipped — no open position for ${bot.symbol} to close`, 'info');
+    return;
+  }
+
+  // ── Determine amount ─────────────────────────────────────────────────────
+  let amount;
+  if (analysis.action === 'BUY') {
+    const tradeAmountUSDT = parseFloat(bot.trade_amount) || 10;
+    // Check USDT balance
+    const [usdtBal] = await pool.query(
+      `SELECT free FROM user_balances WHERE user_id = ? AND asset = 'USDT'`,
+      [bot.user_id]
+    );
+    const availableUSDT = parseFloat(usdtBal[0]?.free || 0);
+    if (availableUSDT < tradeAmountUSDT) {
+      await logBot(bot.id, `BUY skipped — insufficient USDT (need $${tradeAmountUSDT.toFixed(2)}, have $${availableUSDT.toFixed(2)})`, 'warn');
+      return;
+    }
+    amount = parseFloat((tradeAmountUSDT / price).toFixed(8));
+  } else {
+    // SELL — use the exact amount from the open position
+    amount = parseFloat(openPositions[0].amount);
+    // Check actual balance
+    const [baseBal] = await pool.query(
+      `SELECT free FROM user_balances WHERE user_id = ? AND asset = ?`,
+      [bot.user_id, baseAsset]
+    );
+    const availableBase = parseFloat(baseBal[0]?.free || 0);
+    if (availableBase < amount) {
+      amount = availableBase; // sell whatever we actually have
+    }
+    if (amount < 0.000001) {
+      await logBot(bot.id, `SELL skipped — no ${baseAsset} balance to sell`, 'warn');
+      return;
+    }
+  }
 
   try {
-    // Place order via the spot API internally
+    const totalValue = price * amount;
+    const fee = parseFloat((totalValue * 0.001).toFixed(8));
+
+    // Insert order
     const [result] = await pool.query(
-      `INSERT INTO crypto_orders
-         (user_id, symbol, side, type, price, amount, status)
+      `INSERT INTO crypto_orders (user_id, symbol, side, type, price, amount, status)
        VALUES (?, ?, ?, 'MARKET', ?, ?, 'NEW')`,
       [bot.user_id, bot.symbol, analysis.action, price, amount]
     );
-
     const orderId = result.insertId;
 
-    // Deduct / credit balances
-    const baseAsset  = bot.symbol.replace('USDT', '');
-    const quoteAsset = 'USDT';
-
+    // Settle balances
     if (analysis.action === 'BUY') {
-      // Deduct USDT, credit base
+      const cost = totalValue;
       await pool.query(
         `UPDATE user_balances SET free = free - ? WHERE user_id = ? AND asset = ? AND free >= ?`,
-        [tradeAmountUSDT, bot.user_id, quoteAsset, tradeAmountUSDT]
+        [cost, bot.user_id, quoteAsset, cost]
       );
       await pool.query(
         `INSERT INTO user_balances (user_id, asset, free) VALUES (?, ?, ?)
@@ -361,7 +429,6 @@ async function autoExecuteTrade(bot, analysis, signalId) {
         [bot.user_id, baseAsset, amount, amount]
       );
     } else {
-      // Deduct base, credit USDT
       await pool.query(
         `UPDATE user_balances SET free = free - ? WHERE user_id = ? AND asset = ? AND free >= ?`,
         [amount, bot.user_id, baseAsset, amount]
@@ -369,7 +436,7 @@ async function autoExecuteTrade(bot, analysis, signalId) {
       await pool.query(
         `INSERT INTO user_balances (user_id, asset, free) VALUES (?, ?, ?)
          ON DUPLICATE KEY UPDATE free = free + ?`,
-        [bot.user_id, quoteAsset, tradeAmountUSDT, tradeAmountUSDT]
+        [bot.user_id, quoteAsset, totalValue - fee, totalValue - fee]
       );
     }
 
@@ -380,7 +447,6 @@ async function autoExecuteTrade(bot, analysis, signalId) {
     );
 
     // Record trade
-    const fee = parseFloat((tradeAmountUSDT * 0.001).toFixed(8));
     await pool.query(
       `INSERT INTO crypto_trades (order_id, user_id, symbol, side, price, amount, fee)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -390,25 +456,38 @@ async function autoExecuteTrade(bot, analysis, signalId) {
     // Mark signal as executed
     await pool.query('UPDATE ai_signals SET executed = 1, order_id = ? WHERE id = ?', [orderId, signalId]);
 
-    const logMsg = `Auto-executed ${analysis.action} ${amount} ${baseAsset} @ $${price.toFixed(2)} (${analysis.confidence}% confidence)`;
+    // ── Track bot position ─────────────────────────────────────────────────
+    if (analysis.action === 'BUY') {
+      await pool.query(
+        `INSERT INTO ai_bot_positions (bot_id, user_id, symbol, amount, entry_price, entry_order_id)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [bot.id, bot.user_id, bot.symbol, amount, price, orderId]
+      );
+      await logBot(bot.id, `📈 BUY ${amount} ${baseAsset} @ $${price.toFixed(2)} | Cost: $${totalValue.toFixed(2)} | Conf: ${analysis.confidence}%`, 'trade');
+    } else {
+      const openPos = openPositions[0];
+      const realizedPnl = (price - parseFloat(openPos.entry_price)) * amount - fee;
+      const pnlPct = ((price - parseFloat(openPos.entry_price)) / parseFloat(openPos.entry_price)) * 100;
 
-    // Generate LLM plain-English reasoning and append to log
-    const reasoning = await generateTradeReasoning(
-      { action: analysis.action, confidence: analysis.confidence, reason: analysis.reason, indicators: analysis.indicators },
-      { symbol: bot.symbol, amount, price }
-    );
-    await logBot(bot.id, logMsg, 'trade');
-    if (reasoning && reasoning !== analysis.reason) {
-      await logBot(bot.id, `AI reasoning: ${reasoning}`, 'info');
+      await pool.query(
+        `UPDATE ai_bot_positions SET status = 'closed', closed_at = NOW(), realized_pnl = ? WHERE id = ?`,
+        [realizedPnl.toFixed(8), openPos.id]
+      );
+
+      const pnlStr = realizedPnl >= 0
+        ? `✅ +$${realizedPnl.toFixed(2)} (+${pnlPct.toFixed(2)}%)`
+        : `🔴 -$${Math.abs(realizedPnl).toFixed(2)} (${pnlPct.toFixed(2)}%)`;
+
+      await logBot(bot.id, `📉 SELL ${amount} ${baseAsset} @ $${price.toFixed(2)} | PnL: ${pnlStr} | Conf: ${analysis.confidence}%`, 'trade');
     }
 
-    // Push trade notification
+    // Push notification to user
     sendToUser(bot.user_id, {
-      type:    'ai_trade_executed',
-      botId:   bot.id,
-      botName: bot.name,
-      action:  analysis.action,
-      symbol:  bot.symbol,
+      type:       'ai_trade_executed',
+      botId:      bot.id,
+      botName:    bot.name,
+      action:     analysis.action,
+      symbol:     bot.symbol,
       amount,
       price,
       orderId,

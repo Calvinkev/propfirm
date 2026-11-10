@@ -90,10 +90,10 @@ Respond ONLY in this exact JSON format (no extra text, no markdown):
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.3,
       top_p: 0.9,
-      max_tokens: 512,
+      max_tokens: 1024,
     });
 
-    const raw = completion.choices[0]?.message?.content?.trim() || '';
+    const raw = (completion.choices[0]?.message?.content || completion.choices[0]?.message?.reasoning_content || '').trim();
 
     // Extract JSON — model might wrap in ```json ... ```
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
@@ -206,11 +206,11 @@ Switch tab on AI agent page:
       ],
       temperature: 0.7,
       top_p:       0.95,
-      max_tokens:  1536,
+      max_tokens:  2048,
       stream:      false,
     });
 
-    const raw = completion.choices[0]?.message?.content?.trim() || '';
+    const raw = (completion.choices[0]?.message?.content || completion.choices[0]?.message?.reasoning_content || '').trim();
 
     // Try to parse as JSON envelope { reply, actions }
     try {
@@ -268,10 +268,10 @@ Write a 2-sentence plain-English explanation of why this trade was executed, sui
       model:       MODEL,
       messages:    [{ role: 'user', content: prompt }],
       temperature: 0.4,
-      max_tokens:  200,
+      max_tokens:  400,
     });
 
-    return completion.choices[0]?.message?.content?.trim() || signal.reason;
+    return (completion.choices[0]?.message?.content || completion.choices[0]?.message?.reasoning_content || '').trim() || signal.reason;
   } catch (err) {
     console.error('LLM trade reasoning error:', err.message);
     return signal.reason;

@@ -36,6 +36,12 @@ const PORT = process.env.PORT || 5000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const isProd = NODE_ENV === 'production';
 
+// Trust Render's proxy so express-rate-limit can read the real client IP
+// from X-Forwarded-For without throwing a validation error.
+if (isProd) {
+  app.set('trust proxy', 1);
+}
+
 // ── Security Middleware ──────────────────────────────────────────────────────
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },

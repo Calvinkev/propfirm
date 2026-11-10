@@ -57,63 +57,46 @@ export async function analyseChartWithLLM(symbol, indicators, conditions = {}, r
     const strategy = conditions.strategy || 'combined';
     const indicatorText = formatIndicators(indicators);
 
-    const prompt = `You are an expert cryptocurrency technical analyst and algorithmic trader.
+    const prompt = `You are a crypto trading analyst. Analyse ${symbol} indicators and respond with ONLY a JSON object — no explanation, no markdown, no preamble.
 
-Analyse the following real-time technical indicators for ${symbol} and provide a precise trading signal.
-
-## Technical Indicators
+Indicators:
 ${indicatorText}
 
-## Strategy Configuration
-- Strategy: ${strategy}
-- RSI Oversold threshold: ${conditions.rsi_oversold || 30}
-- RSI Overbought threshold: ${conditions.rsi_overbought || 70}
-- EMA Fast period: ${conditions.ema_fast || 9}
-- EMA Slow period: ${conditions.ema_slow || 21}
+Strategy: ${strategy} | RSI oversold: ${conditions.rsi_oversold || 30} | RSI overbought: ${conditions.rsi_overbought || 70} | EMA fast: ${conditions.ema_fast || 9} | EMA slow: ${conditions.ema_slow || 21}
+Rule-based signal: ${ruleSignal} (${ruleConf}% confidence)
 
-## Rule-Based Signal (for reference)
-- Signal: ${ruleSignal}
-- Confidence: ${ruleConf}%
-
-## Your Task
-Based on the indicators above, provide:
-1. A trading action: BUY, SELL, or HOLD
-2. Confidence level: 0-100 (integer)
-3. A concise reason (1-2 sentences explaining the key signals driving your decision)
-4. A brief market commentary (2-3 sentences on price action context)
-
-Respond ONLY in this exact JSON format (no extra text, no markdown):
-{"action":"BUY","confidence":72,"reason":"RSI is at 28 indicating oversold conditions while price is touching the lower Bollinger Band, suggesting a potential reversal.","commentary":"BTC has been in a short-term downtrend but momentum indicators are showing exhaustion. The confluence of oversold RSI and lower BB touch historically precedes bounces. Risk management is essential given broader market uncertainty."}`;
+Output this JSON and nothing else:
+{"action":"BUY|SELL|HOLD","confidence":0-100,"reason":"1-2 sentences","commentary":"2-3 sentences"}`;
 
     const completion = await openai.chat.completions.create({
       model: MODEL,
       messages: [{ role: 'user', content: prompt }],
-      temperature: 0.3,
+      temperature: 0.1,
       top_p: 0.9,
       max_tokens: 1024,
     });
 
     const raw = (completion.choices[0]?.message?.content || completion.choices[0]?.message?.reasoning_content || '').trim();
 
-    // Extract JSON — model might wrap in ```json ... ```
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    // Extract the first valid JSON object from the response
+    const jsonMatch = raw.match(/\{[^{}]*"action"[^{}]*\}/s) || raw.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error('LLM returned non-JSON response');
 
     const parsed = JSON.parse(jsonMatch[0]);
+    if (!parsed.action) throw new Error('LLM JSON missing action field');
 
     return {
-      action:      (['BUY','SELL','HOLD'].includes(parsed.action?.toUpperCase()) ? parsed.action.toUpperCase() : ruleSignal),
-      confidence:  Math.min(100, Math.max(0, parseInt(parsed.confidence) || ruleConf)),
-      reason:      parsed.reason      || 'LLM analysis complete.',
-      commentary:  parsed.commentary  || '',
+      action:     (['BUY','SELL','HOLD'].includes(parsed.action?.toUpperCase()) ? parsed.action.toUpperCase() : ruleSignal),
+      confidence: Math.min(100, Math.max(0, parseInt(parsed.confidence) || ruleConf)),
+      reason:     parsed.reason     || 'LLM analysis complete.',
+      commentary: parsed.commentary || '',
     };
   } catch (err) {
     console.error('LLM chart analysis error:', err.message);
-    // Fall back gracefully — return the rule-based signal
     return {
       action:     ruleSignal,
       confidence: ruleConf,
-      reason:     'LLM unavailable — rule-based signal used.',
+      reason:     `Signal based on technical indicators (${ruleSignal} at ${ruleConf}% confidence).`,
       commentary: '',
     };
   }

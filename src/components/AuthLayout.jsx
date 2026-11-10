@@ -18,6 +18,7 @@ const NAV_GROUPS = [
   },
   { label: 'Earn',   path: '/earn',   single: true },
   { label: 'Orders', path: '/orders', single: true },
+  { label: '🤖 AI Agent', path: '/ai-agent', single: true },
 ]
 
 const USER_MENU = [
@@ -27,6 +28,7 @@ const USER_MENU = [
   { to: '/earn',      iconName: 'sparkles',      label: 'Earn',             desc: 'Simple earn & staking' },
   { to: '/referral',  iconName: 'gift',          label: 'Referral',         desc: 'Invite friends, earn fees' },
   { to: '/profile',   iconName: 'user',          label: 'Profile & Security', desc: 'Account settings' },
+  { to: '/ai-agent',  iconName: 'sparkles',      label: 'AI Trading Agent',   desc: 'Signals & auto-execution' },
 ]
 
 const MOBILE_TRADE = [
@@ -44,6 +46,7 @@ const MOBILE_ACCOUNT = [
   { to: '/notifications', iconName: 'bell',          label: 'Notifications' },
   { to: '/referral',      iconName: 'gift',          label: 'Referral' },
   { to: '/profile',       iconName: 'user',          label: 'Profile' },
+  { to: '/ai-agent',      iconName: 'sparkles',      label: 'AI Agent' },
 ]
 
 export default function AuthLayout() {

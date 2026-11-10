@@ -264,8 +264,8 @@ export const api = {
   },
 
   // Chart candles
-  getChartCandles: async (symbol, timeframe = '1h') => {
-    const res = await fetch(`${API_BASE}/market/candles/${symbol}?timeframe=${timeframe}`);
+  getChartCandles: async (symbol, timeframe = '1h', limit = 1000) => {
+    const res = await fetch(`${API_BASE}/market/candles/${symbol}?timeframe=${timeframe}&limit=${limit}`);
     return res.json();
   },
 
@@ -415,6 +415,65 @@ export const api = {
   rejectAdminCryptoDeposit: async (token, depositId) => {
     const res = await fetch(`/api/admin/deposits/${depositId}/reject`, {
       method: 'PUT', headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.json();
+  },
+
+  // ── AI Agent ──────────────────────────────────────────────────────────────
+  createAIBot: async (token, data) => {
+    const res = await fetch(`${API_BASE}/ai/bots`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  getAIBots: async (token) => {
+    const res = await fetch(`${API_BASE}/ai/bots`, { headers: { Authorization: `Bearer ${token}` } });
+    return res.json();
+  },
+  getAIBot: async (token, id) => {
+    const res = await fetch(`${API_BASE}/ai/bots/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+    return res.json();
+  },
+  updateAIBot: async (token, id, data) => {
+    const res = await fetch(`${API_BASE}/ai/bots/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  toggleAIBot: async (token, id) => {
+    const res = await fetch(`${API_BASE}/ai/bots/${id}/toggle`, {
+      method: 'PUT', headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.json();
+  },
+  deleteAIBot: async (token, id) => {
+    const res = await fetch(`${API_BASE}/ai/bots/${id}`, {
+      method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.json();
+  },
+  getAISignals: async (token, params = {}) => {
+    const q = new URLSearchParams(params).toString();
+    const res = await fetch(`${API_BASE}/ai/signals${q ? `?${q}` : ''}`, { headers: { Authorization: `Bearer ${token}` } });
+    return res.json();
+  },
+  analyseAI: async (token, symbol, conditions = {}) => {
+    const res = await fetch(`${API_BASE}/ai/analyse`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ symbol, conditions })
+    });
+    return res.json();
+  },
+  chatAI: async (token, messages, symbol = null) => {
+    const res = await fetch(`${API_BASE}/ai/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ messages, symbol })
     });
     return res.json();
   },

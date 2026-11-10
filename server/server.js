@@ -22,6 +22,8 @@ import profileRoutes from './routes/profile.js';
 import futuresRoutes from './routes/futures.js';
 import { setupWebSocket } from './websocket/server.js';
 import { priceFeed } from './services/priceFeed.js';
+import { startAIEngine } from './services/aiTradingEngine.js';
+import aiAgentRoutes from './routes/aiAgent.js';
 import { apiLimiter, authLimiter } from './middleware/rateLimiter.js';
 import { sanitiseInput } from './middleware/validate.js';
 import cache from './services/cache.js';
@@ -82,6 +84,8 @@ initDatabase()
   })
   .then(() => {
     console.log('✅ Live price feed started');
+    startAIEngine();
+    console.log('✅ AI Trading Engine started');
   })
   .catch((error) => {
     console.error('❌ Startup error:', error.message);
@@ -127,6 +131,7 @@ app.use('/api/referral', referralRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/futures', futuresRoutes);
+app.use('/api/ai', aiAgentRoutes);
 
 // Static frontend fallback
 import { existsSync } from 'fs';

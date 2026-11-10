@@ -22,6 +22,7 @@ export default function TradingDesk() {
   const [tradeHistory, setTradeHistory] = useState([]);
   const [activeTab, setActiveTab] = useState('OPEN_ORDERS');
   const [mobileDeskTab, setMobileDeskTab] = useState('chart'); // 'chart' | 'orderbook' | 'order'
+  const [chartTimeframe, setChartTimeframe] = useState('1h'); // active timeframe
 
   // Spot Order form state
   const [orderSide, setOrderSide] = useState('BUY'); // BUY or SELL
@@ -136,6 +137,9 @@ export default function TradingDesk() {
       timeScale: {
         timeVisible: true,
         borderColor: '#283241',
+        rightOffset: 5,
+        barSpacing: 6,
+        minBarSpacing: 2,
       },
       crosshair: {
         mode: 1,
@@ -153,8 +157,12 @@ export default function TradingDesk() {
     chartInstance.current = chart;
     candleSeries.current = series;
 
-    api.getChartCandles(symbol, '1h').then(res => {
-      if (res.candles) series.setData(res.candles);
+    api.getChartCandles(symbol, chartTimeframe, 1000).then(res => {
+      if (res.candles && res.candles.length > 0) {
+        series.setData(res.candles);
+        // Scroll to the most recent candle
+        chart.timeScale().scrollToRealTime();
+      }
     });
 
     return () => {
@@ -163,7 +171,7 @@ export default function TradingDesk() {
         chartInstance.current = null;
       }
     };
-  }, [symbol]);
+  }, [symbol, chartTimeframe]);
 
   // Percentage slider logic
   const handlePercentageChange = (pct) => {
@@ -331,6 +339,17 @@ export default function TradingDesk() {
         <div className={`chart-col${mobileDeskTab === 'chart' ? ' mobile-visible' : ''}`}>
           <div className="chart-header">
             <span>{symbol.replace('USDT', '/USDT')} · Candlestick Chart</span>
+            <div className="chart-timeframes">
+              {['1m','5m','15m','1h','4h','1d','1w'].map(tf => (
+                <button
+                  key={tf}
+                  className={`tf-btn ${chartTimeframe === tf ? 'active' : ''}`}
+                  onClick={() => setChartTimeframe(tf)}
+                >
+                  {tf}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="chart-container" ref={chartContainerRef} />
         </div>

@@ -230,6 +230,58 @@ export const initDatabase = async () => {
       );
     }
 
+    // ── AI TRADING BOTS ──────────────────────────────────────────────────
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS ai_bots (
+        id            INT AUTO_INCREMENT PRIMARY KEY,
+        user_id       INT NOT NULL,
+        name          VARCHAR(100) NOT NULL,
+        symbol        VARCHAR(20)  NOT NULL,
+        strategy      VARCHAR(30)  NOT NULL DEFAULT 'combined',
+        conditions    JSON,
+        auto_execute  TINYINT(1)   NOT NULL DEFAULT 0,
+        trade_amount  DECIMAL(18,2) NOT NULL DEFAULT 10.00,
+        status        ENUM('active','paused','stopped') NOT NULL DEFAULT 'active',
+        total_trades  INT NOT NULL DEFAULT 0,
+        last_signal_at DATETIME NULL,
+        created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+
+    // ── AI SIGNALS ────────────────────────────────────────────────────────
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS ai_signals (
+        id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+        bot_id      INT NULL,
+        user_id     INT NOT NULL,
+        symbol      VARCHAR(20) NOT NULL,
+        action      ENUM('BUY','SELL','HOLD') NOT NULL,
+        confidence  TINYINT UNSIGNED NOT NULL DEFAULT 0,
+        reason      TEXT,
+        indicators  JSON,
+        executed    TINYINT(1) NOT NULL DEFAULT 0,
+        order_id    INT NULL,
+        created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_user_created (user_id, created_at),
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+
+    // ── AI BOT LOGS ───────────────────────────────────────────────────────
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS ai_bot_logs (
+        id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+        bot_id     INT NOT NULL,
+        message    TEXT NOT NULL,
+        level      ENUM('info','signal','trade','warn','error') NOT NULL DEFAULT 'info',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_bot_created (bot_id, created_at),
+        FOREIGN KEY (bot_id) REFERENCES ai_bots(id) ON DELETE CASCADE
+      )
+    `);
+
     connection.release();
     console.log('✅ Database tables initialized successfully');
   } catch (error) {

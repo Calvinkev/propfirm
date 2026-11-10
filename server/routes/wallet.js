@@ -20,7 +20,7 @@ export async function ensureUserBalances(userId) {
 // Get user spot balances
 router.get('/balances', auth, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.userId;
     await ensureUserBalances(userId);
 
     const [rows] = await pool.query(
@@ -49,7 +49,7 @@ router.get('/deposit-addresses', auth, async (req, res) => {
 // Submit a deposit request / transaction hash
 router.post('/deposit', auth, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.userId;
     const { coin, network, depositAddress, txHash, amount } = req.body;
 
     if (!coin || !network || !depositAddress || !txHash || !amount || parseFloat(amount) <= 0) {
@@ -72,7 +72,7 @@ router.post('/deposit', auth, async (req, res) => {
 // Get deposit history
 router.get('/deposits', auth, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.userId;
     const [deposits] = await pool.query(
       'SELECT * FROM crypto_deposits WHERE user_id = ? ORDER BY created_at DESC',
       [userId]
@@ -87,7 +87,7 @@ router.get('/deposits', auth, async (req, res) => {
 // Request a crypto withdrawal
 router.post('/withdraw', auth, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.userId;
     const { coin, network, address, amount } = req.body;
     const numAmount = parseFloat(amount);
 
@@ -131,7 +131,7 @@ router.post('/withdraw', auth, async (req, res) => {
 // Get withdrawal history
 router.get('/withdrawals', auth, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.userId;
     const [withdrawals] = await pool.query(
       'SELECT * FROM crypto_withdrawals WHERE user_id = ? ORDER BY created_at DESC',
       [userId]

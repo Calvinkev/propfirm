@@ -59,7 +59,7 @@ router.get('/orderbook/:symbol', async (req, res) => {
 // Place spot order (LIMIT or MARKET)
 router.post('/order', auth, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.userId;
     const { symbol, side, type, price, amount } = req.body;
 
     const orderSide = side?.toUpperCase(); // BUY or SELL
@@ -219,7 +219,7 @@ router.post('/order', auth, async (req, res) => {
 // Get all orders (full history including filled/canceled)
 router.get('/all-orders', auth, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.userId;
     const [orders] = await pool.query(
       `SELECT * FROM crypto_orders WHERE user_id = ? ORDER BY created_at DESC LIMIT 200`,
       [userId]
@@ -233,7 +233,7 @@ router.get('/all-orders', auth, async (req, res) => {
 // Get user open orders
 router.get('/open-orders', auth, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.userId;
     const [orders] = await pool.query(
       `SELECT * FROM crypto_orders WHERE user_id = ? AND status IN ('NEW', 'PARTIALLY_FILLED') ORDER BY created_at DESC`,
       [userId]
@@ -248,7 +248,7 @@ router.get('/open-orders', auth, async (req, res) => {
 // Cancel open order
 router.post('/cancel-order', auth, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.userId;
     const { orderId } = req.body;
 
     const [orders] = await pool.query(
@@ -298,7 +298,7 @@ router.post('/cancel-order', auth, async (req, res) => {
 // Get user trade history
 router.get('/trade-history', auth, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.userId;
     const [trades] = await pool.query(
       `SELECT * FROM crypto_trades WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
       [userId]

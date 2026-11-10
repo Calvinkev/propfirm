@@ -38,3 +38,27 @@ export const payoutLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: 'Too many payout requests. Please try again later.' },
 });
+
+// AI LLM limiters — protect NVIDIA API spend
+// Use userId from JWT (set by auth middleware) as the key so limits are per-user.
+// Falls back to a string key that never matches an IP to avoid the IPv6 helper warning.
+
+// On-demand analysis: 20 requests per minute per user
+export const aiAnalyseLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => `user:${req.user?.userId || 'anon'}`,
+  message: { error: 'Too many analysis requests. Please wait a moment.' },
+});
+
+// AI Chat: 30 messages per minute per user
+export const aiChatLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => `user:${req.user?.userId || 'anon'}`,
+  message: { error: 'Too many chat messages. Please slow down.' },
+});

@@ -11,9 +11,7 @@ import walletRoutes from './routes/wallet.js';
 import spotRoutes from './routes/spot.js';
 import marketRoutes from './routes/market.js';
 import adminRoutes from './routes/admin.js';
-import accountsRoutes from './routes/accounts.js';
 import dashboardRoutes from './routes/dashboard.js';
-import tradesRoutes from './routes/trades.js';
 import convertRoutes from './routes/convert.js';
 import earnRoutes from './routes/earn.js';
 import referralRoutes from './routes/referral.js';
@@ -86,6 +84,17 @@ console.log('='.repeat(50));
 initDatabase()
   .then(() => {
     console.log('✅ Database connected & initialized');
+    // ── Price ticks cleanup — keep only last 2 hours of ticks ──────────────
+    // Runs every 10 minutes. Prevents the table from growing unboundedly.
+    setInterval(async () => {
+      try {
+        await pool.query(
+          `DELETE FROM price_ticks WHERE timestamp < DATE_SUB(NOW(), INTERVAL 2 HOUR)`
+        );
+      } catch (err) {
+        console.error('price_ticks cleanup error:', err.message);
+      }
+    }, 10 * 60 * 1000);
     return priceFeed.start();
   })
   .then(() => {
@@ -124,9 +133,7 @@ app.use('/api/wallet', walletRoutes);
 app.use('/api/spot', spotRoutes);
 app.use('/api/market', marketRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/accounts', accountsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/trades', tradesRoutes);
 app.use('/api/convert', convertRoutes);
 app.use('/api/earn', earnRoutes);
 app.use('/api/referral', referralRoutes);

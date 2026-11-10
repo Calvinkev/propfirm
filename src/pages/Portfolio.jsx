@@ -235,18 +235,24 @@ export default function Portfolio() {
                 <span className="pf-stat-val">{overview?.totalTrades ?? '—'}</span>
               </div>
               <div className="pf-stat">
-                <span className="pf-stat-label">Total P&L</span>
-                <span className={`pf-stat-val ${parseFloat(overview?.totalPnL) >= 0 ? 'pos' : 'neg'}`}>
-                  ${parseFloat(overview?.totalPnL || 0).toFixed(2)}
+                <span className="pf-stat-label">Futures PnL</span>
+                <span className={`pf-stat-val ${parseFloat(overview?.futuresRealizedPnl) >= 0 ? 'pos' : 'neg'}`}>
+                  {overview?.futuresRealizedPnl !== undefined
+                    ? `${overview.futuresRealizedPnl >= 0 ? '+' : ''}$${parseFloat(overview.futuresRealizedPnl).toFixed(2)}`
+                    : '—'}
                 </span>
               </div>
               <div className="pf-stat">
-                <span className="pf-stat-label">Active Accounts</span>
-                <span className="pf-stat-val">{overview?.activeAccounts ?? '—'}</span>
+                <span className="pf-stat-label">Futures Win Rate</span>
+                <span className="pf-stat-val pos">
+                  {overview?.futuresWinRate !== undefined ? `${overview.futuresWinRate}%` : '—'}
+                </span>
               </div>
               <div className="pf-stat">
-                <span className="pf-stat-label">Pass Rate</span>
-                <span className="pf-stat-val pos">{overview?.challengePassRate ?? '—'}%</span>
+                <span className="pf-stat-label">Fees Paid</span>
+                <span className="pf-stat-val">
+                  {overview?.totalFees !== undefined ? `$${parseFloat(overview.totalFees).toFixed(4)}` : '—'}
+                </span>
               </div>
             </div>
           </div>

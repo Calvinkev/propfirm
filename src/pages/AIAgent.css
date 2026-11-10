@@ -364,6 +364,40 @@
    SIGNALS TABLE
 ════════════════════════════════════════════════ */
 .signals-section { animation: fadeIn .2s; }
+
+.signals-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.signals-count { color: #94A3B8; font-size: 0.85rem; }
+
+.clear-history-btn {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #EF4444;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.clear-history-btn:hover { background: rgba(239, 68, 68, 0.2); }
+
+.signal-delete-btn {
+  background: none;
+  border: none;
+  color: #475569;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+.signal-delete-btn:hover { color: #EF4444; background: rgba(239,68,68,0.08); }
+
 .signals-table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid #1E2D40; }
 
 .ai-table {

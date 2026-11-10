@@ -461,6 +461,18 @@ export const api = {
     const res = await fetch(`${API_BASE}/ai/signals${q ? `?${q}` : ''}`, { headers: { Authorization: `Bearer ${token}` } });
     return res.json();
   },
+  deleteAISignal: async (token, id) => {
+    const res = await fetch(`${API_BASE}/ai/signals/${id}`, {
+      method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.json();
+  },
+  clearAISignals: async (token) => {
+    const res = await fetch(`${API_BASE}/ai/signals`, {
+      method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.json();
+  },
   analyseAI: async (token, symbol, conditions = {}) => {
     const res = await fetch(`${API_BASE}/ai/analyse`, {
       method: 'POST',

@@ -540,6 +540,22 @@ export default function AIAgent() {
       ════════════════════════════════════════════════ */}
       {activeTab === 'signals' && (
         <div className="signals-section">
+          <div className="signals-header-row">
+            <span className="signals-count">{signals.length} signal{signals.length !== 1 ? 's' : ''}</span>
+            {signals.length > 0 && (
+              <button
+                className="clear-history-btn"
+                onClick={async () => {
+                  if (!window.confirm('Clear all signal history? This cannot be undone.')) return;
+                  await api.clearAISignals(token);
+                  setSignals([]);
+                  showToast('success', 'Signal history cleared');
+                }}
+              >
+                🗑 Clear History
+              </button>
+            )}
+          </div>
           <div className="signals-table-wrap">
             <table className="ai-table">
               <thead>
@@ -551,11 +567,12 @@ export default function AIAgent() {
                   <th>Confidence</th>
                   <th>Executed</th>
                   <th>Reason</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
                 {signals.length === 0 && (
-                  <tr><td colSpan="7" className="empty-msg">No signals yet. Create a bot or run an analysis.</td></tr>
+                  <tr><td colSpan="8" className="empty-msg">No signals yet. Create a bot or run an analysis.</td></tr>
                 )}
                 {signals.map(s => (
                   <tr key={s.id}>
@@ -566,6 +583,16 @@ export default function AIAgent() {
                     <td>{confidenceBar(s.confidence)}</td>
                     <td>{s.executed ? <span className="exec-badge">✅ Yes</span> : <span className="muted">—</span>}</td>
                     <td className="reason-col">{s.reason}</td>
+                    <td>
+                      <button
+                        className="signal-delete-btn"
+                        title="Delete signal"
+                        onClick={async () => {
+                          await api.deleteAISignal(token, s.id);
+                          setSignals(prev => prev.filter(x => x.id !== s.id));
+                        }}
+                      >✕</button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

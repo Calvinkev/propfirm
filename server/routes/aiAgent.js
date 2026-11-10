@@ -232,6 +232,30 @@ router.get('/signals', auth, async (req, res) => {
   }
 });
 
+// ─── Delete a single signal ───────────────────────────────────────────────────
+router.delete('/signals/:id', auth, async (req, res) => {
+  try {
+    const [result] = await pool.query(
+      'DELETE FROM ai_signals WHERE id = ? AND user_id = ?',
+      [req.params.id, req.user.userId]
+    );
+    if (result.affectedRows === 0) return res.status(404).json({ error: 'Signal not found' });
+    res.json({ message: 'Signal deleted' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete signal' });
+  }
+});
+
+// ─── Clear all signals for the user ──────────────────────────────────────────
+router.delete('/signals', auth, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM ai_signals WHERE user_id = ?', [req.user.userId]);
+    res.json({ message: 'Signal history cleared' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to clear signals' });
+  }
+});
+
 // ─── On-demand analysis (no bot required) ────────────────────────────────────
 router.post('/analyse', auth, aiAnalyseLimiter, async (req, res) => {
   try {

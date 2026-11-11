@@ -281,6 +281,7 @@ export default function Wallet() {
         {/* Spot Assets Balance Table */}
         <div className="wallet-card">
           <h2>Spot Assets</h2>
+          <div className="wallet-table-wrapper">
           <table className="wallet-table">
             <thead>
               <tr>
@@ -311,11 +312,13 @@ export default function Wallet() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
 
         {/* Deposit History */}
         <div className="wallet-card">
           <h2>Deposit History</h2>
+          <div className="wallet-table-wrapper">
           <table className="wallet-table">
             <thead>
               <tr>
@@ -333,22 +336,24 @@ export default function Wallet() {
               ) : (
                 deposits.map(d => (
                   <tr key={d.id}>
-                    <td>{new Date(d.created_at).toLocaleString()}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>{new Date(d.created_at).toLocaleString()}</td>
                     <td><b>{d.coin}</b></td>
                     <td>{d.network}</td>
                     <td className="mono">{parseFloat(d.amount).toFixed(4)}</td>
-                    <td className="mono" style={{ fontSize: '11px' }}>{d.tx_hash.slice(0, 16)}...</td>
+                    <td className="mono tx-hash-cell">{d.tx_hash.slice(0, 16)}…</td>
                     <td><span className={`status-badge ${d.status.toLowerCase()}`}>{d.status}</span></td>
                   </tr>
                 ))
               )}
             </tbody>
           </table>
+          </div>
         </div>
 
         {/* Withdrawal History */}
         <div className="wallet-card">
           <h2>Withdrawal History</h2>
+          <div className="wallet-table-wrapper">
           <table className="wallet-table">
             <thead>
               <tr>
@@ -366,10 +371,10 @@ export default function Wallet() {
               ) : (
                 withdrawals.map(w => (
                   <tr key={w.id}>
-                    <td>{new Date(w.created_at).toLocaleString()}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>{new Date(w.created_at).toLocaleString()}</td>
                     <td><b>{w.coin}</b></td>
                     <td>{w.network}</td>
-                    <td className="mono" style={{ fontSize: '11px' }}>{w.address}</td>
+                    <td className="mono addr-cell">{w.address}</td>
                     <td className="mono">{parseFloat(w.amount).toFixed(4)}</td>
                     <td><span className={`status-badge ${w.status.toLowerCase()}`}>{w.status}</span></td>
                   </tr>
@@ -377,6 +382,7 @@ export default function Wallet() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
 

@@ -13,6 +13,7 @@ const NAV_GROUPS = [
     children: [
       { path: '/trade',   label: 'Spot Trade', iconName: 'chartBar',    desc: 'Buy & sell crypto instantly' },
       { path: '/futures', label: 'Futures',    iconName: 'trendingUp',  desc: 'Trade with leverage up to 125x' },
+      { path: '/p2p',     label: 'P2P',        iconName: 'arrowsSwap',  desc: 'Trade directly with users' },
       { path: '/convert', label: 'Convert',    iconName: 'arrowsSwap',  desc: 'Instant crypto swaps' },
     ],
   },
@@ -35,6 +36,7 @@ const MOBILE_TRADE = [
   { to: '/markets',  iconName: 'trendingDown', label: 'Markets' },
   { to: '/trade',    iconName: 'chartBar',     label: 'Spot Trade' },
   { to: '/futures',  iconName: 'trendingUp',   label: 'Futures' },
+  { to: '/p2p',      iconName: 'arrowsSwap',   label: 'P2P' },
   { to: '/convert',  iconName: 'arrowsSwap',   label: 'Convert' },
 ]
 

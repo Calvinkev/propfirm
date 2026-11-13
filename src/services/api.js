@@ -548,5 +548,65 @@ export const api = {
       headers: { Authorization: `Bearer ${token}` }
     });
     return res.json();
-  }
+  },
+
+  // ── P2P ───────────────────────────────────────────────────────────────────
+  getP2PAds: async (token, params = {}) => {
+    const q = new URLSearchParams(params).toString();
+    const res = await fetch(`${API_BASE}/p2p/ads${q ? `?${q}` : ''}`, { headers: { Authorization: `Bearer ${token}` } });
+    return res.json();
+  },
+  createP2PAd: async (token, data) => {
+    const res = await fetch(`${API_BASE}/p2p/ads`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  cancelP2PAd: async (token, id) => {
+    const res = await fetch(`${API_BASE}/p2p/ads/${id}`, {
+      method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.json();
+  },
+  placeP2POrder: async (token, data) => {
+    const res = await fetch(`${API_BASE}/p2p/orders`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  getP2POrders: async (token) => {
+    const res = await fetch(`${API_BASE}/p2p/orders`, { headers: { Authorization: `Bearer ${token}` } });
+    return res.json();
+  },
+  getP2POrder: async (token, id) => {
+    const res = await fetch(`${API_BASE}/p2p/orders/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+    return res.json();
+  },
+  p2pMarkPaid: async (token, id) => {
+    const res = await fetch(`${API_BASE}/p2p/orders/${id}/pay`, {
+      method: 'PUT', headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.json();
+  },
+  p2pRelease: async (token, id) => {
+    const res = await fetch(`${API_BASE}/p2p/orders/${id}/release`, {
+      method: 'PUT', headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.json();
+  },
+  p2pCancelOrder: async (token, id) => {
+    const res = await fetch(`${API_BASE}/p2p/orders/${id}/cancel`, {
+      method: 'PUT', headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.json();
+  },
+  p2pDisputeOrder: async (token, id, reason) => {
+    const res = await fetch(`${API_BASE}/p2p/orders/${id}/dispute`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ reason })
+    });
+    return res.json();
+  },
 };

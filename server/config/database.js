@@ -177,13 +177,21 @@ export const initDatabase = async () => {
     // ── SEED INITIAL CRYPTO PAIRS ────────────────────────────────────────
     await connection.query(`
       INSERT IGNORE INTO instruments (symbol, display_name, base_asset, quote_asset, pip_size, contract_size, min_order_size, spread_pips) VALUES
-        ('BTCUSDT', 'BTC / USDT', 'BTC', 'USDT', 0.01000000, 1.00, 0.00010000, 0.5000),
-        ('ETHUSDT', 'ETH / USDT', 'ETH', 'USDT', 0.01000000, 1.00, 0.00100000, 0.2000),
-        ('SOLUSDT', 'SOL / USDT', 'SOL', 'USDT', 0.01000000, 1.00, 0.01000000, 0.0500),
-        ('BNBUSDT', 'BNB / USDT', 'BNB', 'USDT', 0.01000000, 1.00, 0.01000000, 0.1000),
-        ('XRPUSDT', 'XRP / USDT', 'XRP', 'USDT', 0.00010000, 1.00, 1.00000000, 0.0010),
-        ('DOGEUSDT', 'DOGE / USDT', 'DOGE', 'USDT', 0.00001000, 1.00, 10.00000000, 0.0001),
-        ('ADAUSDT', 'ADA / USDT', 'ADA', 'USDT', 0.00010000, 1.00, 1.00000000, 0.0010)
+        ('BTCUSDT',   'BTC / USDT',   'BTC',   'USDT', 0.01000000, 1.00, 0.00010000, 0.5000),
+        ('ETHUSDT',   'ETH / USDT',   'ETH',   'USDT', 0.01000000, 1.00, 0.00100000, 0.2000),
+        ('SOLUSDT',   'SOL / USDT',   'SOL',   'USDT', 0.01000000, 1.00, 0.01000000, 0.0500),
+        ('BNBUSDT',   'BNB / USDT',   'BNB',   'USDT', 0.01000000, 1.00, 0.01000000, 0.1000),
+        ('XRPUSDT',   'XRP / USDT',   'XRP',   'USDT', 0.00010000, 1.00, 1.00000000, 0.0010),
+        ('DOGEUSDT',  'DOGE / USDT',  'DOGE',  'USDT', 0.00001000, 1.00, 10.00000000, 0.0001),
+        ('ADAUSDT',   'ADA / USDT',   'ADA',   'USDT', 0.00010000, 1.00, 1.00000000,  0.0010),
+        ('LTCUSDT',   'LTC / USDT',   'LTC',   'USDT', 0.01000000, 1.00, 0.01000000,  0.1000),
+        ('AVAXUSDT',  'AVAX / USDT',  'AVAX',  'USDT', 0.01000000, 1.00, 0.10000000,  0.0500),
+        ('LINKUSDT',  'LINK / USDT',  'LINK',  'USDT', 0.00100000, 1.00, 0.10000000,  0.0100),
+        ('MATICUSDT', 'MATIC / USDT', 'MATIC', 'USDT', 0.00010000, 1.00, 1.00000000,  0.0010),
+        ('DOTUSDT',   'DOT / USDT',   'DOT',   'USDT', 0.00100000, 1.00, 0.10000000,  0.0100),
+        ('TRXUSDT',   'TRX / USDT',   'TRX',   'USDT', 0.00001000, 1.00, 10.00000000, 0.0001),
+        ('UNIUSDT',   'UNI / USDT',   'UNI',   'USDT', 0.00100000, 1.00, 0.10000000,  0.0100),
+        ('ATOMUSDT',  'ATOM / USDT',  'ATOM',  'USDT', 0.00100000, 1.00, 0.10000000,  0.0100)
     `);
 
     // Seed default deposit wallet destinations

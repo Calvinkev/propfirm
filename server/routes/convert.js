@@ -28,7 +28,7 @@ router.get('/quote', auth, async (req, res) => {
 
     // Prices in USDT
     const priceMap = { USDT: 1 };
-    for (const sym of ['BTCUSDT','ETHUSDT','SOLUSDT','BNBUSDT','XRPUSDT','DOGEUSDT','ADAUSDT']) {
+    for (const sym of ['BTCUSDT','ETHUSDT','SOLUSDT','BNBUSDT','XRPUSDT','DOGEUSDT','ADAUSDT','LTCUSDT','AVAXUSDT','LINKUSDT','MATICUSDT','DOTUSDT','TRXUSDT','UNIUSDT','ATOMUSDT']) {
       const p = getLatestPrice(sym);
       const asset = sym.replace('USDT','');
       priceMap[asset] = p?.ask || p?.bid || 1;
@@ -108,7 +108,7 @@ router.post('/execute', auth, async (req, res) => {
     `);
 
     const priceMap = { USDT: 1 };
-    for (const sym of ['BTCUSDT','ETHUSDT','SOLUSDT','BNBUSDT','XRPUSDT','DOGEUSDT','ADAUSDT']) {
+    for (const sym of ['BTCUSDT','ETHUSDT','SOLUSDT','BNBUSDT','XRPUSDT','DOGEUSDT','ADAUSDT','LTCUSDT','AVAXUSDT','LINKUSDT','MATICUSDT','DOTUSDT','TRXUSDT','UNIUSDT','ATOMUSDT']) {
       const p = getLatestPrice(sym);
       const asset = sym.replace('USDT','');
       priceMap[asset] = p?.ask || p?.bid || 1;

@@ -4,7 +4,7 @@ import { auth } from '../middleware/auth.js';
 
 const router = express.Router();
 
-const SUPPORTED_ASSETS = ['USDT', 'BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'ADA'];
+const SUPPORTED_ASSETS = ['USDT', 'BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'ADA', 'LTC', 'AVAX', 'LINK', 'MATIC', 'DOT', 'TRX', 'UNI', 'ATOM'];
 
 // Initialize default zero balances for user if missing
 export async function ensureUserBalances(userId) {

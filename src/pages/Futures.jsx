@@ -7,7 +7,7 @@ import CryptoIcon from '../components/CryptoIcon';
 import Icon from '../components/Icon';
 import './Futures.css';
 
-const PAIRS = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT', 'DOGEUSDT', 'ADAUSDT'];
+const PAIRS = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT', 'DOGEUSDT', 'ADAUSDT', 'LTCUSDT', 'AVAXUSDT', 'LINKUSDT', 'MATICUSDT', 'DOTUSDT', 'TRXUSDT', 'UNIUSDT', 'ATOMUSDT'];
 const LEVERAGES = [1, 2, 3, 5, 10, 20, 50, 100, 125];
 
 export default function Futures() {

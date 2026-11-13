@@ -7,8 +7,7 @@ import { ensureUserBalances } from './wallet.js';
 const router = express.Router();
 
 const LEVERAGE_OPTIONS = [1, 2, 3, 5, 10, 20, 50, 100, 125];
-const PAIRS = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT', 'DOGEUSDT', 'ADAUSDT'];
-
+const PAIRS = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT', 'DOGEUSDT', 'ADAUSDT', 'LTCUSDT', 'AVAXUSDT', 'LINKUSDT', 'MATICUSDT', 'DOTUSDT', 'TRXUSDT', 'UNIUSDT', 'ATOMUSDT'];
 async function ensureFuturesTables() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS futures_positions (
@@ -140,7 +139,7 @@ router.post('/order', auth, async (req, res) => {
     await pool.query('INSERT IGNORE INTO futures_wallet (user_id, balance) VALUES (?,?)', [userId, 0]);
 
     const lp = getLatestPrice(sym);
-    const baseMap = { BTCUSDT: 67500, ETHUSDT: 3500, SOLUSDT: 155, BNBUSDT: 580, XRPUSDT: 0.55, DOGEUSDT: 0.12, ADAUSDT: 0.45 };
+    const baseMap = { BTCUSDT: 67500, ETHUSDT: 3500, SOLUSDT: 155, BNBUSDT: 580, XRPUSDT: 0.55, DOGEUSDT: 0.12, ADAUSDT: 0.45, LTCUSDT: 85, AVAXUSDT: 35, LINKUSDT: 14, MATICUSDT: 0.55, DOTUSDT: 7, TRXUSDT: 0.12, UNIUSDT: 8, ATOMUSDT: 9 };
     const entryPrice = (type === 'LIMIT' && price) ? parseFloat(price) : (lp?.ask || baseMap[sym] || 100);
     const notional = entryPrice * qty;
     const margin = notional / lev;

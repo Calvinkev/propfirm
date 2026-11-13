@@ -37,7 +37,7 @@ router.post('/bots', auth, async (req, res) => {
       return res.status(400).json({ error: 'name, symbol, and strategy are required' });
     }
 
-    const validSymbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT', 'DOGEUSDT', 'ADAUSDT'];
+    const validSymbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT', 'DOGEUSDT', 'ADAUSDT', 'LTCUSDT', 'AVAXUSDT', 'LINKUSDT', 'MATICUSDT', 'DOTUSDT', 'TRXUSDT', 'UNIUSDT', 'ATOMUSDT'];
     if (!validSymbols.includes(symbol.toUpperCase())) {
       return res.status(400).json({ error: 'Unsupported trading pair' });
     }
@@ -263,7 +263,7 @@ router.post('/analyse', auth, aiAnalyseLimiter, async (req, res) => {
 
     if (!symbol) return res.status(400).json({ error: 'symbol is required' });
 
-    const validSymbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT', 'DOGEUSDT', 'ADAUSDT'];
+    const validSymbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT', 'DOGEUSDT', 'ADAUSDT', 'LTCUSDT', 'AVAXUSDT', 'LINKUSDT', 'MATICUSDT', 'DOTUSDT', 'TRXUSDT', 'UNIUSDT', 'ATOMUSDT'];
     if (!validSymbols.includes(symbol.toUpperCase())) {
       return res.status(400).json({ error: 'Unsupported symbol' });
     }

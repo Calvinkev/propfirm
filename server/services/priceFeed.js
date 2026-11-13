@@ -38,13 +38,21 @@ export function getAllLatestPrices() {
 
 // Binance stream map -> internal symbol
 const BINANCE_SYMBOL_MAP = {
-  btcusdt: 'BTCUSDT',
-  ethusdt: 'ETHUSDT',
-  solusdt: 'SOLUSDT',
-  bnbusdt: 'BNBUSDT',
-  xrpusdt: 'XRPUSDT',
-  dogeusdt: 'DOGEUSDT',
-  adausdt: 'ADAUSDT'
+  btcusdt:   'BTCUSDT',
+  ethusdt:   'ETHUSDT',
+  solusdt:   'SOLUSDT',
+  bnbusdt:   'BNBUSDT',
+  xrpusdt:   'XRPUSDT',
+  dogeusdt:  'DOGEUSDT',
+  adausdt:   'ADAUSDT',
+  ltcusdt:   'LTCUSDT',
+  avaxusdt:  'AVAXUSDT',
+  linkusdt:  'LINKUSDT',
+  maticusdt: 'MATICUSDT',
+  dotusdt:   'DOTUSDT',
+  trxusdt:   'TRXUSDT',
+  uniusdt:   'UNIUSDT',
+  atomusdt:  'ATOMUSDT',
 };
 
 class BinanceAdapter {

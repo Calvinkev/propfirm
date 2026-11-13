@@ -6,7 +6,7 @@ import { useAgentActions } from '../hooks/useAgentActions';
 import CryptoIcon from '../components/CryptoIcon';
 import './AIAgent.css';
 
-const PAIRS = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT', 'DOGEUSDT', 'ADAUSDT'];
+const PAIRS = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT', 'DOGEUSDT', 'ADAUSDT', 'LTCUSDT', 'AVAXUSDT', 'LINKUSDT', 'MATICUSDT', 'DOTUSDT', 'TRXUSDT', 'UNIUSDT', 'ATOMUSDT'];
 const STRATEGIES = [
   { value: 'combined',  label: 'Combined (RSI + MACD + BB + EMA)',  desc: 'Uses all indicators together for the strongest signal' },
   { value: 'rsi',       label: 'RSI Only',                           desc: 'Buy when oversold, sell when overbought' },

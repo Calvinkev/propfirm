@@ -6,11 +6,12 @@ import Icon from './Icon'
 import './AdminLayout.css'
 
 const NAV_ITEMS = [
-  { path: '/admin/dashboard', iconName: 'home',         label: 'Dashboard' },
-  { path: '/admin/users',     iconName: 'users',        label: 'Users' },
-  { path: '/admin/payouts',   iconName: 'currency',     label: 'Payouts' },
-  { path: '/admin/trades',    iconName: 'chartBar',     label: 'Trades' },
-  { path: '/admin/settings',  iconName: 'settings',     label: 'Settings' },
+  { path: '/admin/dashboard',    iconName: 'home',         label: 'Dashboard' },
+  { path: '/admin/users',        iconName: 'users',        label: 'Users' },
+  { path: '/admin/deposits',     iconName: 'deposit',      label: 'Deposits' },
+  { path: '/admin/withdrawals',  iconName: 'wallet',       label: 'Withdrawals' },
+  { path: '/admin/wallets',      iconName: 'settings',     label: 'Deposit Wallets' },
+  { path: '/admin/transactions', iconName: 'chartBar',     label: 'Transactions' },
 ]
 
 export default function AdminLayout() {

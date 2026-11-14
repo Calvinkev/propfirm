@@ -338,52 +338,17 @@ export const api = {
     });
     return res.json();
   },
-  updateAdminUserRole: async (token, userId, role) => {
-    const res = await fetch(`/api/admin/users/${userId}/role`, {
+  deleteAdminUser: async (token, userId) => {
+    const res = await fetch(`/api/admin/users/${userId}`, {
+      method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.json();
+  },
+  setAdminUserBalance: async (token, userId, balance) => {
+    const res = await fetch(`/api/admin/users/${userId}/balance`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ role })
+      body: JSON.stringify({ balance })
     });
-    return res.json();
-  },
-  getAdminAccounts: async (token, params = {}) => {
-    const q = new URLSearchParams(params).toString();
-    const res = await fetch(`/api/admin/accounts${q ? `?${q}` : ''}`, { headers: { Authorization: `Bearer ${token}` } });
-    return res.json();
-  },
-  createAdminAccount: async (token, data) => {
-    const res = await fetch('/api/admin/accounts', {
-      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify(data)
-    });
-    return res.json();
-  },
-  updateAdminAccount: async (token, accountId, data) => {
-    const res = await fetch(`/api/admin/accounts/${accountId}`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify(data)
-    });
-    return res.json();
-  },
-  getAdminPayouts: async (token, params = {}) => {
-    const q = new URLSearchParams(params).toString();
-    const res = await fetch(`/api/admin/payouts${q ? `?${q}` : ''}`, { headers: { Authorization: `Bearer ${token}` } });
-    return res.json();
-  },
-  approveAdminPayout: async (token, payoutId, transactionId) => {
-    const res = await fetch(`/api/admin/payouts/${payoutId}/approve`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ transactionId })
-    });
-    return res.json();
-  },
-  rejectAdminPayout: async (token, payoutId) => {
-    const res = await fetch(`/api/admin/payouts/${payoutId}/reject`, {
-      method: 'PUT', headers: { Authorization: `Bearer ${token}` }
-    });
-    return res.json();
-  },
-  getAdminTrades: async (token) => {
-    const res = await fetch('/api/admin/trades', { headers: { Authorization: `Bearer ${token}` } });
     return res.json();
   },
   getAdminCryptoWallets: async (token) => {
@@ -422,6 +387,37 @@ export const api = {
   rejectAdminCryptoDeposit: async (token, depositId) => {
     const res = await fetch(`/api/admin/deposits/${depositId}/reject`, {
       method: 'PUT', headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.json();
+  },
+  getAdminWithdrawals: async (token) => {
+    const res = await fetch('/api/admin/withdrawals', { headers: { Authorization: `Bearer ${token}` } });
+    return res.json();
+  },
+  approveAdminWithdrawal: async (token, id) => {
+    const res = await fetch(`/api/admin/withdrawals/${id}/approve`, {
+      method: 'PUT', headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.json();
+  },
+  rejectAdminWithdrawal: async (token, id) => {
+    const res = await fetch(`/api/admin/withdrawals/${id}/reject`, {
+      method: 'PUT', headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.json();
+  },
+  getAdminQuickTrades: async (token) => {
+    const res = await fetch('/api/admin/quick-trades', { headers: { Authorization: `Bearer ${token}` } });
+    return res.json();
+  },
+  getAdminP2POrders: async (token) => {
+    const res = await fetch('/api/admin/p2p-orders', { headers: { Authorization: `Bearer ${token}` } });
+    return res.json();
+  },
+  resolveAdminP2PDispute: async (token, id, favour) => {
+    const res = await fetch(`/api/admin/p2p-orders/${id}/resolve`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ favour })
     });
     return res.json();
   },

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import Card from '../../components/Card'
-import Button from '../../components/Button'
 import { api } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import './AdminPages.css'
@@ -10,199 +9,132 @@ export default function AdminUsers() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [roleFilter, setRoleFilter] = useState('')
-  const [showAddModal, setShowAddModal] = useState(false)
-  const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', password: '', role: 'user' })
-  const [submitError, setSubmitError] = useState('')
+  const [toast, setToast] = useState(null)
 
-  const loadUsers = async () => {
+  // Modals
+  const [showCreate, setShowCreate] = useState(false)
+  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '' })
+  const [creating, setCreating] = useState(false)
+  const [formErr, setFormErr] = useState('')
+
+  const [balanceUser, setBalanceUser] = useState(null)   // { id, name }
+  const [newBalance, setNewBalance] = useState('')
+
+  const toast_ = (type, msg) => { setToast({ type, msg }); setTimeout(() => setToast(null), 3500) }
+
+  const load = async () => {
+    setLoading(true)
     try {
-      setLoading(true)
-      const res = await api.getAdminUsers(token, { search, role: roleFilter })
-      if (res.users) {
-        setUsers(res.users)
-      }
-    } catch (err) {
-      console.error('Failed to load users:', err)
-    } finally {
-      setLoading(false)
-    }
+      const res = await api.getAdminUsers(token, search ? { search } : {})
+      if (res.users) setUsers(res.users)
+    } catch (e) { console.error(e) }
+    finally { setLoading(false) }
   }
 
-  useEffect(() => {
-    loadUsers()
-  }, [token, search, roleFilter])
+  useEffect(() => { load() }, [token, search])
 
-  const handleCreateUser = async (e) => {
+  const handleCreate = async (e) => {
     e.preventDefault()
-    setSubmitError('')
-    try {
-      const res = await api.createAdminUser(token, formData)
-      if (res.user) {
-        setShowAddModal(false)
-        setFormData({ firstName: '', lastName: '', email: '', password: '', role: 'user' })
-        loadUsers()
-      } else {
-        setSubmitError(res.error || 'Failed to create user')
-      }
-    } catch (err) {
-      setSubmitError('Server connection error')
-    }
+    setFormErr(''); setCreating(true)
+    const res = await api.createAdminUser(token, form)
+    setCreating(false)
+    if (res.error) { setFormErr(res.error); return }
+    toast_('success', 'User created')
+    setShowCreate(false)
+    setForm({ firstName: '', lastName: '', email: '', password: '' })
+    load()
   }
 
-  const handleToggleRole = async (userId, currentRole) => {
-    const newRole = currentRole === 'admin' ? 'user' : 'admin'
-    if (window.confirm(`Are you sure you want to change user role to ${newRole.toUpperCase()}?`)) {
-      try {
-        await api.updateAdminUserRole(token, userId, newRole)
-        loadUsers()
-      } catch (err) {
-        console.error('Failed to toggle user role:', err)
-      }
-    }
+  const handleDelete = async (u) => {
+    if (!window.confirm(`Delete ${u.first_name} ${u.last_name}? This cannot be undone.`)) return
+    const res = await api.deleteAdminUser(token, u.id)
+    if (res.error) { toast_('error', res.error); return }
+    toast_('success', 'User deleted')
+    load()
+  }
+
+  const handleSetBalance = async (e) => {
+    e.preventDefault()
+    const res = await api.setAdminUserBalance(token, balanceUser.id, parseFloat(newBalance))
+    if (res.error) { toast_('error', res.error); return }
+    toast_('success', res.message)
+    setBalanceUser(null); setNewBalance('')
+    load()
   }
 
   return (
     <div className="admin-page">
+      {toast && <div className={`adm-toast ${toast.type}`}>{toast.msg}</div>}
+
       <div className="admin-topbar">
-        <div>
-          <h1>User Management</h1>
-          <div className="sub">Inspect, register, and configure platform user roles</div>
-        </div>
+        <div><h1>Users</h1><div className="sub">All registered traders</div></div>
         <div className="admin-actions">
-          <input
-            type="text"
-            placeholder="Search name or email..."
-            className="search-input"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <Button onClick={() => setShowAddModal(true)}>+ Add User / Admin</Button>
+          <input className="search-input" placeholder="Search name or email…" value={search} onChange={e => setSearch(e.target.value)} />
+          <button className="adm-btn-primary" onClick={() => setShowCreate(true)}>+ New User</button>
         </div>
       </div>
 
       <div className="admin-grid-3">
-        <Card className="admin-kpi">
-          <label>Total Registered Accounts</label>
-          <div className="val">{users.length}</div>
-          <div className="delta up">▲ Live Database Records</div>
-        </Card>
-        <Card className="admin-kpi">
-          <label>Administrators</label>
-          <div className="val">{users.filter(u => u.role === 'admin').length}</div>
-          <div className="delta up">▲ Privileged Access Users</div>
-        </Card>
-        <Card className="admin-kpi">
-          <label>Standard Traders</label>
-          <div className="val">{users.filter(u => u.role === 'user').length}</div>
-          <div className="delta up">▲ Active Challenge Holders</div>
-        </Card>
+        <Card className="admin-kpi"><label>Total Users</label><div className="val">{users.length}</div></Card>
+        <Card className="admin-kpi"><label>Pending Deposits</label><div className="val" style={{color:'var(--brass)'}}>{users.reduce((s,u)=>s+(u.pending_deposits||0),0)}</div></Card>
+        <Card className="admin-kpi"><label>Total USDT on Platform</label><div className="val">${users.reduce((s,u)=>s+parseFloat(u.usdt_balance||0),0).toLocaleString(undefined,{minimumFractionDigits:2})}</div></Card>
       </div>
 
       <Card className="admin-panel">
-        <div className="panel-head">
-          <h3>All Platform Users</h3>
-          <div className="table-filters">
-            <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
-              <option value="">All Roles</option>
-              <option value="user">User / Trader</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-        </div>
-
-        {loading ? (
-          <div style={{ padding: '30px 0', textAlign: 'center', color: 'var(--text-faint)' }}>Loading users...</div>
-        ) : (
+        <div className="panel-head"><h3>All Users</h3></div>
+        {loading ? <div className="adm-loading">Loading…</div> : (
+          <div className="adm-table-wrap">
           <table className="admin-table">
-            <thead>
-              <tr>
-                <th>User</th>
-                <th>Email</th>
-                <th>Active Accounts</th>
-                <th>Role</th>
-                <th>Registered Date</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
+            <thead><tr><th>User</th><th>Email</th><th>USDT Balance</th><th>Pending Deposits</th><th>Joined</th><th>Actions</th></tr></thead>
             <tbody>
-              {users.map((u) => (
+              {users.map(u => (
                 <tr key={u.id}>
-                  <td>
-                    <div className="user-cell">
-                      <div className="user-avatar">{(u.first_name || 'U')[0]}</div>
-                      <b>{u.first_name} {u.last_name}</b>
-                    </div>
-                  </td>
+                  <td><div className="user-cell"><div className="user-avatar">{u.first_name[0]}</div><b>{u.first_name} {u.last_name}</b></div></td>
                   <td className="mono">{u.email}</td>
-                  <td className="mono">{u.account_count || 0}</td>
+                  <td className="mono">${parseFloat(u.usdt_balance||0).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+                  <td className="mono">{u.pending_deposits||0}</td>
+                  <td className="mono" style={{fontSize:'11px'}}>{new Date(u.created_at).toLocaleDateString()}</td>
                   <td>
-                    <span className={`status-badge ${u.role === 'admin' ? 'completed' : 'pending'}`}>
-                      {u.role.toUpperCase()}
-                    </span>
-                  </td>
-                  <td className="mono">{new Date(u.created_at).toLocaleDateString()}</td>
-                  <td>
-                    <Button
-                      variant="outline"
-                      onClick={() => handleToggleRole(u.id, u.role)}
-                      style={{ padding: '6px 12px', fontSize: '11px' }}
-                    >
-                      {u.role === 'admin' ? 'Make Trader' : 'Promote Admin'}
-                    </Button>
+                    <div className="adm-row-actions">
+                      <button className="adm-btn-sm" onClick={() => { setBalanceUser({ id: u.id, name: `${u.first_name} ${u.last_name}` }); setNewBalance(parseFloat(u.usdt_balance||0).toFixed(2)) }}>Set Balance</button>
+                      <button className="adm-btn-sm danger" onClick={() => handleDelete(u)}>Delete</button>
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </Card>
 
-      {/* Add User Modal */}
-      {showAddModal && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex',
-          alignItems: 'center', justifyContent: 'center', zIndex: 10000
-        }}>
-          <div style={{
-            background: 'var(--surface)', border: '1px solid var(--border-soft)',
-            padding: '30px', borderRadius: '12px', width: '100%', maxWidth: '420px'
-          }}>
-            <h2 style={{ marginBottom: '16px' }}>Create New Account</h2>
-            {submitError && <div style={{ color: 'var(--red)', fontSize: '13px', marginBottom: '12px' }}>{submitError}</div>}
-            <form onSubmit={handleCreateUser} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <input
-                type="text" placeholder="First Name" required
-                value={formData.firstName} onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                style={{ padding: '10px', background: 'var(--surface-raised)', border: '1px solid var(--border-soft)', borderRadius: '6px', color: '#fff' }}
-              />
-              <input
-                type="text" placeholder="Last Name" required
-                value={formData.lastName} onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                style={{ padding: '10px', background: 'var(--surface-raised)', border: '1px solid var(--border-soft)', borderRadius: '6px', color: '#fff' }}
-              />
-              <input
-                type="email" placeholder="Email Address" required
-                value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                style={{ padding: '10px', background: 'var(--surface-raised)', border: '1px solid var(--border-soft)', borderRadius: '6px', color: '#fff' }}
-              />
-              <input
-                type="password" placeholder="Password (min 6 chars)" required minLength={6}
-                value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                style={{ padding: '10px', background: 'var(--surface-raised)', border: '1px solid var(--border-soft)', borderRadius: '6px', color: '#fff' }}
-              />
-              <select
-                value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                style={{ padding: '10px', background: 'var(--surface-raised)', border: '1px solid var(--border-soft)', borderRadius: '6px', color: '#fff' }}
-              >
-                <option value="user">Trader (Standard User)</option>
-                <option value="admin">Administrator</option>
-              </select>
+      {/* Create user modal */}
+      {showCreate && (
+        <div className="adm-modal-backdrop" onClick={e => e.target === e.currentTarget && setShowCreate(false)}>
+          <div className="adm-modal">
+            <div className="adm-modal-header"><h3>Create User</h3><button className="adm-close" onClick={() => setShowCreate(false)}>✕</button></div>
+            {formErr && <div className="adm-form-err">{formErr}</div>}
+            <form onSubmit={handleCreate} className="adm-form">
+              <input required placeholder="First Name" value={form.firstName} onChange={e => setForm({...form, firstName: e.target.value})} />
+              <input required placeholder="Last Name"  value={form.lastName}  onChange={e => setForm({...form, lastName:  e.target.value})} />
+              <input required type="email" placeholder="Email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
+              <input required type="password" placeholder="Password" minLength={6} value={form.password} onChange={e => setForm({...form, password: e.target.value})} />
+              <button type="submit" className="adm-btn-primary" disabled={creating}>{creating ? 'Creating…' : 'Create User'}</button>
+            </form>
+          </div>
+        </div>
+      )}
 
-              <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
-                <Button type="submit" style={{ flex: 1 }}>Save Account</Button>
-                <Button variant="outline" type="button" onClick={() => setShowAddModal(false)}>Cancel</Button>
-              </div>
+      {/* Set balance modal */}
+      {balanceUser && (
+        <div className="adm-modal-backdrop" onClick={e => e.target === e.currentTarget && setBalanceUser(null)}>
+          <div className="adm-modal">
+            <div className="adm-modal-header"><h3>Set USDT Balance</h3><button className="adm-close" onClick={() => setBalanceUser(null)}>✕</button></div>
+            <div style={{color:'var(--text-muted)',fontSize:'13px',marginBottom:14}}>User: <b>{balanceUser.name}</b></div>
+            <form onSubmit={handleSetBalance} className="adm-form">
+              <label style={{fontSize:'12px',color:'var(--text-muted)'}}>New USDT Balance</label>
+              <input type="number" min="0" step="0.01" required value={newBalance} onChange={e => setNewBalance(e.target.value)} />
+              <button type="submit" className="adm-btn-primary">Set Balance</button>
             </form>
           </div>
         </div>

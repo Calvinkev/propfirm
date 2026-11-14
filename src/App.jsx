@@ -19,9 +19,10 @@ import AIAgent from './pages/AIAgent'
 import P2P from './pages/P2P'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminUsers from './pages/admin/AdminUsers'
-import AdminPayouts from './pages/admin/AdminPayouts'
-import AdminTrades from './pages/admin/AdminTrades'
-import AdminSettings from './pages/admin/AdminSettings'
+import AdminDeposits from './pages/admin/AdminDeposits'
+import AdminWithdrawals from './pages/admin/AdminWithdrawals'
+import AdminWallets from './pages/admin/AdminWallets'
+import AdminTransactions from './pages/admin/AdminTransactions'
 import NotFound from './pages/NotFound'
 
 function App() {
@@ -48,11 +49,12 @@ function App() {
           <Route path="/p2p"           element={<P2P />} />
         </Route>
         <Route element={<AdminLayout />}>
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/users"     element={<AdminUsers />} />
-          <Route path="/admin/payouts"   element={<AdminPayouts />} />
-          <Route path="/admin/trades"    element={<AdminTrades />} />
-          <Route path="/admin/settings"  element={<AdminSettings />} />
+          <Route path="/admin/dashboard"    element={<AdminDashboard />} />
+          <Route path="/admin/users"        element={<AdminUsers />} />
+          <Route path="/admin/deposits"     element={<AdminDeposits />} />
+          <Route path="/admin/withdrawals"  element={<AdminWithdrawals />} />
+          <Route path="/admin/wallets"      element={<AdminWallets />} />
+          <Route path="/admin/transactions" element={<AdminTransactions />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>

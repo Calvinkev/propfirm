@@ -69,6 +69,8 @@ export default function AuthLayout() {
 
   if (loading) return null
   if (!isAuthenticated) return <Navigate to="/login" state={{ from: location }} replace />
+  // Admins always land on the admin dashboard
+  if (isAdmin) return <Navigate to="/admin/dashboard" replace />
 
   const close = () => { setMobileOpen(false); setOpenDropdown(null) }
   const isActive = (path) => location.pathname === path

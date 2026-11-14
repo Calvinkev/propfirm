@@ -609,4 +609,21 @@ export const api = {
     });
     return res.json();
   },
+
+  // ── Quick Trade ───────────────────────────────────────────────────────────
+  placeQuickTrade: async (token, data) => {
+    const res = await fetch(`${API_BASE}/quick-trade/place`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  getQuickTrade: async (token, id) => {
+    const res = await fetch(`${API_BASE}/quick-trade/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+    return res.json();
+  },
+  getQuickTradeHistory: async (token) => {
+    const res = await fetch(`${API_BASE}/quick-trade/history`, { headers: { Authorization: `Bearer ${token}` } });
+    return res.json();
+  },
 };

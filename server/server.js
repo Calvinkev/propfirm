@@ -23,6 +23,7 @@ import { priceFeed } from './services/priceFeed.js';
 import { startAIEngine } from './services/aiTradingEngine.js';
 import aiAgentRoutes from './routes/aiAgent.js';
 import p2pRoutes from './routes/p2p.js';
+import quickTradeRoutes from './routes/quickTrade.js';
 import { apiLimiter, authLimiter } from './middleware/rateLimiter.js';
 import { sanitiseInput } from './middleware/validate.js';
 import cache from './services/cache.js';
@@ -143,6 +144,7 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/futures', futuresRoutes);
 app.use('/api/ai', aiAgentRoutes);
 app.use('/api/p2p', p2pRoutes);
+app.use('/api/quick-trade', quickTradeRoutes);
 
 // ── Static frontend (must be after API routes) ───────────────────────────────
 import { existsSync } from 'fs';

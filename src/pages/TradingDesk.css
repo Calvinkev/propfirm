@@ -570,3 +570,111 @@
     font-size: 12px;
   }
 }
+
+/* ── Order Mode Tabs (Spot / Quick Trade) ───────────────────────────────── */
+.order-mode-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2px;
+}
+.order-mode-tab {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  padding: 10px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color .15s, border-color .15s;
+}
+.order-mode-tab.active     { color: var(--brass); border-bottom-color: var(--brass); }
+.order-mode-tab.active.qt  { color: #10B981; border-bottom-color: #10B981; }
+.order-mode-tab:hover      { color: var(--text); }
+
+/* ── Quick Trade Panel ──────────────────────────────────────────────────── */
+.qt-panel { display: flex; flex-direction: column; gap: 12px; padding: 10px 0; }
+
+.qt-info-banner {
+  display: flex; align-items: center; gap: 10px;
+  background: linear-gradient(135deg, rgba(16,185,129,.12), rgba(16,185,129,.04));
+  border: 1px solid rgba(16,185,129,.25); border-radius: 10px; padding: 12px 14px;
+}
+.qt-info-icon   { font-size: 22px; }
+.qt-info-title  { font-size: 13px; font-weight: 700; color: #10B981; }
+.qt-info-sub    { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.qt-info-sub b  { color: #10B981; }
+
+.qt-balance {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 12px; color: var(--text-muted); padding: 2px 0;
+}
+.qt-balance .mono { color: var(--text); font-weight: 600; }
+
+.qt-direction-row { display: flex; gap: 8px; }
+.qt-dir-btn {
+  flex: 1; padding: 12px 8px; border-radius: 8px; border: 2px solid transparent;
+  font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center;
+  justify-content: center; gap: 6px; transition: all .15s; background: var(--surface-raised);
+  color: var(--text-muted);
+}
+.qt-dir-btn:disabled { opacity: .5; cursor: not-allowed; }
+.qt-dir-btn.up.active   { background: rgba(16,185,129,.15); border-color: #10B981; color: #10B981; }
+.qt-dir-btn.down.active { background: rgba(239,68,68,.15);  border-color: #EF4444; color: #EF4444; }
+.qt-dir-btn.up:not(.active):hover   { border-color: rgba(16,185,129,.4); color: #10B981; }
+.qt-dir-btn.down:not(.active):hover { border-color: rgba(239,68,68,.4);  color: #EF4444; }
+.qt-arrow { font-size: 14px; }
+
+.qt-payout-preview {
+  background: var(--surface-raised); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px;
+}
+.qt-payout-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); }
+.qt-payout-row.profit b { color: #10B981; }
+.qt-payout-row.total  { border-top: 1px solid var(--border); padding-top: 6px; margin-top: 2px; }
+.qt-payout-row.total b { color: var(--brass); font-size: 14px; }
+
+/* Countdown ring */
+.qt-active-trade {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--surface-raised); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.2)} 50%{box-shadow:0 0 0 6px rgba(16,185,129,0)} }
+.qt-countdown-wrap { position: relative; width: 44px; height: 44px; flex-shrink: 0; display:grid; place-items:center; }
+.qt-countdown-ring  { position: absolute; inset: 0; }
+.qt-countdown-num   { font-size: 11px; font-weight: 700; color: var(--text); position: relative; z-index: 1; }
+.qt-active-info { flex: 1; min-width: 0; }
+.qt-active-dir  { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+.qt-active-amt  { font-size: 12px; color: var(--text-muted); margin-bottom: 2px; }
+.qt-active-entry { font-size: 11px; color: var(--text-muted); font-family: var(--mono); }
+
+/* Result banner */
+.qt-result-banner {
+  display: flex; align-items: center; gap: 12px;
+  border-radius: 10px; padding: 12px 14px; animation: fadeIn .3s ease;
+}
+.qt-result-banner.won  { background: rgba(16,185,129,.12); border: 1px solid rgba(16,185,129,.3); }
+.qt-result-banner.lost { background: rgba(239,68,68,.1);   border: 1px solid rgba(239,68,68,.25); }
+.qt-result-icon  { font-size: 24px; }
+.qt-result-title { font-size: 14px; font-weight: 700; }
+.qt-result-banner.won  .qt-result-title { color: #10B981; }
+.qt-result-banner.lost .qt-result-title { color: #EF4444; }
+.qt-result-sub   { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+
+/* Trade button for quick trade */
+.qt-trade-btn { margin-top: 4px; font-size: 14px; letter-spacing: .02em; }
+
+/* History */
+.qt-history { border-top: 1px solid var(--border); padding-top: 10px; margin-top: 4px; }
+.qt-history-title { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+.qt-history-row { display: flex; align-items: center; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid var(--border-soft); font-size: 12px; }
+.qt-history-row:last-child { border-bottom: none; }
+.qt-h-dir    { font-weight: 600; flex: 1; }
+.qt-h-amt    { color: var(--text-muted); flex: 1; text-align: center; font-family: var(--mono); }
+.qt-h-result { font-weight: 700; flex: 1; text-align: right; font-family: var(--mono); }
+.qt-h-result.won  { color: #10B981; }
+.qt-h-result.lost { color: #EF4444; }
+.qt-h-result.open { color: var(--text-muted); }

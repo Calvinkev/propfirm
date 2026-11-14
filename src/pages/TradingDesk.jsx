@@ -34,6 +34,19 @@ export default function TradingDesk() {
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
 
+  // Order panel mode: 'spot' | 'quick'
+  const [orderMode, setOrderMode] = useState('spot');
+
+  // Quick Trade state
+  const [qtAmount, setQtAmount] = useState('');
+  const [qtDirection, setQtDirection] = useState('BUY');
+  const [qtActive, setQtActive] = useState(null);
+  const [qtResult, setQtResult] = useState(null);  // { won, profit, payout }
+  const [qtTimeLeft, setQtTimeLeft] = useState(30);
+  const [qtHistory, setQtHistory] = useState([]);
+  const [qtPlacing, setQtPlacing] = useState(false);
+  const qtTimerRef = useRef(null);
+
   const chartContainerRef = useRef(null);
   const chartInstance = useRef(null);
   const candleSeries = useRef(null);
@@ -245,6 +258,49 @@ export default function TradingDesk() {
     }
   };
 
+  // ── Quick Trade ────────────────────────────────────────────────────────────
+  const loadQtHistory = async () => {
+    const res = await api.getQuickTradeHistory(token);
+    if (res.trades) setQtHistory(res.trades);
+  };
+
+  const handleQuickTrade = async () => {
+    const amt = parseFloat(qtAmount);
+    if (isNaN(amt) || amt < 1) { showToast('error', 'Minimum $1 USDT'); return; }
+    setQtPlacing(true);
+    setQtResult(null);
+    try {
+      const res = await api.placeQuickTrade(token, { symbol, direction: qtDirection, amount: amt });
+      if (res.error) { showToast('error', res.error); return; }
+
+      setQtActive(res);
+      setQtTimeLeft(30);
+      refreshData();
+
+      // Countdown timer
+      let t = 30;
+      qtTimerRef.current = setInterval(() => {
+        t -= 1;
+        setQtTimeLeft(t);
+        if (t <= 0) {
+          clearInterval(qtTimerRef.current);
+          // Poll for result
+          const poll = setInterval(async () => {
+            const r = await api.getQuickTrade(token, res.tradeId);
+            if (r.trade && r.trade.status !== 'open') {
+              clearInterval(poll);
+              setQtResult({ won: r.trade.status === 'won', profit: parseFloat(r.trade.profit), payout: parseFloat(r.trade.amount) + parseFloat(r.trade.profit) });
+              setQtActive(null);
+              refreshData();
+              loadQtHistory();
+            }
+          }, 1000);
+        }
+      }, 1000);
+    } catch { showToast('error', 'Failed to place trade'); }
+    finally { setQtPlacing(false); }
+  };
+
   return (
     <div className="trading-desk-layout">
       {toast && <div className={`desk-toast ${toast.type}`}>{toast.msg}</div>}
@@ -368,34 +424,23 @@ export default function TradingDesk() {
 
         {/* Right Column: Order Panel */}
         <div className={`order-panel-col${mobileDeskTab === 'order' ? ' mobile-visible' : ''}`}>
+
+          {/* Mode switcher: Spot / Quick Trade */}
+          <div className="order-mode-tabs">
+            <button className={`order-mode-tab ${orderMode === 'spot' ? 'active' : ''}`} onClick={() => setOrderMode('spot')}>Spot</button>
+            <button className={`order-mode-tab ${orderMode === 'quick' ? 'active qt' : ''}`} onClick={() => { setOrderMode('quick'); loadQtHistory(); }}>⚡ Quick Trade</button>
+          </div>
+
+          {/* ── SPOT ORDER ── */}
+          {orderMode === 'spot' && (<>
           <div className="order-tabs">
-            <button
-              className={`side-tab buy ${orderSide === 'BUY' ? 'active' : ''}`}
-              onClick={() => setOrderSide('BUY')}
-            >
-              Buy {baseAsset}
-            </button>
-            <button
-              className={`side-tab sell ${orderSide === 'SELL' ? 'active' : ''}`}
-              onClick={() => setOrderSide('SELL')}
-            >
-              Sell {baseAsset}
-            </button>
+            <button className={`side-tab buy ${orderSide === 'BUY' ? 'active' : ''}`} onClick={() => setOrderSide('BUY')}>Buy {baseAsset}</button>
+            <button className={`side-tab sell ${orderSide === 'SELL' ? 'active' : ''}`} onClick={() => setOrderSide('SELL')}>Sell {baseAsset}</button>
           </div>
 
           <div className="type-toggle">
-            <button
-              className={`type-btn ${orderType === 'LIMIT' ? 'active' : ''}`}
-              onClick={() => setOrderType('LIMIT')}
-            >
-              Limit
-            </button>
-            <button
-              className={`type-btn ${orderType === 'MARKET' ? 'active' : ''}`}
-              onClick={() => setOrderType('MARKET')}
-            >
-              Market
-            </button>
+            <button className={`type-btn ${orderType === 'LIMIT' ? 'active' : ''}`} onClick={() => setOrderType('LIMIT')}>Limit</button>
+            <button className={`type-btn ${orderType === 'MARKET' ? 'active' : ''}`} onClick={() => setOrderType('MARKET')}>Market</button>
           </div>
 
           <form className="spot-order-form" onSubmit={handlePlaceOrder}>
@@ -412,13 +457,7 @@ export default function TradingDesk() {
               <div className="form-group">
                 <label>Price</label>
                 <div className="input-box">
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={priceInput}
-                    onChange={(e) => setPriceInput(e.target.value)}
-                    required
-                  />
+                  <input type="number" step="0.01" value={priceInput} onChange={(e) => setPriceInput(e.target.value)} required />
                   <span className="unit">USDT</span>
                 </div>
               </div>
@@ -427,47 +466,141 @@ export default function TradingDesk() {
             <div className="form-group">
               <label>Amount</label>
               <div className="input-box">
-                <input
-                  type="number"
-                  step="0.0001"
-                  placeholder="0.00"
-                  value={amountInput}
-                  onChange={(e) => setAmountInput(e.target.value)}
-                  required
-                />
+                <input type="number" step="0.0001" placeholder="0.00" value={amountInput} onChange={(e) => setAmountInput(e.target.value)} required />
                 <span className="unit">{baseAsset}</span>
               </div>
             </div>
 
-            {/* Percentage Quick Selector */}
             <div className="pct-slider">
               {[25, 50, 75, 100].map(pct => (
-                <button
-                  type="button"
-                  key={pct}
-                  className={`pct-btn ${percentage === pct ? 'active' : ''}`}
-                  onClick={() => handlePercentageChange(pct)}
-                >
-                  {pct}%
-                </button>
+                <button type="button" key={pct} className={`pct-btn ${percentage === pct ? 'active' : ''}`} onClick={() => handlePercentageChange(pct)}>{pct}%</button>
               ))}
             </div>
 
             <div className="order-summary">
               <span>Order Total:</span>
-              <span className="mono">
-                ${((parseFloat(amountInput) || 0) * (parseFloat(priceInput) || ticker.price)).toFixed(2)} USDT
-              </span>
+              <span className="mono">${((parseFloat(amountInput) || 0) * (parseFloat(priceInput) || ticker.price)).toFixed(2)} USDT</span>
             </div>
 
-            <button
-              type="submit"
-              className={`submit-order-btn ${orderSide.toLowerCase()}`}
-              disabled={submitting}
-            >
+            <button type="submit" className={`submit-order-btn ${orderSide.toLowerCase()}`} disabled={submitting}>
               {submitting ? 'Placing Order…' : `${orderSide} ${baseAsset}`}
             </button>
           </form>
+          </>)}
+
+          {/* ── QUICK TRADE ── */}
+          {orderMode === 'quick' && (
+            <div className="qt-panel">
+              <div className="qt-info-banner">
+                <span className="qt-info-icon">⚡</span>
+                <div>
+                  <div className="qt-info-title">30-Second Trade</div>
+                  <div className="qt-info-sub">Place a trade and earn <b>+20% profit</b> in 30 seconds</div>
+                </div>
+              </div>
+
+              <div className="qt-balance">
+                <span>Available USDT:</span>
+                <span className="mono">${parseFloat(quoteBalance).toFixed(2)}</span>
+              </div>
+
+              {/* Direction */}
+              <div className="qt-direction-row">
+                <button className={`qt-dir-btn up ${qtDirection === 'BUY' ? 'active' : ''}`} onClick={() => setQtDirection('BUY')} disabled={!!qtActive}>
+                  <span className="qt-arrow">▲</span> UP
+                </button>
+                <button className={`qt-dir-btn down ${qtDirection === 'SELL' ? 'active' : ''}`} onClick={() => setQtDirection('SELL')} disabled={!!qtActive}>
+                  <span className="qt-arrow">▼</span> DOWN
+                </button>
+              </div>
+
+              {/* Amount */}
+              <div className="form-group">
+                <label>Trade Amount (USDT)</label>
+                <div className="input-box">
+                  <input type="number" min="1" step="1" placeholder="e.g. 100" value={qtAmount}
+                    onChange={e => setQtAmount(e.target.value)} disabled={!!qtActive} />
+                  <span className="unit">USDT</span>
+                </div>
+              </div>
+
+              {qtAmount && parseFloat(qtAmount) > 0 && (
+                <div className="qt-payout-preview">
+                  <div className="qt-payout-row"><span>Invest</span><b>${parseFloat(qtAmount || 0).toFixed(2)}</b></div>
+                  <div className="qt-payout-row profit"><span>Profit (20%)</span><b>+${(parseFloat(qtAmount || 0) * 0.20).toFixed(2)}</b></div>
+                  <div className="qt-payout-row total"><span>Total Payout</span><b>${(parseFloat(qtAmount || 0) * 1.20).toFixed(2)}</b></div>
+                </div>
+              )}
+
+              {/* Quick amounts */}
+              <div className="pct-slider">
+                {[10, 25, 50, 100].map(v => (
+                  <button key={v} type="button" className={`pct-btn ${qtAmount == v ? 'active' : ''}`}
+                    onClick={() => setQtAmount(String(v))} disabled={!!qtActive}>${v}</button>
+                ))}
+              </div>
+
+              {/* Active trade countdown */}
+              {qtActive && (
+                <div className="qt-active-trade">
+                  <div className="qt-countdown-wrap">
+                    <svg className="qt-countdown-ring" viewBox="0 0 44 44">
+                      <circle cx="22" cy="22" r="18" fill="none" stroke="#1E2D40" strokeWidth="4"/>
+                      <circle cx="22" cy="22" r="18" fill="none" stroke={qtDirection === 'BUY' ? '#10B981' : '#EF4444'}
+                        strokeWidth="4" strokeDasharray="113" strokeDashoffset={113 - (113 * qtTimeLeft / 30)}
+                        strokeLinecap="round" transform="rotate(-90 22 22)" style={{transition:'stroke-dashoffset 1s linear'}}/>
+                    </svg>
+                    <span className="qt-countdown-num">{qtTimeLeft}s</span>
+                  </div>
+                  <div className="qt-active-info">
+                    <div className="qt-active-dir" style={{color: qtDirection === 'BUY' ? '#10B981' : '#EF4444'}}>
+                      {qtDirection === 'BUY' ? '▲ UP' : '▼ DOWN'} · {symbol.replace('USDT','/USDT')}
+                    </div>
+                    <div className="qt-active-amt">
+                      ${qtActive.amount} → <b style={{color:'#10B981'}}>+${qtActive.profitIfWin}</b>
+                    </div>
+                    <div className="qt-active-entry">Entry: ${parseFloat(qtActive.entryPrice).toLocaleString(undefined,{minimumFractionDigits:2})}</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Result banner */}
+              {qtResult && !qtActive && (
+                <div className={`qt-result-banner ${qtResult.won ? 'won' : 'lost'}`}>
+                  <div className="qt-result-icon">{qtResult.won ? '🎉' : '😞'}</div>
+                  <div>
+                    <div className="qt-result-title">{qtResult.won ? 'Trade Won!' : 'Trade Lost'}</div>
+                    <div className="qt-result-sub">
+                      {qtResult.won
+                        ? `+$${qtResult.profit.toFixed(2)} profit · Payout: $${qtResult.payout.toFixed(2)}`
+                        : 'Better luck next time'}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <button className={`submit-order-btn ${qtDirection === 'BUY' ? 'buy' : 'sell'} qt-trade-btn`}
+                onClick={handleQuickTrade} disabled={!!qtActive || qtPlacing || !qtAmount}>
+                {qtActive ? `Trading… ${qtTimeLeft}s` : qtPlacing ? 'Placing…' : `⚡ Trade ${qtDirection === 'BUY' ? '▲ UP' : '▼ DOWN'}`}
+              </button>
+
+              {/* Recent history */}
+              {qtHistory.length > 0 && (
+                <div className="qt-history">
+                  <div className="qt-history-title">Recent Trades</div>
+                  {qtHistory.slice(0, 5).map(t => (
+                    <div key={t.id} className={`qt-history-row ${t.status}`}>
+                      <span className="qt-h-dir" style={{color: t.direction==='BUY'?'#10B981':'#EF4444'}}>{t.direction==='BUY'?'▲':'▼'} {t.symbol.replace('USDT','')}</span>
+                      <span className="qt-h-amt">${parseFloat(t.amount).toFixed(0)}</span>
+                      <span className={`qt-h-result ${t.status}`}>
+                        {t.status === 'won' ? `+$${parseFloat(t.profit).toFixed(2)}` : t.status === 'open' ? '⏳' : `-$${parseFloat(t.amount).toFixed(2)}`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

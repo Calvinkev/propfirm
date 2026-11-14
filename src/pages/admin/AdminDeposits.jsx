@@ -82,7 +82,7 @@ export default function AdminDeposits() {
                 ? <tr><td colSpan={8} className="adm-empty-cell">No deposits</td></tr>
                 : filtered.map(d => (
                   <tr key={d.id}>
-                    <td><div className="user-cell"><div className="user-avatar">{d.first_name[0]}</div><div><b>{d.first_name} {d.last_name}</b><span>{d.email}</span></div></div></td>
+                    <td><div className="user-cell"><div className="user-avatar">{d?.first_name?.[0] ?? "?"}</div><div><b>{d.first_name} {d.last_name}</b><span>{d.email}</span></div></div></td>
                     <td className="mono"><b>{d.coin}</b></td>
                     <td>{d.network}</td>
                     <td className="mono">{parseFloat(d.amount).toFixed(4)}</td>

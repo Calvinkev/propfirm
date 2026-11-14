@@ -87,7 +87,7 @@ export default function AdminDashboard() {
                     <tbody>
                       {recent.map(d => (
                         <tr key={d.id}>
-                          <td><div className="user-cell"><div className="user-avatar">{d.first_name[0]}</div><span>{d.first_name} {d.last_name}</span></div></td>
+                          <td><div className="user-cell"><div className="user-avatar">{d?.first_name?.[0] ?? "?"}</div><span>{d.first_name} {d.last_name}</span></div></td>
                           <td className="mono">{d.coin}</td>
                           <td className="mono">{parseFloat(d.amount).toFixed(4)}</td>
                           <td><span className={`status-badge ${d.status.toLowerCase()}`}>{d.status}</span></td>

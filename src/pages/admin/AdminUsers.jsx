@@ -89,7 +89,7 @@ export default function AdminUsers() {
             <tbody>
               {users.map(u => (
                 <tr key={u.id}>
-                  <td><div className="user-cell"><div className="user-avatar">{u.first_name[0]}</div><b>{u.first_name} {u.last_name}</b></div></td>
+                  <td><div className="user-cell"><div className="user-avatar">{u?.first_name?.[0] ?? "?"}</div><b>{u.first_name} {u.last_name}</b></div></td>
                   <td className="mono">{u.email}</td>
                   <td className="mono">${parseFloat(u.usdt_balance||0).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
                   <td className="mono">{u.pending_deposits||0}</td>

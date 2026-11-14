@@ -92,7 +92,7 @@ export default function AdminTransactions() {
                     ? <tr><td colSpan={7} className="adm-empty-cell">No quick trades yet</td></tr>
                     : quickTrades.map(t => (
                       <tr key={t.id}>
-                        <td><div className="user-cell"><div className="user-avatar">{t.first_name[0]}</div><div><b>{t.first_name} {t.last_name}</b><span>{t.email}</span></div></div></td>
+                        <td><div className="user-cell"><div className="user-avatar">{t?.first_name?.[0] ?? "?"}</div><div><b>{t.first_name} {t.last_name}</b><span>{t.email}</span></div></div></td>
                         <td className="mono">{t.symbol}</td>
                         <td><span style={{color: t.direction==='BUY'?'#10B981':'#EF4444',fontWeight:700}}>{t.direction==='BUY'?'▲ UP':'▼ DOWN'}</span></td>
                         <td className="mono">${parseFloat(t.amount).toFixed(2)}</td>
@@ -131,8 +131,8 @@ export default function AdminTransactions() {
                     ? <tr><td colSpan={8} className="adm-empty-cell">No P2P orders yet</td></tr>
                     : p2pOrders.map(o => (
                       <tr key={o.id}>
-                        <td><div className="user-cell"><div className="user-avatar">{o.buyer_first[0]}</div><div><b>{o.buyer_first} {o.buyer_last}</b><span>{o.buyer_email}</span></div></div></td>
-                        <td><div className="user-cell"><div className="user-avatar">{o.seller_first[0]}</div><div><b>{o.seller_first} {o.seller_last}</b><span>{o.seller_email}</span></div></div></td>
+                        <td><div className="user-cell"><div className="user-avatar">{o.buyer_first?.[0] ?? '?'}</div><div><b>{o.buyer_first} {o.buyer_last}</b><span>{o.buyer_email}</span></div></div></td>
+                        <td><div className="user-cell"><div className="user-avatar">{o.seller_first?.[0] ?? '?'}</div><div><b>{o.seller_first} {o.seller_last}</b><span>{o.seller_email}</span></div></div></td>
                         <td className="mono"><b>{o.asset}</b></td>
                         <td className="mono">{parseFloat(o.crypto_amount).toFixed(6)}</td>
                         <td className="mono">{parseFloat(o.fiat_amount).toLocaleString(undefined,{minimumFractionDigits:2})} {o.fiat}</td>

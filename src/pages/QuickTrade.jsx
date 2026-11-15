@@ -21,31 +21,59 @@ export default function QuickTrade() {
   const [direction, setDirection] = useState('BUY');
   const [amount, setAmount] = useState('');
   const [placing, setPlacing] = useState(false);
-  const [active, setActive] = useState(null);     // current trade
+  const [active, setActive] = useState(null);
   const [timeLeft, setTimeLeft] = useState(DURATION);
-  const [result, setResult] = useState(null);     // { won, profit, payout, entryPrice, exitPrice }
+  const [result, setResult] = useState(null);
   const [history, setHistory] = useState([]);
   const [toast, setToast] = useState(null);
+  // Daily limit state
+  const [canTrade, setCanTrade] = useState(true);
+  const [nextTradeAt, setNextTradeAt] = useState(null);
+  const [timeUntilNext, setTimeUntilNext] = useState('');
   const timerRef = useRef(null);
+  const countdownRef = useRef(null);
 
   const baseAsset = symbol.replace('USDT', '');
 
   const showToast = (type, msg) => { setToast({ type, msg }); setTimeout(() => setToast(null), 3500); };
 
-  // Load balance + history
+  // Load balance + history + daily status
   const loadData = useCallback(async () => {
-    const [balRes, histRes] = await Promise.all([
+    const [balRes, histRes, statusRes] = await Promise.all([
       api.getWalletBalances(token),
       api.getQuickTradeHistory(token),
+      api.getQuickTradeStatus(token),
     ]);
     if (balRes.balances) {
       const usdt = balRes.balances.find(b => b.asset === 'USDT');
       setBalanceUSDT(parseFloat(usdt?.free || 0));
     }
     if (histRes.trades) setHistory(histRes.trades);
+    if (statusRes.canTrade !== undefined) {
+      setCanTrade(statusRes.canTrade);
+      if (!statusRes.canTrade && statusRes.nextTradeAt) {
+        setNextTradeAt(new Date(statusRes.nextTradeAt));
+      }
+    }
   }, [token]);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  // Countdown to next trade unlock
+  useEffect(() => {
+    if (!nextTradeAt) return;
+    const tick = () => {
+      const diff = nextTradeAt - Date.now();
+      if (diff <= 0) { setCanTrade(true); setNextTradeAt(null); setTimeUntilNext(''); return; }
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      setTimeUntilNext(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`);
+    };
+    tick();
+    countdownRef.current = setInterval(tick, 1000);
+    return () => clearInterval(countdownRef.current);
+  }, [nextTradeAt]);
 
   // Live price via WebSocket
   useEffect(() => {
@@ -72,7 +100,15 @@ export default function QuickTrade() {
     setResult(null);
     try {
       const res = await api.placeQuickTrade(token, { symbol, direction, amount: amt });
-      if (res.error) { showToast('error', res.error); return; }
+      if (res.error) {
+        // Handle daily limit
+        if (res.nextTradeAt) {
+          setCanTrade(false);
+          setNextTradeAt(new Date(res.nextTradeAt));
+        }
+        showToast('error', res.error);
+        return;
+      }
       setActive(res);
       setTimeLeft(DURATION);
       loadData();
@@ -118,7 +154,7 @@ export default function QuickTrade() {
       <div className="qt-page-header">
         <div>
           <h1 className="qt-page-title">⚡ Quick Trade</h1>
-          <p className="qt-page-sub">Predict UP or DOWN in 30 seconds and earn <b>+20% profit</b> guaranteed</p>
+        <p className="qt-page-sub">Predict UP or DOWN in 30 seconds and earn <b>+20% profit</b></p>
         </div>
         <div className="qt-balance-pill">
           <span>Available</span>
@@ -257,11 +293,24 @@ export default function QuickTrade() {
             </div>
           )}
 
+          {/* Daily limit locked state */}
+          {!canTrade && !active && (
+            <div className="qt-locked-card">
+              <div className="qt-locked-icon">🔒</div>
+              <div className="qt-locked-body">
+                <div className="qt-locked-title">Daily trade used</div>
+                <div className="qt-locked-sub">Your next trade unlocks in</div>
+                <div className="qt-locked-countdown">{timeUntilNext || '—'}</div>
+                <div className="qt-locked-hint">One free trade resets every day at midnight UTC</div>
+              </div>
+            </div>
+          )}
+
           {/* CTA button */}
           <button
             className={`qt-cta-btn ${direction === 'BUY' ? 'up' : 'down'}`}
             onClick={handleTrade}
-            disabled={!!active || placing || !amount || parseFloat(amount) < 1}>
+            disabled={!!active || placing || !amount || parseFloat(amount) < 1 || !canTrade}>
             {active
               ? <><span className="qt-cta-spinner"/> Trading… {timeLeft}s</>
               : placing
@@ -270,7 +319,7 @@ export default function QuickTrade() {
             }
           </button>
 
-          <p className="qt-disclaimer">30-second trade · Minimum $1 USDT · 20% profit on win</p>
+          <p className="qt-disclaimer">30-second trade · Minimum $1 USDT · One trade per day</p>
         </div>
 
         {/* ── RIGHT: History ── */}

@@ -622,4 +622,8 @@ export const api = {
     const res = await fetch(`${API_BASE}/quick-trade/history`, { headers: { Authorization: `Bearer ${token}` } });
     return res.json();
   },
+  getQuickTradeStatus: async (token) => {
+    const res = await fetch(`${API_BASE}/quick-trade/status`, { headers: { Authorization: `Bearer ${token}` } });
+    return res.json();
+  },
 };

@@ -52,6 +52,27 @@ router.post('/place', auth, async (req, res) => {
     if (isNaN(num) || num < 1)
       return res.status(400).json({ error: 'Minimum trade amount is $1 USDT' });
 
+    // ── One trade per day check ───────────────────────────────────────────
+    const [[todayCount]] = await pool.query(
+      `SELECT COUNT(*) AS count FROM quick_trades
+       WHERE user_id = ? AND DATE(created_at) = CURDATE()`,
+      [userId]
+    );
+    if (todayCount.count >= 1) {
+      // Find when today's trade was placed so we can tell the user when they can trade again
+      const [[lastTrade]] = await pool.query(
+        `SELECT created_at FROM quick_trades WHERE user_id = ? AND DATE(created_at) = CURDATE() ORDER BY created_at DESC LIMIT 1`,
+        [userId]
+      );
+      const nextReset = new Date();
+      nextReset.setUTCHours(24, 0, 0, 0); // midnight UTC
+      return res.status(429).json({
+        error: 'You have already used your free trade for today.',
+        nextTradeAt: nextReset.toISOString(),
+        lastTradeAt: lastTrade?.created_at,
+      });
+    }
+
     // Check USDT balance
     const [bal] = await pool.query(
       "SELECT free FROM user_balances WHERE user_id = ? AND asset = 'USDT'",
@@ -127,9 +148,26 @@ async function settleTrade(tradeId, userId, symbol, direction, amount, entryPric
   }
 }
 
-// GET /api/quick-trade/history
-router.get('/history', auth, async (req, res) => {
+// GET /api/quick-trade/status  — check if user can trade today
+router.get('/status', auth, async (req, res) => {
   try {
+    await ensureTable();
+    const [[row]] = await pool.query(
+      `SELECT COUNT(*) AS count, MAX(created_at) AS last_trade_at
+       FROM quick_trades WHERE user_id = ? AND DATE(created_at) = CURDATE()`,
+      [req.user.userId]
+    );
+    const canTrade = row.count === 0;
+    const nextReset = new Date();
+    nextReset.setUTCHours(24, 0, 0, 0);
+    res.json({ canTrade, tradesUsedToday: row.count, nextTradeAt: nextReset.toISOString(), lastTradeAt: row.last_trade_at || null });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch status' });
+  }
+});
+
+// GET /api/quick-trade/history
+router.get('/history', auth, async (req, res) => {  try {
     await ensureTable();
     const [rows] = await pool.query(
       `SELECT * FROM quick_trades WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,

@@ -17,6 +17,7 @@ import Notifications from './pages/Notifications'
 import Profile from './pages/Profile'
 import AIAgent from './pages/AIAgent'
 import P2P from './pages/P2P'
+import QuickTrade from './pages/QuickTrade'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminUsers from './pages/admin/AdminUsers'
 import AdminDeposits from './pages/admin/AdminDeposits'
@@ -47,6 +48,7 @@ function App() {
           <Route path="/profile"       element={<Profile />} />
           <Route path="/ai-agent"      element={<AIAgent />} />
           <Route path="/p2p"           element={<P2P />} />
+          <Route path="/quick-trade"   element={<QuickTrade />} />
         </Route>
         <Route element={<AdminLayout />}>
           <Route path="/admin/dashboard"    element={<AdminDashboard />} />

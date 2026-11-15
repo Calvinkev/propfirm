@@ -50,6 +50,7 @@ export default function TradingDesk() {
   const chartContainerRef = useRef(null);
   const chartInstance = useRef(null);
   const candleSeries = useRef(null);
+  const priceLineRefs = useRef([]);  // tracks active entry price lines
 
   const baseAsset = symbol.replace('USDT', '');
   const quoteAsset = 'USDT';
@@ -60,6 +61,30 @@ export default function TradingDesk() {
   const showToast = (type, msg) => {
     setToast({ type, msg });
     setTimeout(() => setToast(null), 3500);
+  };
+
+  // Draw entry price lines on the chart for all open spot positions
+  const drawEntryLines = (positionList) => {
+    if (!candleSeries.current) return;
+    // Remove old lines
+    priceLineRefs.current.forEach(line => {
+      try { candleSeries.current.removePriceLine(line); } catch (_) {}
+    });
+    priceLineRefs.current = [];
+
+    positionList.forEach(pos => {
+      if (!pos.avgEntryPrice || pos.quantity < 0.000001) return;
+      const isProfit = pos.unrealizedPnl !== null && pos.unrealizedPnl >= 0;
+      const line = candleSeries.current.createPriceLine({
+        price:       pos.avgEntryPrice,
+        color:       isProfit ? '#10B981' : '#F43F5E',
+        lineWidth:   1,
+        lineStyle:   2,  // dashed
+        axisLabelVisible: true,
+        title:       `${pos.asset} Entry`,
+      });
+      priceLineRefs.current.push(line);
+    });
   };
 
   // 1. Initial Load & Balance Fetch
@@ -74,7 +99,10 @@ export default function TradingDesk() {
       if (balRes.balances) setBalances(balRes.balances);
       if (ordRes.orders) setOpenOrders(ordRes.orders);
       if (trdRes.trades) setTradeHistory(trdRes.trades);
-      if (posRes.positions) setPositions(posRes.positions);
+      if (posRes.positions) {
+        setPositions(posRes.positions);
+        drawEntryLines(posRes.positions);
+      }
     } catch (err) {
       console.error('Refresh data error:', err);
     }
@@ -121,14 +149,19 @@ export default function TradingDesk() {
         setTicker(prev => ({ ...prev, price: data.ask }));
       }
       // Update floating PnL live for all positions
-      setPositions(prev => prev.map(pos => {
-        if (pos.symbol !== data.symbol) return pos;
-        const mark = (data.bid + data.ask) / 2;
-        const currentValue = mark * pos.quantity;
-        const unrealizedPnl = pos.totalCost ? currentValue - pos.totalCost : null;
-        const unrealizedPnlPct = pos.totalCost && unrealizedPnl !== null ? (unrealizedPnl / pos.totalCost) * 100 : null;
-        return { ...pos, markPrice: mark, currentValue, unrealizedPnl, unrealizedPnlPct };
-      }));
+      setPositions(prev => {
+        const updated = prev.map(pos => {
+          if (pos.symbol !== data.symbol) return pos;
+          const mark = (data.bid + data.ask) / 2;
+          const currentValue = mark * pos.quantity;
+          const unrealizedPnl = pos.totalCost ? currentValue - pos.totalCost : null;
+          const unrealizedPnlPct = pos.totalCost && unrealizedPnl !== null ? (unrealizedPnl / pos.totalCost) * 100 : null;
+          return { ...pos, markPrice: mark, currentValue, unrealizedPnl, unrealizedPnlPct };
+        });
+        // Redraw lines with updated PnL colours
+        drawEntryLines(updated);
+        return updated;
+      });
     };
 
     wsService.on('price_tick', handlePriceTick);
@@ -185,8 +218,9 @@ export default function TradingDesk() {
     api.getChartCandles(symbol, chartTimeframe, 1000).then(res => {
       if (res.candles && res.candles.length > 0) {
         series.setData(res.candles);
-        // Scroll to the most recent candle
         chart.timeScale().scrollToRealTime();
+        // Redraw entry lines after candles load (positions already in state)
+        drawEntryLines(positions);
       }
     });
 

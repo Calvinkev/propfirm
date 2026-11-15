@@ -239,4 +239,21 @@
   .qt-main-grid { grid-template-columns: 1fr; }
   .qt-page { padding: 16px 12px; }
   .qt-trade-card, .qt-history-card { padding: 16px; }
+  .qt-page-header { flex-direction: column; gap: 12px; }
+  .qt-balance-pill { align-items: flex-start; }
+  .qt-pair-row { gap: 10px; }
+  .qt-pair-pills { gap: 5px; }
+  .qt-pair-pill { padding: 4px 9px; font-size: 11px; }
+  .qt-direction-grid { gap: 10px; }
+  .qt-dir-card { padding: 14px 8px; }
+  .qt-dir-arrow { font-size: 22px; }
+  .qt-dir-label { font-size: 14px; }
+  .qt-amount-input { font-size: 18px; }
+  .qt-quick-amounts { gap: 6px; }
+  .qt-quick-btn { padding: 5px 10px; font-size: 12px; }
+  .qt-arc { width: 100px; height: 100px; }
+  .qt-cta-btn { padding: 14px; font-size: 14px; }
+  .qt-stats-row { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .qt-stat-box { padding: 10px 8px; }
+  .qt-stat-box b { font-size: 15px; }
 }

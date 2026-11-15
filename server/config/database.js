@@ -11,8 +11,9 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME || 'stakeup',
   port: parseInt(process.env.DB_PORT || '3306'),
   waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
+  connectionLimit: 20,       // increased from 10
+  queueLimit: 100,           // queue up to 100 waiting requests
+  connectTimeout: 10000,     // 10s connect timeout
   ...(process.env.DB_SSL === 'true' && {
     ssl: { rejectUnauthorized: false },
   }),

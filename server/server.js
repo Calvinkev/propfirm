@@ -96,72 +96,81 @@ initDatabase()
     }, 10 * 60 * 1000);
 
     // ── Spot limit order matcher — runs every 5 seconds ────────────────────
-    // Checks all NEW/PARTIALLY_FILLED limit orders against live prices.
+    // Guard flag prevents overlapping runs if the previous tick is still processing
+    let limitMatcherRunning = false;
     setInterval(async () => {
+      if (limitMatcherRunning) return;
+      limitMatcherRunning = true;
       try {
         const { getLatestPrice } = await import('./services/priceFeed.js');
         const [orders] = await pool.query(
           `SELECT o.*, i.base_asset, i.quote_asset
            FROM crypto_orders o
            JOIN instruments i ON o.symbol = i.symbol
-           WHERE o.status IN ('NEW','PARTIALLY_FILLED') AND o.type = 'LIMIT'`
+           WHERE o.status IN ('NEW','PARTIALLY_FILLED') AND o.type = 'LIMIT'
+           LIMIT 50`   /* cap per tick to avoid DB overload */
         );
         for (const order of orders) {
           const lp = getLatestPrice(order.symbol);
           if (!lp) continue;
           const shouldFill =
             order.side === 'BUY'
-              ? lp.ask <= parseFloat(order.price)   // buy limit fills when market drops to price
-              : lp.bid >= parseFloat(order.price);  // sell limit fills when market rises to price
+              ? lp.ask <= parseFloat(order.price)
+              : lp.bid >= parseFloat(order.price);
           if (!shouldFill) continue;
 
-          const fillPrice = parseFloat(order.price);
-          const fillAmt   = parseFloat(order.amount) - parseFloat(order.filled_amount);
+          const fillPrice  = parseFloat(order.price);
+          const fillAmt    = parseFloat(order.amount) - parseFloat(order.filled_amount);
           if (fillAmt <= 0) continue;
-
           const totalValue = fillPrice * fillAmt;
           const fee        = totalValue * 0.001;
 
-          // Settle balances
-          if (order.side === 'BUY') {
-            // Unlock quote (was locked on order placement), credit base
-            await pool.query(
-              'UPDATE user_balances SET locked = locked - ? WHERE user_id = ? AND asset = ?',
-              [totalValue, order.user_id, order.quote_asset]
+          // Use a transaction to prevent race conditions on balance updates
+          const conn = await pool.getConnection();
+          try {
+            await conn.beginTransaction();
+            if (order.side === 'BUY') {
+              await conn.query(
+                'UPDATE user_balances SET locked = locked - ? WHERE user_id = ? AND asset = ?',
+                [totalValue, order.user_id, order.quote_asset]
+              );
+              await conn.query(
+                `INSERT INTO user_balances (user_id, asset, free) VALUES (?,?,?)
+                 ON DUPLICATE KEY UPDATE free = free + ?`,
+                [order.user_id, order.base_asset, fillAmt, fillAmt]
+              );
+            } else {
+              await conn.query(
+                'UPDATE user_balances SET locked = locked - ? WHERE user_id = ? AND asset = ?',
+                [fillAmt, order.user_id, order.base_asset]
+              );
+              await conn.query(
+                `INSERT INTO user_balances (user_id, asset, free) VALUES (?,?,?)
+                 ON DUPLICATE KEY UPDATE free = free + ?`,
+                [order.user_id, order.quote_asset, totalValue - fee, totalValue - fee]
+              );
+            }
+            await conn.query(
+              `INSERT INTO crypto_trades (order_id, user_id, symbol, side, price, amount, fee)
+               VALUES (?,?,?,?,?,?,?)`,
+              [order.id, order.user_id, order.symbol, order.side, fillPrice, fillAmt, fee]
             );
-            await pool.query(
-              `INSERT INTO user_balances (user_id, asset, free) VALUES (?,?,?)
-               ON DUPLICATE KEY UPDATE free = free + ?`,
-              [order.user_id, order.base_asset, fillAmt, fillAmt]
+            await conn.query(
+              `UPDATE crypto_orders SET status = 'FILLED', filled_amount = amount WHERE id = ?`,
+              [order.id]
             );
-          } else {
-            // Unlock base (was locked), credit quote minus fee
-            await pool.query(
-              'UPDATE user_balances SET locked = locked - ? WHERE user_id = ? AND asset = ?',
-              [fillAmt, order.user_id, order.base_asset]
-            );
-            await pool.query(
-              `INSERT INTO user_balances (user_id, asset, free) VALUES (?,?,?)
-               ON DUPLICATE KEY UPDATE free = free + ?`,
-              [order.user_id, order.quote_asset, totalValue - fee, totalValue - fee]
-            );
+            await conn.commit();
+          } catch (err) {
+            await conn.rollback();
+            console.error(`Limit order fill error (order ${order.id}):`, err.message);
+          } finally {
+            conn.release();
           }
-
-          // Record trade
-          await pool.query(
-            `INSERT INTO crypto_trades (order_id, user_id, symbol, side, price, amount, fee)
-             VALUES (?,?,?,?,?,?,?)`,
-            [order.id, order.user_id, order.symbol, order.side, fillPrice, fillAmt, fee]
-          );
-
-          // Mark order filled
-          await pool.query(
-            `UPDATE crypto_orders SET status = 'FILLED', filled_amount = amount WHERE id = ?`,
-            [order.id]
-          );
         }
       } catch (err) {
         console.error('Limit order matcher error:', err.message);
+      } finally {
+        limitMatcherRunning = false;
       }
     }, 5000);
 

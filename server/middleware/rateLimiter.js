@@ -62,3 +62,13 @@ export const aiChatLimiter = rateLimit({
   keyGenerator: (req) => `user:${req.user?.userId || 'anon'}`,
   message: { error: 'Too many chat messages. Please slow down.' },
 });
+
+// Withdrawal limiter — 5 per hour per user (prevents balance drain attacks)
+export const withdrawLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => `user:${req.user?.userId || 'anon'}`,
+  message: { error: 'Too many withdrawal requests. Please wait before trying again.' },
+});

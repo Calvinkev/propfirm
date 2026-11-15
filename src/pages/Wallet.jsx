@@ -376,7 +376,15 @@ export default function Wallet() {
                     <td>{w.network}</td>
                     <td className="mono addr-cell">{w.address}</td>
                     <td className="mono">{parseFloat(w.amount).toFixed(4)}</td>
-                    <td><span className={`status-badge ${w.status.toLowerCase()}`}>{w.status}</span></td>
+                    <td>
+                      {w.status === 'Pending' ? (
+                        <span className="wd-status-processing">
+                          <span className="wd-spinner"/> Waiting for transaction to complete
+                        </span>
+                      ) : (
+                        <span className={`status-badge ${w.status.toLowerCase()}`}>{w.status}</span>
+                      )}
+                    </td>
                   </tr>
                 ))
               )}

@@ -26,6 +26,7 @@ import bcrypt from 'bcryptjs';
 import pool from '../config/database.js';
 import { auth, adminOnly } from '../middleware/auth.js';
 import cache from '../services/cache.js';
+import { pushNotification } from './notifications.js';
 
 const router = express.Router();
 router.use(auth, adminOnly);
@@ -256,7 +257,6 @@ router.put('/withdrawals/:id/approve', async (req, res) => {
     const [[w]] = await pool.query("SELECT * FROM crypto_withdrawals WHERE id = ? AND status = 'Pending'", [req.params.id]);
     if (!w) return res.status(404).json({ error: 'Pending withdrawal not found' });
 
-    // Deduct from locked balance (funds were locked when request was created)
     await pool.query(
       'UPDATE user_balances SET locked = locked - ? WHERE user_id = ? AND asset = ?',
       [parseFloat(w.amount), w.user_id, w.coin]
@@ -265,6 +265,15 @@ router.put('/withdrawals/:id/approve', async (req, res) => {
       "UPDATE crypto_withdrawals SET status = 'Approved', processed_at = NOW() WHERE id = ?",
       [req.params.id]
     );
+
+    // Notify user
+    await pushNotification(
+      w.user_id, 'success',
+      'Withdrawal Approved',
+      `Your withdrawal of ${parseFloat(w.amount).toFixed(4)} ${w.coin} has been approved and is being sent to your address.`,
+      '/wallet'
+    );
+
     res.json({ message: 'Withdrawal approved and processed' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to approve withdrawal' });
@@ -277,7 +286,6 @@ router.put('/withdrawals/:id/reject', async (req, res) => {
     const [[w]] = await pool.query("SELECT * FROM crypto_withdrawals WHERE id = ? AND status = 'Pending'", [req.params.id]);
     if (!w) return res.status(404).json({ error: 'Pending withdrawal not found' });
 
-    // Return locked funds to free
     await pool.query(
       'UPDATE user_balances SET locked = locked - ?, free = free + ? WHERE user_id = ? AND asset = ?',
       [parseFloat(w.amount), parseFloat(w.amount), w.user_id, w.coin]
@@ -286,6 +294,15 @@ router.put('/withdrawals/:id/reject', async (req, res) => {
       "UPDATE crypto_withdrawals SET status = 'Rejected', processed_at = NOW() WHERE id = ?",
       [req.params.id]
     );
+
+    // Notify user — funds returned
+    await pushNotification(
+      w.user_id, 'warning',
+      'Withdrawal Rejected',
+      `Your withdrawal of ${parseFloat(w.amount).toFixed(4)} ${w.coin} was rejected. The funds have been returned to your wallet.`,
+      '/wallet'
+    );
+
     res.json({ message: 'Withdrawal rejected — funds returned to user' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to reject withdrawal' });

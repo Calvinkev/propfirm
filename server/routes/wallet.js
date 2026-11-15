@@ -1,6 +1,8 @@
 import express from 'express';
 import pool from '../config/database.js';
 import { auth } from '../middleware/auth.js';
+import { pushNotification } from './notifications.js';
+import { withdrawLimiter } from '../middleware/rateLimiter.js';
 
 const router = express.Router();
 
@@ -85,7 +87,7 @@ router.get('/deposits', auth, async (req, res) => {
 });
 
 // Request a crypto withdrawal
-router.post('/withdraw', auth, async (req, res) => {
+router.post('/withdraw', auth, withdrawLimiter, async (req, res) => {
   try {
     const userId = req.user.userId;
     const { coin, network, address, amount } = req.body;
@@ -109,19 +111,56 @@ router.post('/withdraw', auth, async (req, res) => {
 
     const fee = coin === 'USDT' ? 1.0 : 0.0005;
 
-    // Deduct free balance and place into locked state until processed or rejected
-    await pool.query(
-      'UPDATE user_balances SET free = free - ?, locked = locked + ? WHERE user_id = ? AND asset = ?',
-      [numAmount, numAmount, userId, coin]
-    );
+    // Lock funds atomically using a transaction
+    const conn = await pool.getConnection();
+    try {
+      await conn.beginTransaction();
 
-    const [resInsert] = await pool.query(
-      `INSERT INTO crypto_withdrawals (user_id, coin, network, address, amount, fee, status)
-       VALUES (?, ?, ?, ?, ?, ?, 'Pending')`,
-      [userId, coin, network, address, numAmount, fee]
-    );
+      // Re-check balance inside transaction to prevent race condition
+      const [locked] = await conn.query(
+        'SELECT free FROM user_balances WHERE user_id = ? AND asset = ? FOR UPDATE',
+        [userId, coin]
+      );
+      if (!locked.length || parseFloat(locked[0].free) < numAmount) {
+        await conn.rollback();
+        conn.release();
+        return res.status(400).json({ error: 'Insufficient available balance' });
+      }
 
-    res.json({ message: 'Withdrawal request created successfully', withdrawalId: resInsert.insertId });
+      await conn.query(
+        'UPDATE user_balances SET free = free - ?, locked = locked + ? WHERE user_id = ? AND asset = ?',
+        [numAmount, numAmount, userId, coin]
+      );
+
+      const [resInsert] = await conn.query(
+        `INSERT INTO crypto_withdrawals (user_id, coin, network, address, amount, fee, status)
+         VALUES (?, ?, ?, ?, ?, ?, 'Pending')`,
+        [userId, coin, network, address, numAmount, fee]
+      );
+
+      await conn.commit();
+      conn.release();
+
+      // Notify all admins about the new withdrawal request
+      const [admins] = await pool.query("SELECT id FROM users WHERE role = 'admin'");
+      const [user] = await pool.query('SELECT first_name, last_name, email FROM users WHERE id = ?', [userId]);
+      const userName = user[0] ? `${user[0].first_name} ${user[0].last_name}` : 'A user';
+      for (const admin of admins) {
+        await pushNotification(
+          admin.id,
+          'warning',
+          `Withdrawal Request — ${coin}`,
+          `${userName} requested a withdrawal of ${numAmount} ${coin} to ${address.slice(0,12)}… via ${network}. Please review and process.`,
+          '/admin/withdrawals'
+        );
+      }
+
+      res.json({ message: 'Withdrawal request submitted. Transaction is being processed.', withdrawalId: resInsert.insertId });
+    } catch (err) {
+      await conn.rollback();
+      conn.release();
+      throw err;
+    }
   } catch (error) {
     console.error('Withdrawal request error:', error);
     res.status(500).json({ error: 'Failed to process withdrawal' });

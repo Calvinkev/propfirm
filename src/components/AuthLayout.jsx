@@ -3,6 +3,7 @@ import { useState, useRef, useCallback } from 'react'
 import { useAuth } from '../context/AuthContext'
 import Logo from './Logo'
 import Icon from './Icon'
+import ErrorBoundary from './ErrorBoundary'
 import './AuthLayout.css'
 import './AppPolish.css'
 
@@ -203,7 +204,9 @@ export default function AuthLayout() {
       )}
 
       <main className="binance-main">
-        <Outlet />
+        <ErrorBoundary>
+          <Outlet />
+        </ErrorBoundary>
       </main>
     </div>
   )

@@ -226,19 +226,20 @@ export const initDatabase = async () => {
       }
     }
 
-    // Seed default admin account
-    const [adminExists] = await connection.query('SELECT id FROM users WHERE email = ?', ['admin@binance.com']);
+    // ── Default admin account — only seed if NO admin exists at all ─────────
+    const [adminExists] = await connection.query("SELECT id FROM users WHERE role = 'admin' LIMIT 1");
     if (adminExists.length === 0) {
-      const defaultAdminPass = await bcrypt.hash('admin123', 10);
+      const defaultAdminPass = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'ChangeMe@2025!', 10);
+      const adminEmail = process.env.ADMIN_EMAIL || 'admin@stakeup.com';
       const [res] = await connection.query(
         'INSERT INTO users (email, password, first_name, last_name, role) VALUES (?, ?, ?, ?, ?)',
-        ['admin@binance.com', defaultAdminPass, 'Binance', 'Admin', 'admin']
+        [adminEmail, defaultAdminPass, 'StakeUp', 'Admin', 'admin']
       );
-      // Give initial USDT demo balance to admin
       await connection.query(
         'INSERT INTO user_balances (user_id, asset, free, locked) VALUES (?, ?, ?, ?)',
         [res.insertId, 'USDT', 100000.00, 0.00]
       );
+      console.log(`✅ Admin account created: ${adminEmail} (set ADMIN_EMAIL / ADMIN_PASSWORD in .env)`);
     }
 
     // ── AI TRADING BOTS ──────────────────────────────────────────────────

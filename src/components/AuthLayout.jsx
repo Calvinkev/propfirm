@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import Logo from './Logo'
 import Icon from './Icon'
 import ErrorBoundary from './ErrorBoundary'
+import CustomerCareButton from './CustomerCareButton'
 import './AuthLayout.css'
 import './AppPolish.css'
 
@@ -209,6 +210,7 @@ export default function AuthLayout() {
         <ErrorBoundary>
           <Outlet />
         </ErrorBoundary>
+        <CustomerCareButton />
       </main>
     </div>
   )

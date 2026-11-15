@@ -92,4 +92,38 @@ export async function pushNotification(userId, type, title, message, link = null
   }
 }
 
+// POST /api/notifications/admin/send  — admin sends notification to one or all users
+// Body: { userId?: number, all?: boolean, type, title, message, link? }
+import { auth as authMiddleware, adminOnly } from '../middleware/auth.js';
+router.post('/admin/send', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const { userId, all, type = 'info', title, message, link } = req.body;
+    if (!title || !message) return res.status(400).json({ error: 'title and message are required' });
+
+    await ensureTable();
+
+    if (all) {
+      // Broadcast to every non-admin user
+      const [users] = await pool.query("SELECT id FROM users WHERE role = 'user'");
+      for (const u of users) {
+        await pool.query(
+          'INSERT INTO notifications (user_id, type, title, message, link) VALUES (?,?,?,?,?)',
+          [u.id, type, title, message, link || null]
+        );
+      }
+      return res.json({ message: `Notification sent to ${users.length} users` });
+    }
+
+    if (!userId) return res.status(400).json({ error: 'userId or all=true is required' });
+    await pool.query(
+      'INSERT INTO notifications (user_id, type, title, message, link) VALUES (?,?,?,?,?)',
+      [userId, type, title, message, link || null]
+    );
+    res.json({ message: 'Notification sent' });
+  } catch (err) {
+    console.error('Admin send notification error:', err);
+    res.status(500).json({ error: 'Failed to send notification' });
+  }
+});
+
 export default router;

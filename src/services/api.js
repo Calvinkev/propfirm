@@ -421,6 +421,13 @@ export const api = {
     });
     return res.json();
   },
+  adminSendNotification: async (token, data) => {
+    const res = await fetch('/api/notifications/admin/send', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
 
   // ── AI Agent ──────────────────────────────────────────────────────────────
   createAIBot: async (token, data) => {

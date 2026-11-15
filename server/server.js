@@ -87,16 +87,84 @@ initDatabase()
   .then(() => {
     console.log('✅ Database connected & initialized');
     // ── Price ticks cleanup — keep only last 2 hours of ticks ──────────────
-    // Runs every 10 minutes. Prevents the table from growing unboundedly.
     setInterval(async () => {
       try {
-        await pool.query(
-          `DELETE FROM price_ticks WHERE timestamp < DATE_SUB(NOW(), INTERVAL 2 HOUR)`
-        );
+        await pool.query(`DELETE FROM price_ticks WHERE timestamp < DATE_SUB(NOW(), INTERVAL 2 HOUR)`);
       } catch (err) {
         console.error('price_ticks cleanup error:', err.message);
       }
     }, 10 * 60 * 1000);
+
+    // ── Spot limit order matcher — runs every 5 seconds ────────────────────
+    // Checks all NEW/PARTIALLY_FILLED limit orders against live prices.
+    setInterval(async () => {
+      try {
+        const { getLatestPrice } = await import('./services/priceFeed.js');
+        const [orders] = await pool.query(
+          `SELECT o.*, i.base_asset, i.quote_asset
+           FROM crypto_orders o
+           JOIN instruments i ON o.symbol = i.symbol
+           WHERE o.status IN ('NEW','PARTIALLY_FILLED') AND o.type = 'LIMIT'`
+        );
+        for (const order of orders) {
+          const lp = getLatestPrice(order.symbol);
+          if (!lp) continue;
+          const shouldFill =
+            order.side === 'BUY'
+              ? lp.ask <= parseFloat(order.price)   // buy limit fills when market drops to price
+              : lp.bid >= parseFloat(order.price);  // sell limit fills when market rises to price
+          if (!shouldFill) continue;
+
+          const fillPrice = parseFloat(order.price);
+          const fillAmt   = parseFloat(order.amount) - parseFloat(order.filled_amount);
+          if (fillAmt <= 0) continue;
+
+          const totalValue = fillPrice * fillAmt;
+          const fee        = totalValue * 0.001;
+
+          // Settle balances
+          if (order.side === 'BUY') {
+            // Unlock quote (was locked on order placement), credit base
+            await pool.query(
+              'UPDATE user_balances SET locked = locked - ? WHERE user_id = ? AND asset = ?',
+              [totalValue, order.user_id, order.quote_asset]
+            );
+            await pool.query(
+              `INSERT INTO user_balances (user_id, asset, free) VALUES (?,?,?)
+               ON DUPLICATE KEY UPDATE free = free + ?`,
+              [order.user_id, order.base_asset, fillAmt, fillAmt]
+            );
+          } else {
+            // Unlock base (was locked), credit quote minus fee
+            await pool.query(
+              'UPDATE user_balances SET locked = locked - ? WHERE user_id = ? AND asset = ?',
+              [fillAmt, order.user_id, order.base_asset]
+            );
+            await pool.query(
+              `INSERT INTO user_balances (user_id, asset, free) VALUES (?,?,?)
+               ON DUPLICATE KEY UPDATE free = free + ?`,
+              [order.user_id, order.quote_asset, totalValue - fee, totalValue - fee]
+            );
+          }
+
+          // Record trade
+          await pool.query(
+            `INSERT INTO crypto_trades (order_id, user_id, symbol, side, price, amount, fee)
+             VALUES (?,?,?,?,?,?,?)`,
+            [order.id, order.user_id, order.symbol, order.side, fillPrice, fillAmt, fee]
+          );
+
+          // Mark order filled
+          await pool.query(
+            `UPDATE crypto_orders SET status = 'FILLED', filled_amount = amount WHERE id = ?`,
+            [order.id]
+          );
+        }
+      } catch (err) {
+        console.error('Limit order matcher error:', err.message);
+      }
+    }, 5000);
+
     return priceFeed.start();
   })
   .then(() => {

@@ -54,7 +54,7 @@ const MOBILE_ACCOUNT = [
 
 export default function AuthLayout() {
   const location = useLocation()
-  const { isAuthenticated, loading, user, logout } = useAuth()
+  const { isAuthenticated, isAdmin, loading, user, logout } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [openDropdown, setOpenDropdown] = useState(null)
   const closeTimer = useRef(null)

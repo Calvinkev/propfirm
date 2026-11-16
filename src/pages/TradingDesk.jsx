@@ -550,12 +550,17 @@ export default function TradingDesk() {
 
               {/* Amount */}
               <div className="form-group">
-                <label>Trade Amount (USDT)</label>
+                <label>Trade Amount (USD)</label>
                 <div className="input-box">
                   <input type="number" min="1" step="1" placeholder="e.g. 100" value={qtAmount}
                     onChange={e => setQtAmount(e.target.value)} disabled={!!qtActive} />
-                  <span className="unit">USDT</span>
+                  <span className="unit">USD</span>
                 </div>
+                {qtAmount && parseFloat(qtAmount) > 0 && ticker.price > 0 && (
+                  <div className="qt-coin-value">
+                    ≈ {(parseFloat(qtAmount) / ticker.price).toFixed(6)} {baseAsset}
+                  </div>
+                )}
               </div>
 
               {qtAmount && parseFloat(qtAmount) > 0 && (

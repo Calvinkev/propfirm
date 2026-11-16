@@ -636,6 +636,10 @@
 .qt-payout-row.profit b { color: #10B981; }
 .qt-payout-row.total  { border-top: 1px solid var(--border); padding-top: 6px; margin-top: 2px; }
 .qt-payout-row.total b { color: var(--brass); font-size: 14px; }
+.qt-coin-value {
+  font-size: 11px; color: var(--text-muted); margin-top: 6px;
+  font-family: var(--mono);
+}
 
 /* Countdown ring */
 .qt-active-trade {

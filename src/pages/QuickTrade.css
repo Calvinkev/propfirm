@@ -95,6 +95,11 @@
   min-width: 0;
 }
 .qt-currency-label { padding: 0 14px; font-size: 13px; color: var(--text-muted); font-weight: 600; }
+.qt-coin-value {
+  font-size: 12px; color: var(--text-muted); margin-top: 6px;
+  font-family: var(--mono); display: flex; align-items: center; gap: 4px;
+}
+.qt-coin-value::before { content: '≈'; }
 .qt-quick-amounts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
 .qt-quick-btn {
   padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
@@ -148,7 +153,25 @@
 .qt-result-card.lost .qt-result-title { color: #EF4444; }
 .qt-result-sub   { font-size: 13px; color: var(--text-muted); margin: 4px 0; }
 .qt-result-sub b { color: var(--brass); }
-.qt-result-prices { font-size: 11px; color: var(--text-muted); font-family: var(--mono); }
+.qt-result-details {
+  margin-top: 12px; padding-top: 12px;
+  border-top: 1px solid var(--border-soft);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.qt-result-detail-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 12px;
+}
+.qt-detail-label { color: var(--text-muted); }
+.qt-detail-value { font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.qt-detail-value.mono { font-family: var(--mono); }
+.qt-detail-value.up { color: #10B981; }
+.qt-detail-value.down { color: #EF4444; }
+.qt-result-icons {
+  display: flex; gap: 12px; margin-top: 12px; padding-top: 12px;
+  border-top: 1px solid var(--border-soft);
+  justify-content: center;
+}
 
 /* CTA button */
 .qt-cta-btn {

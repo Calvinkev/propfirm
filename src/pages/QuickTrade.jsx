@@ -130,6 +130,8 @@ export default function QuickTrade() {
                 payout:     parseFloat(r.trade.amount) + parseFloat(r.trade.profit),
                 entryPrice: parseFloat(r.trade.entry_price),
                 exitPrice:  parseFloat(r.trade.exit_price),
+                amount:     parseFloat(r.trade.amount),
+                direction:  direction,
               });
               setActive(null);
               loadData();
@@ -211,15 +213,20 @@ export default function QuickTrade() {
 
           {/* Amount input */}
           <div className="qt-amount-section">
-            <label className="qt-label">Trade Amount (USDT)</label>
+            <label className="qt-label">Trade Amount (USD)</label>
             <div className="qt-amount-input-wrap">
               <span className="qt-currency">$</span>
               <input
                 type="number" min="1" step="1" placeholder="0"
                 value={amount} onChange={e => setAmount(e.target.value)}
                 disabled={!!active} className="qt-amount-input" />
-              <span className="qt-currency-label">USDT</span>
+              <span className="qt-currency-label">USD</span>
             </div>
+            {parseFloat(amount) > 0 && livePrice > 0 && (
+              <div className="qt-coin-value">
+                ≈ {(parseFloat(amount) / livePrice).toFixed(6)} {baseAsset}
+              </div>
+            )}
             <div className="qt-quick-amounts">
               {QUICK_AMOUNTS.map(v => (
                 <button key={v} type="button"
@@ -286,8 +293,32 @@ export default function QuickTrade() {
                   ? <div className="qt-result-sub">+${result.profit.toFixed(2)} profit · Payout: <b>${result.payout.toFixed(2)}</b></div>
                   : <div className="qt-result-sub">Better luck next time</div>
                 }
-                <div className="qt-result-prices">
-                  Entry ${result.entryPrice.toLocaleString(undefined,{minimumFractionDigits:2})} → Exit ${result.exitPrice.toLocaleString(undefined,{minimumFractionDigits:2})}
+                <div className="qt-result-details">
+                  <div className="qt-result-detail-row">
+                    <span className="qt-detail-label">Direction</span>
+                    <span className={`qt-detail-value ${result.direction === 'BUY' ? 'up' : 'down'}`}>
+                      {result.direction === 'BUY' ? '▲ Buy Long' : '▼ Sell Short'}
+                    </span>
+                  </div>
+                  <div className="qt-result-detail-row">
+                    <span className="qt-detail-label">Amount Traded</span>
+                    <span className="qt-detail-value">
+                      <CryptoIcon symbol="USDT" size={16} /> ${parseFloat(result.amount || 0).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="qt-result-detail-row">
+                    <span className="qt-detail-label">Open Price</span>
+                    <span className="qt-detail-value mono">${result.entryPrice.toLocaleString(undefined,{minimumFractionDigits:2})}</span>
+                  </div>
+                  <div className="qt-result-detail-row">
+                    <span className="qt-detail-label">Close Price</span>
+                    <span className="qt-detail-value mono">${result.exitPrice.toLocaleString(undefined,{minimumFractionDigits:2})}</span>
+                  </div>
+                </div>
+                <div className="qt-result-icons">
+                  <CryptoIcon symbol="BTC" size={20} />
+                  <CryptoIcon symbol="ETH" size={20} />
+                  <CryptoIcon symbol="USDT" size={20} />
                 </div>
               </div>
             </div>

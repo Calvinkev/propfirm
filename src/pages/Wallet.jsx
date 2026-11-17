@@ -317,6 +317,87 @@ export default function Wallet() {
           </div>
         </div>
 
+        {/* Mobile Finance Actions */}
+        <div className="mobile-finance-actions">
+          <button className="finance-action-btn" onClick={() => openDepositModal('USDT')}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            <span>Deposit</span>
+          </button>
+          <button className="finance-action-btn" onClick={() => { setSelectedCoin('USDT'); setShowWithdrawModal(true); }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M5 12h14" />
+            </svg>
+            <span>Withdraw</span>
+          </button>
+          <button className="finance-action-btn" onClick={() => setShowTransferModal(true)}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3" />
+            </svg>
+            <span>Transfer</span>
+          </button>
+          <button className="finance-action-btn" onClick={() => window.location.href = '/convert'}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M7 16V4M7 4L3 8M7 4L11 8M17 8v12M17 20l4-4M17 20l-4-4" />
+            </svg>
+            <span>Swap</span>
+          </button>
+        </div>
+
+        {/* My Account Section */}
+        <div className="my-account-section">
+          <h3 className="account-section-title">My Account</h3>
+          <div className="account-cards-grid">
+            <div className="account-card">
+              <div className="account-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="2" y="7" width="20" height="14" rx="2" />
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                </svg>
+              </div>
+              <div className="account-card-info">
+                <span className="account-card-title">Exchange</span>
+                <span className="account-card-desc">Spot trading wallet</span>
+              </div>
+            </div>
+            <div className="account-card">
+              <div className="account-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                </svg>
+              </div>
+              <div className="account-card-info">
+                <span className="account-card-title">Trade</span>
+                <span className="account-card-desc">Margin trading account</span>
+              </div>
+            </div>
+            <div className="account-card">
+              <div className="account-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                </svg>
+              </div>
+              <div className="account-card-info">
+                <span className="account-card-title">Perpetual</span>
+                <span className="account-card-desc">Futures trading wallet</span>
+              </div>
+            </div>
+            <div className="account-card">
+              <div className="account-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                  <line x1="1" y1="10" x2="23" y2="10" />
+                </svg>
+              </div>
+              <div className="account-card-info">
+                <span className="account-card-title">Finance</span>
+                <span className="account-card-desc">Earn & savings wallet</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Spot Assets Balance Table */}
         <div className="wallet-card">
           <h2>Spot Assets</h2>
@@ -584,7 +665,7 @@ export default function Wallet() {
       {/* Withdraw Modal */}
       {showWithdrawModal && (
         <div className="modal-backdrop">
-          <div className="wallet-modal">
+          <div className="wallet-modal wallet-modal-withdraw" style={{ width: '200px', maxWidth: '200px', minWidth: '200px', padding: '12px' }}>
             <div className="modal-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <CryptoIcon symbol={selectedCoin} size={26} />

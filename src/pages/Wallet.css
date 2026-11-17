@@ -190,8 +190,17 @@
   border: 1px solid var(--border);
   border-radius: 8px;
   width: 100%;
-  max-width: 420px;
-  padding: 24px;
+  max-width: 240px !important;
+  min-width: unset !important;
+  padding: 16px;
+}
+
+/* Withdrawal modal - smaller size */
+.wallet-modal-withdraw {
+  width: 240px !important;
+  max-width: 240px !important;
+  min-width: 240px !important;
+  padding: 16px;
 }
 
 .modal-header {
@@ -212,7 +221,7 @@
 .modal-body {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .modal-field label {
@@ -227,8 +236,11 @@
   background: var(--surface-raised);
   border: 1px solid var(--border);
   color: #fff;
-  padding: 10px;
+  padding: 8px;
   border-radius: 4px;
+  min-width: 0;
+  box-sizing: border-box;
+  font-size: 12px;
 }
 
 .submit-modal-btn {
@@ -371,11 +383,139 @@
   margin-bottom: 6px;
 }
 
+/* Mobile Finance Actions */
+.mobile-finance-actions {
+  display: none;
+  gap: 12px;
+  padding: 16px 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+  .mobile-finance-actions {
+    display: flex;
+  }
+}
+
+.finance-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.finance-action-btn:hover {
+  background: var(--surface-hover);
+  border-color: var(--brass);
+  color: var(--brass);
+}
+
+.finance-action-btn svg {
+  width: 24px;
+  height: 24px;
+  stroke-width: 2;
+}
+
+.finance-action-btn span {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* My Account Section */
+.my-account-section {
+  margin-bottom: 24px;
+}
+
+.account-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+
+.account-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .account-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.account-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 12px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.account-card:hover {
+  background: var(--surface-hover);
+  border-color: var(--brass);
+  transform: translateY(-2px);
+}
+
+.account-card-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(240, 185, 11, 0.15), rgba(240, 185, 11, 0.05));
+  border-radius: 10px;
+  color: var(--brass);
+}
+
+.account-card-icon svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2;
+}
+
+.account-card-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.account-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.account-card-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
 /* ── Mobile Responsive ──────────────────────────────────────────────────── */
 
 @media (max-width: 768px) {
   .wallet-page {
     padding: 16px 12px;
+    padding-bottom: 80px;
   }
 
   .wallet-summary-card {
@@ -419,8 +559,8 @@
 
   /* Modal sized appropriately on mobile */
   .wallet-modal {
-    max-width: 360px;
-    padding: 16px;
+    max-width: 300px;
+    padding: 14px;
     margin: 0 12px;
   }
 

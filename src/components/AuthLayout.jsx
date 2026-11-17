@@ -5,6 +5,7 @@ import Logo from './Logo'
 import Icon from './Icon'
 import ErrorBoundary from './ErrorBoundary'
 import CustomerCareButton from './CustomerCareButton'
+import MobileBottomNav from './MobileBottomNav'
 import './AuthLayout.css'
 import './AppPolish.css'
 
@@ -212,6 +213,8 @@ export default function AuthLayout() {
         </ErrorBoundary>
         <CustomerCareButton />
       </main>
+
+      <MobileBottomNav />
     </div>
   )
 }

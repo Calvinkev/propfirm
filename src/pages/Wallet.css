@@ -190,7 +190,7 @@
   border: 1px solid var(--border);
   border-radius: 8px;
   width: 100%;
-  max-width: 480px;
+  max-width: 420px;
   padding: 24px;
 }
 
@@ -417,9 +417,9 @@
     font-size: 12px;
   }
 
-  /* Modal full-width on mobile */
+  /* Modal sized appropriately on mobile */
   .wallet-modal {
-    max-width: calc(100vw - 24px);
+    max-width: 360px;
     padding: 16px;
     margin: 0 12px;
   }

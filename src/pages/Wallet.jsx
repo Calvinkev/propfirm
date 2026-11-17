@@ -665,7 +665,7 @@ export default function Wallet() {
       {/* Withdraw Modal */}
       {showWithdrawModal && (
         <div className="modal-backdrop">
-          <div className="wallet-modal wallet-modal-withdraw" style={{ width: '200px', maxWidth: '200px', minWidth: '200px', padding: '12px' }}>
+          <div className="wallet-modal wallet-modal-withdraw">
             <div className="modal-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <CryptoIcon symbol={selectedCoin} size={26} />

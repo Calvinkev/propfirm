@@ -27,6 +27,7 @@ export default function Wallet() {
   // Modals state
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [showTransferModal, setShowTransferModal] = useState(false);
   const [selectedCoin, setSelectedCoin] = useState('USDT');
 
   // Form states
@@ -34,11 +35,20 @@ export default function Wallet() {
   const [depAddress, setDepAddress] = useState('');
   const [depTxHash, setDepTxHash] = useState('');
   const [depAmount, setDepAmount] = useState('');
+  const [depCurrency, setDepCurrency] = useState('USDT');
   const [addressCopied, setAddressCopied] = useState(false);
 
   const [wdAddress, setWdAddress] = useState('');
   const [wdNetwork, setWdNetwork] = useState('TRC20');
   const [wdAmount, setWdAmount] = useState('');
+  const [wdAccountType, setWdAccountType] = useState('EXCHANGE');
+  const [wdCurrency, setWdCurrency] = useState('USDT');
+
+  // Transfer form state
+  const [transferFromAccount, setTransferFromAccount] = useState('EXCHANGE');
+  const [transferToAccount, setTransferToAccount] = useState('TRADE');
+  const [transferCurrency, setTransferCurrency] = useState('USDT');
+  const [transferAmount, setTransferAmount] = useState('');
 
   const [toast, setToast] = useState(null);
 
@@ -102,10 +112,11 @@ export default function Wallet() {
     e.preventDefault();
     try {
       const res = await api.requestWithdrawal(token, {
-        coin: selectedCoin,
+        coin: wdCurrency,
         network: wdNetwork,
         address: wdAddress,
-        amount: wdAmount
+        amount: wdAmount,
+        accountType: wdAccountType
       });
       if (res.error) {
         showToast('error', res.error);
@@ -118,6 +129,28 @@ export default function Wallet() {
       }
     } catch (err) {
       showToast('error', 'Failed to submit withdrawal');
+    }
+  };
+
+  const handleTransferSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await api.transferBetweenAccounts(token, {
+        fromAccount: transferFromAccount,
+        toAccount: transferToAccount,
+        currency: transferCurrency,
+        amount: transferAmount
+      });
+      if (res.error) {
+        showToast('error', res.error);
+      } else {
+        showToast('success', res.message || 'Transfer successful');
+        setShowTransferModal(false);
+        setTransferAmount('');
+        loadData();
+      }
+    } catch (err) {
+      showToast('error', 'Failed to transfer funds');
     }
   };
 
@@ -275,6 +308,12 @@ export default function Wallet() {
             >
               Withdraw
             </button>
+            <button
+              className="action-btn transfer"
+              onClick={() => setShowTransferModal(true)}
+            >
+              Transfer
+            </button>
           </div>
         </div>
 
@@ -401,13 +440,39 @@ export default function Wallet() {
             <div className="modal-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <CryptoIcon symbol={selectedCoin} size={26} />
-                <h3>Deposit {selectedCoin}</h3>
+                <h3>Deposit</h3>
               </div>
               <button className="close-btn" onClick={() => setShowDepositModal(false)}>
                 <Icon name="close" size={18} />
               </button>
             </div>
             <form onSubmit={handleDepositSubmit} className="modal-body">
+              <div className="modal-field">
+                <label>Select Currency</label>
+                <select
+                  value={depCurrency}
+                  onChange={(e) => { setDepCurrency(e.target.value); setSelectedCoin(e.target.value); }}
+                  required
+                >
+                  <option value="USDT">USDT</option>
+                  <option value="USDC">USDC</option>
+                  <option value="ETH">ETH</option>
+                  <option value="BTC">BTC</option>
+                  <option value="XRP">XRP</option>
+                  <option value="SOL">SOL</option>
+                  <option value="BNB">BNB</option>
+                  <option value="ADA">ADA</option>
+                  <option value="DOGE">DOGE</option>
+                  <option value="DOT">DOT</option>
+                  <option value="MATIC">MATIC</option>
+                  <option value="LTC">LTC</option>
+                  <option value="AVAX">AVAX</option>
+                  <option value="LINK">LINK</option>
+                  <option value="UNI">UNI</option>
+                  <option value="ATOM">ATOM</option>
+                </select>
+              </div>
+
               <div className="modal-field">
                 <label>Choose destination network</label>
                 {loadingDepositNetworks ? (
@@ -499,30 +564,17 @@ export default function Wallet() {
               </section>}
 
               {depAddress && <>
-                <div className="modal-field">
-                  <label>Amount Transferred</label>
-                  <input
-                    type="number"
-                    step="0.0001"
-                    required
-                    placeholder="0.00"
-                    value={depAmount}
-                    onChange={(e) => setDepAmount(e.target.value)}
-                  />
+                <div className="tips-section">
+                  <h4>TIPS (TELEGRAM)</h4>
+                  <ol>
+                    <li>The above deposit address is the official payment address of the platform, please look for the official deposit address of the platform, and the loss of funds caused by incorrect charging shall be borne by yourself;</li>
+                    <li>Please make sure that your computer and browser are safe to prevent information from being tampered with or leaked;</li>
+                    <li>After you recharge the above address, you need to confirm the entire network node before it can be credited;</li>
+                    <li>Please select the above-mentioned token system and currency type and transfer the corresponding amount for deposit. Please do not transfer any other Irrelevant assets, otherwise they will not be retrieved.</li>
+                  </ol>
                 </div>
 
-                <div className="modal-field">
-                  <label>Transaction Hash / TXID</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Enter transaction hash"
-                    value={depTxHash}
-                    onChange={(e) => setDepTxHash(e.target.value)}
-                  />
-                </div>
-
-                <button type="submit" className="submit-modal-btn">Confirm Deposit Submission</button>
+                <button type="submit" className="submit-modal-btn">Confirm Deposit</button>
               </>}
             </form>
           </div>
@@ -544,22 +596,69 @@ export default function Wallet() {
             </div>
             <form onSubmit={handleWithdrawSubmit} className="modal-body">
               <div className="modal-field">
-                <label>Recipient Address</label>
+                <label>Account Type</label>
+                <select
+                  value={wdAccountType}
+                  onChange={(e) => setWdAccountType(e.target.value)}
+                  required
+                >
+                  <option value="EXCHANGE">Exchange</option>
+                  <option value="TRADE">Trade</option>
+                  <option value="PERPETUAL">Perpetual</option>
+                  <option value="FINANCE">Finance</option>
+                </select>
+              </div>
+
+              <div className="modal-field">
+                <label>Select Currency</label>
+                <select
+                  value={wdCurrency}
+                  onChange={(e) => setWdCurrency(e.target.value)}
+                  required
+                >
+                  <option value="USDT">USDT</option>
+                  <option value="USDC">USDC</option>
+                  <option value="ETH">ETH</option>
+                  <option value="BTC">BTC</option>
+                  <option value="XRP">XRP</option>
+                  <option value="SOL">SOL</option>
+                  <option value="BNB">BNB</option>
+                  <option value="ADA">ADA</option>
+                  <option value="DOGE">DOGE</option>
+                  <option value="DOT">DOT</option>
+                  <option value="MATIC">MATIC</option>
+                  <option value="LTC">LTC</option>
+                  <option value="AVAX">AVAX</option>
+                  <option value="LINK">LINK</option>
+                  <option value="UNI">UNI</option>
+                  <option value="ATOM">ATOM</option>
+                </select>
+              </div>
+
+              <div className="modal-field">
+                <label>Withdraw Network</label>
+                <select
+                  value={wdNetwork}
+                  onChange={(e) => setWdNetwork(e.target.value)}
+                  required
+                >
+                  <option value="ETH">Ethereum (ERC20)</option>
+                  <option value="POLYGON">Polygon</option>
+                  <option value="TRON">Tron (TRC20)</option>
+                  <option value="BSC">BNB Chain (BEP20)</option>
+                  <option value="SOLANA">Solana</option>
+                  <option value="BITCOIN">Bitcoin</option>
+                </select>
+              </div>
+
+              <div className="modal-field">
+                <label>Withdraw Address</label>
                 <input
                   type="text"
                   required
                   placeholder="Paste destination address"
                   value={wdAddress}
                   onChange={(e) => setWdAddress(e.target.value)}
-                />
-              </div>
-
-              <div className="modal-field">
-                <label>Network</label>
-                <input
-                  type="text"
-                  value={wdNetwork}
-                  onChange={(e) => setWdNetwork(e.target.value)}
                 />
               </div>
 
@@ -575,7 +674,99 @@ export default function Wallet() {
                 />
               </div>
 
+              <div className="important-notice">
+                <h4>Important notice</h4>
+                <ol>
+                  <li>In order to prevent arbitrage behavior, the transaction volume can be applied for withdrawal after reaching the limit.</li>
+                  <li>The account will be received within 24 hours after submitting the withdrawal application. If the account is not received after the estimated time of withdrawal, please consult the online customer service.</li>
+                  <li>After submitting the withdrawal application, the funds are in a frozen state because the withdrawal is in progress and the funds are temporarily under the custody of the system, which does not mean that you have lost the asset or the asset is abnormal.</li>
+                </ol>
+              </div>
+
               <button type="submit" className="submit-modal-btn">Submit Withdrawal Request</button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Transfer Modal */}
+      {showTransferModal && (
+        <div className="modal-backdrop">
+          <div className="wallet-modal">
+            <div className="modal-header">
+              <h3>Transfer Between Accounts</h3>
+              <button className="close-btn" onClick={() => setShowTransferModal(false)}>
+                <Icon name="close" size={18} />
+              </button>
+            </div>
+            <form onSubmit={handleTransferSubmit} className="modal-body">
+              <div className="modal-field">
+                <label>From Account</label>
+                <select
+                  value={transferFromAccount}
+                  onChange={(e) => setTransferFromAccount(e.target.value)}
+                  required
+                >
+                  <option value="EXCHANGE">Exchange</option>
+                  <option value="TRADE">Trade</option>
+                  <option value="PERPETUAL">Perpetual</option>
+                  <option value="FINANCE">Finance</option>
+                </select>
+              </div>
+
+              <div className="modal-field">
+                <label>To Account</label>
+                <select
+                  value={transferToAccount}
+                  onChange={(e) => setTransferToAccount(e.target.value)}
+                  required
+                >
+                  <option value="EXCHANGE">Exchange</option>
+                  <option value="TRADE">Trade</option>
+                  <option value="PERPETUAL">Perpetual</option>
+                  <option value="FINANCE">Finance</option>
+                </select>
+              </div>
+
+              <div className="modal-field">
+                <label>Currency</label>
+                <select
+                  value={transferCurrency}
+                  onChange={(e) => setTransferCurrency(e.target.value)}
+                  required
+                >
+                  <option value="USDT">USDT</option>
+                  <option value="USDC">USDC</option>
+                  <option value="ETH">ETH</option>
+                  <option value="BTC">BTC</option>
+                  <option value="XRP">XRP</option>
+                  <option value="SOL">SOL</option>
+<option value="BNB">BNB</option>
+                  <option value="ADA">ADA</option>
+                  <option value="DOGE">DOGE</option>
+                  <option value="DOT">DOT</option>
+                  <option value="MATIC">MATIC</option>
+                  <option value="LTC">LTC</option>
+                  <option value="AVAX">AVAX</option>
+                  <option value="LINK">LINK</option>
+                  <option value="UNI">UNI</option>
+                  <option value="ATOM">ATOM</option>
+                </select>
+              </div>
+
+              <div className="modal-field">
+                <label>Amount</label>
+                <input
+                  type="number"
+                  step="0.0001"
+                  required
+                  placeholder="0.00"
+                  value={transferAmount}
+                  onChange={(e) => setTransferAmount(e.target.value)}
+                />
+              </div>
+
+              <button type="submit" className="submit-modal-btn">Transfer Funds</button>
             </form>
           </div>
         </div>

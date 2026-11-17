@@ -72,6 +72,12 @@
 
 .action-btn.withdraw:hover { background-color: var(--surface-hover); }
 
+.action-btn.transfer {
+  background: linear-gradient(135deg, #10B981, #059669);
+  color: #fff;
+}
+.action-btn.transfer:hover { background: linear-gradient(135deg, #059669, #047857); }
+
 .wallet-card {
   background-color: var(--surface);
   border: 1px solid var(--border);
@@ -312,6 +318,58 @@
 .copy-address-btn:hover:not(:disabled), .copy-address-btn.copied { border-color: rgba(126,218,169,.38); color: #8ae0b4; background: rgba(68,184,124,.1); }
 .copy-address-btn:disabled { opacity: .4; cursor: not-allowed; }
 .receipt-warning { margin-top: 10px; color: #e5b76e; font-size: 9px; line-height: 1.5; }
+
+.important-notice {
+  background: rgba(240, 185, 11, 0.08);
+  border: 1px solid rgba(240, 185, 11, 0.25);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-top: 16px;
+}
+.important-notice h4 {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--brass);
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.important-notice ol {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+.important-notice li {
+  margin-bottom: 6px;
+}
+
+.tips-section {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-top: 16px;
+}
+.tips-section h4 {
+  font-size: 12px;
+  font-weight: 700;
+  color: #10B981;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.tips-section ol {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+.tips-section li {
+  margin-bottom: 6px;
+}
 
 /* ── Mobile Responsive ──────────────────────────────────────────────────── */
 

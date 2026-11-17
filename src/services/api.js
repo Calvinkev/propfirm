@@ -553,6 +553,18 @@ export const api = {
     return res.json();
   },
 
+  transferBetweenAccounts: async (token, transferData) => {
+    const res = await fetch(`${API_BASE}/wallet/transfer`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(transferData)
+    });
+    return res.json();
+  },
+
   // ── P2P ───────────────────────────────────────────────────────────────────
   getP2PAds: async (token, params = {}) => {
     const q = new URLSearchParams(params).toString();

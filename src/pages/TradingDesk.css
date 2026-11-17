@@ -103,49 +103,136 @@
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  padding: 8px;
+  padding: 12px;
+  gap: 8px;
 }
 
 .col-header {
-  font-weight: 700;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 8px;
-  color: var(--text-muted);
+  color: var(--text);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.ob-spread {
+  font-size: 11px;
+  color: var(--brass);
+  font-weight: 600;
+  background: rgba(240, 185, 11, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
 }
 
 .ob-table-header {
-  display: flex;
-  justify-content: space-between;
-  color: var(--text-faint);
-  margin-bottom: 6px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
 }
 
 .ob-asks, .ob-bids {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   flex: 1;
-  overflow-y: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .ob-row {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
   font-family: var(--mono);
+  font-size: 12px;
+  position: relative;
+  padding: 4px 0;
+  border-radius: 4px;
+  transition: background 0.15s ease;
 }
 
-.ask-price { color: var(--red); }
-.bid-price { color: var(--green); }
-.ob-amount { color: var(--text-muted); }
+.ob-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ob-depth-bar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.15;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.ask-depth {
+  background: linear-gradient(90deg, rgba(244, 63, 94, 0.3), transparent);
+}
+
+.bid-depth {
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.3), transparent);
+}
+
+.ask-price { 
+  color: var(--red); 
+  font-weight: 600;
+  z-index: 1;
+  position: relative;
+}
+
+.bid-price { 
+  color: var(--green); 
+  font-weight: 600;
+  z-index: 1;
+  position: relative;
+}
+
+.ob-amount { 
+  color: var(--text-muted); 
+  z-index: 1;
+  position: relative;
+}
+
+.ob-total {
+  color: var(--text);
+  font-weight: 600;
+  text-align: right;
+  z-index: 1;
+  position: relative;
+}
 
 .ob-mid-price {
-  padding: 8px 0;
-  font-size: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0;
+  background: var(--surface-raised);
+  border-radius: 6px;
+  margin: 4px 0;
+}
+
+.ob-mid-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ob-mid-value {
+  font-size: 14px;
   font-weight: 800;
   font-family: var(--mono);
-  color: var(--green);
-  border-top: 1px dashed var(--border);
-  border-bottom: 1px dashed var(--border);
-  margin: 4px 0;
+  color: var(--brass);
 }
 
 /* Chart Column */
@@ -528,6 +615,39 @@
 
   .orderbook-col {
     max-height: 420px;
+    padding: 10px;
+  }
+
+  /* Mobile orderbook adjustments */
+  .ob-table-header {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+    font-size: 10px;
+  }
+
+  .ob-row {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+    font-size: 11px;
+    padding: 3px 0;
+  }
+
+  .ob-mid-price {
+    padding: 8px 0;
+    gap: 6px;
+  }
+
+  .ob-mid-label {
+    font-size: 9px;
+  }
+
+  .ob-mid-value {
+    font-size: 13px;
+  }
+
+  .ob-spread {
+    font-size: 10px;
+    padding: 3px 6px;
   }
 
   /* Order panel col fills nicely */
@@ -570,6 +690,39 @@
   .bottom-tab {
     padding: 10px 10px;
     font-size: 12px;
+  }
+
+  /* Extra mobile orderbook adjustments */
+  .orderbook-col {
+    padding: 8px;
+  }
+
+  .ob-table-header {
+    gap: 4px;
+    font-size: 9px;
+  }
+
+  .ob-row {
+    gap: 4px;
+    font-size: 10px;
+  }
+
+  .ob-mid-price {
+    padding: 6px 0;
+    gap: 4px;
+  }
+
+  .ob-mid-label {
+    font-size: 8px;
+  }
+
+  .ob-mid-value {
+    font-size: 12px;
+  }
+
+  .ob-spread {
+    font-size: 9px;
+    padding: 2px 4px;
   }
 }
 

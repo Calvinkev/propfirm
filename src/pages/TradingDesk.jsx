@@ -405,35 +405,58 @@ export default function TradingDesk() {
 
         {/* Left Column: Order Book Depth */}
         <div className={`orderbook-col${mobileDeskTab === 'orderbook' ? ' mobile-visible' : ''}`}>
-          <div className="col-header">Order Book</div>
+          <div className="col-header">
+            <span>Order Book</span>
+            <span className="ob-spread">
+              Spread: {orderbook.asks.length > 0 && orderbook.bids.length > 0 
+                ? ((orderbook.asks[0].price - orderbook.bids[0].price) / ticker.price * 100).toFixed(2) + '%'
+                : '—'}
+            </span>
+          </div>
           <div className="ob-table-header">
             <span>Price(USDT)</span>
             <span>Amount({baseAsset})</span>
+            <span>Total(USDT)</span>
           </div>
 
           {/* Asks (Sells) in Red */}
           <div className="ob-asks">
-            {(orderbook.asks || []).slice(0, 10).map((a, i) => (
-              <div key={i} className="ob-row ask-row">
-                <span className="ask-price">{a.price.toFixed(2)}</span>
-                <span className="ob-amount">{a.amount.toFixed(4)}</span>
-              </div>
-            ))}
+            {(orderbook.asks || []).slice(0, 10).map((a, i) => {
+              const total = a.price * a.amount;
+              const maxAmount = Math.max(...(orderbook.asks.map(x => x.amount), 1);
+              const depthPercent = (a.amount / maxAmount) * 100;
+              return (
+                <div key={i} className="ob-row ask-row">
+                  <div className="ob-depth-bar ask-depth" style={{ width: `${depthPercent}%` }} />
+                  <span className="ask-price">{a.price.toFixed(2)}</span>
+                  <span className="ob-amount">{a.amount.toFixed(4)}</span>
+                  <span className="ob-total">{total.toFixed(2)}</span>
+                </div>
+              );
+            })}
           </div>
 
           {/* Mid Price Ticker */}
           <div className="ob-mid-price">
-            ${parseFloat(ticker.price || 0).toFixed(2)}
+            <span className="ob-mid-label">Mid Price</span>
+            <span className="ob-mid-value">${parseFloat(ticker.price || 0).toFixed(2)}</span>
           </div>
 
           {/* Bids (Buys) in Green */}
           <div className="ob-bids">
-            {(orderbook.bids || []).slice(0, 10).map((b, i) => (
-              <div key={i} className="ob-row bid-row">
-                <span className="bid-price">{b.price.toFixed(2)}</span>
-                <span className="ob-amount">{b.amount.toFixed(4)}</span>
-              </div>
-            ))}
+            {(orderbook.bids || []).slice(0, 10).map((b, i) => {
+              const total = b.price * b.amount;
+              const maxAmount = Math.max(...(orderbook.bids.map(x => x.amount), 1);
+              const depthPercent = (b.amount / maxAmount) * 100;
+              return (
+                <div key={i} className="ob-row bid-row">
+                  <div className="ob-depth-bar bid-depth" style={{ width: `${depthPercent}%` }} />
+                  <span className="bid-price">{b.price.toFixed(2)}</span>
+                  <span className="ob-amount">{b.amount.toFixed(4)}</span>
+                  <span className="ob-total">{total.toFixed(2)}</}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
 

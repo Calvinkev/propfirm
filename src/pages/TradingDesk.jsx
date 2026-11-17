@@ -423,7 +423,8 @@ export default function TradingDesk() {
           <div className="ob-asks">
             {(orderbook.asks || []).slice(0, 10).map((a, i) => {
               const total = a.price * a.amount;
-              const maxAmount = Math.max(...(orderbook.asks.map(x => x.amount), 1);
+              const asksAmounts = orderbook.asks.map(x => x.amount);
+              const maxAmount = asksAmounts.length > 0 ? Math.max(...asksAmounts) : 1;
               const depthPercent = (a.amount / maxAmount) * 100;
               return (
                 <div key={i} className="ob-row ask-row">
@@ -446,7 +447,8 @@ export default function TradingDesk() {
           <div className="ob-bids">
             {(orderbook.bids || []).slice(0, 10).map((b, i) => {
               const total = b.price * b.amount;
-              const maxAmount = Math.max(...(orderbook.bids.map(x => x.amount), 1);
+              const bidsAmounts = orderbook.bids.map(x => x.amount);
+              const maxAmount = bidsAmounts.length > 0 ? Math.max(...bidsAmounts) : 1;
               const depthPercent = (b.amount / maxAmount) * 100;
               return (
                 <div key={i} className="ob-row bid-row">

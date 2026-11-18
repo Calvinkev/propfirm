@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 import './MobileBottomNav.css'
 
 const NAV_ITEMS = [
-  { to: '/portfolio', label: 'Home', icon: 'home' },
+  { to: '/', label: 'Home', icon: 'home' },
   { to: '/markets', label: 'Markets', icon: 'chart' },
   { to: '/trade', label: 'Trade', icon: 'swap' },
   { to: '/wallet', label: 'Finance', icon: 'wallet' },

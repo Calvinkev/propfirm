@@ -431,7 +431,7 @@ export default function TradingDesk() {
                   <div className="ob-depth-bar ask-depth" style={{ width: `${depthPercent}%` }} />
                   <span className="ask-price">{a.price.toFixed(2)}</span>
                   <span className="ob-amount">{a.amount.toFixed(4)}</span>
-                  <span className="ob-total">{total.toFixeded(2)}</span>
+                  <span className="ob-total">{total.toFixed(2)}</span>
                 </div>
               );
             })}

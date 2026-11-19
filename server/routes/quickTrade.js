@@ -12,8 +12,18 @@ import { getLatestPrice } from '../services/priceFeed.js';
 
 const router = express.Router();
 
-const PROFIT_RATE   = 0.20;   // 20% profit on win
-const TRADE_SECONDS = 30;     // trade duration
+// Cycle options: duration (seconds) and profit rate
+const CYCLE_OPTIONS = {
+  '30s':   { duration: 30,    profit: 0.20 },
+  '60s':   { duration: 60,    profit: 0.25 },
+  '120s':  { duration: 120,   profit: 0.35 },
+  '1hr':   { duration: 3600,  profit: 0.45 },
+  '24hr':  { duration: 86400, profit: 0.60 },
+  '7d':    { duration: 604800, profit: 0.70 },
+  '30d':   { duration: 2592000, profit: 0.80 },
+};
+
+const DEFAULT_CYCLE = '30s';
 
 async function ensureTable() {
   await pool.query(`
@@ -27,6 +37,9 @@ async function ensureTable() {
       exit_price    DECIMAL(18,8),
       profit        DECIMAL(18,2),
       status        ENUM('open','won','lost') NOT NULL DEFAULT 'open',
+      cycle         VARCHAR(10) NOT NULL DEFAULT '30s',
+      cycle_duration INT NOT NULL DEFAULT 30,
+      cycle_profit   DECIMAL(5,2) NOT NULL DEFAULT 0.20,
       expires_at    DATETIME NOT NULL,
       settled_at    DATETIME NULL,
       created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -41,16 +54,19 @@ router.post('/place', auth, async (req, res) => {
   try {
     await ensureTable();
     const userId = req.user.userId;
-    const { symbol, direction, amount } = req.body;
+    const { symbol, direction, amount, cycle = DEFAULT_CYCLE } = req.body;
 
     const sym = symbol?.toUpperCase();
     const dir = direction?.toUpperCase();
     const num = parseFloat(amount);
+    const cycleConfig = CYCLE_OPTIONS[cycle] || CYCLE_OPTIONS[DEFAULT_CYCLE];
 
     if (!sym || !['BUY','SELL'].includes(dir))
       return res.status(400).json({ error: 'Invalid symbol or direction' });
     if (isNaN(num) || num < 1)
       return res.status(400).json({ error: 'Minimum trade amount is $1 USDT' });
+    if (!CYCLE_OPTIONS[cycle])
+      return res.status(400).json({ error: 'Invalid cycle option' });
 
     // ── One trade per day check ───────────────────────────────────────────
     const [[todayCount]] = await pool.query(
@@ -85,7 +101,7 @@ router.post('/place', auth, async (req, res) => {
     if (!lp) return res.status(400).json({ error: 'Price feed unavailable for this pair' });
 
     const entryPrice = (lp.bid + lp.ask) / 2;
-    const expiresAt  = new Date(Date.now() + TRADE_SECONDS * 1000);
+    const expiresAt  = new Date(Date.now() + cycleConfig.duration * 1000);
 
     // Deduct USDT immediately (escrow)
     await pool.query(
@@ -94,13 +110,13 @@ router.post('/place', auth, async (req, res) => {
     );
 
     const [result] = await pool.query(
-      `INSERT INTO quick_trades (user_id, symbol, direction, amount, entry_price, expires_at)
-       VALUES (?,?,?,?,?,?)`,
-      [userId, sym, dir, num, entryPrice, expiresAt]
+      `INSERT INTO quick_trades (user_id, symbol, direction, amount, entry_price, cycle, cycle_duration, cycle_profit, expires_at)
+       VALUES (?,?,?,?,?,?,?,?,?)`,
+      [userId, sym, dir, num, entryPrice, cycle, cycleConfig.duration, cycleConfig.profit, expiresAt]
     );
 
-    // Schedule settlement after 30 seconds
-    setTimeout(() => settleTrade(result.insertId, userId, sym, dir, num, entryPrice), TRADE_SECONDS * 1000);
+    // Schedule settlement after cycle duration
+    setTimeout(() => settleTrade(result.insertId, userId, sym, dir, num, entryPrice, cycleConfig.profit), cycleConfig.duration * 1000);
 
     res.json({
       message: 'Quick trade placed',
@@ -110,7 +126,10 @@ router.post('/place', auth, async (req, res) => {
       amount:     num,
       entryPrice,
       expiresAt,
-      profitIfWin: parseFloat((num * PROFIT_RATE).toFixed(2)),
+      cycle,
+      cycleDuration: cycleConfig.duration,
+      cycleProfit: cycleConfig.profit,
+      profitIfWin: parseFloat((num * cycleConfig.profit).toFixed(2)),
     });
   } catch (err) {
     console.error('Quick trade place error:', err);
@@ -118,12 +137,12 @@ router.post('/place', auth, async (req, res) => {
   }
 });
 
-// Settlement — always wins (20% profit guaranteed)
-async function settleTrade(tradeId, userId, symbol, direction, amount, entryPrice) {
+// Settlement — always wins (profit based on cycle)
+async function settleTrade(tradeId, userId, symbol, direction, amount, entryPrice, profitRate) {
   try {
     const lp = getLatestPrice(symbol);
     const exitPrice = lp ? (lp.bid + lp.ask) / 2 : entryPrice;
-    const profit    = parseFloat((amount * PROFIT_RATE).toFixed(2));
+    const profit    = parseFloat((amount * profitRate).toFixed(2));
     const payout    = amount + profit;  // return stake + profit
 
     // Always mark as WON and credit payout

@@ -29,7 +29,7 @@ export default function TradingDesk() {
   const [orderSide, setOrderSide] = useState('BUY'); // BUY or SELL
   const [orderType, setOrderType] = useState('LIMIT'); // LIMIT or MARKET
   const [priceInput, setPriceInput] = useState('');
-  const [amountInput, setAmountInput] = useState('');
+  const [amountInput, setAmountInput] = useState(''); // USD amount
   const [percentage, setPercentage] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -45,7 +45,19 @@ export default function TradingDesk() {
   const [qtTimeLeft, setQtTimeLeft] = useState(30);
   const [qtHistory, setQtHistory] = useState([]);
   const [qtPlacing, setQtPlacing] = useState(false);
+  const [qtCycle, setQtCycle] = useState({ duration: 30, profit: 20, label: '30s' }); // Default cycle
   const qtTimerRef = useRef(null);
+
+  // Cycle options for Quick Trade
+  const CYCLE_OPTIONS = [
+    { duration: 30, profit: 20, label: '30s' },
+    { duration: 60, profit: 25, label: '60s' },
+    { duration: 120, profit: 35, label: '120s' },
+    { duration: 3600, profit: 45, label: '1hr' },
+    { duration: 86400, profit: 60, label: '24hr' },
+    { duration: 604800, profit: 70, label: '7d' },
+    { duration: 2592000, profit: 80, label: '30d' },
+  ];
 
   const chartContainerRef = useRef(null);
   const chartInstance = useRef(null);
@@ -237,15 +249,24 @@ export default function TradingDesk() {
     setPercentage(pct);
     if (orderSide === 'BUY') {
       const availableQuote = parseFloat(quoteBalance);
-      const curPrice = parseFloat(priceInput) || ticker.price;
-      if (curPrice > 0) {
-        const totalToSpend = (availableQuote * pct) / 100;
-        setAmountInput((totalToSpend / curPrice).toFixed(4));
+      if (availableQuote > 0) {
+        setAmountInput(((availableQuote * pct) / 100).toFixed(2));
       }
     } else {
       const availableBase = parseFloat(baseBalance);
-      setAmountInput(((availableBase * pct) / 100).toFixed(4));
+      const curPrice = parseFloat(priceInput) || ticker.price;
+      if (curPrice > 0) {
+        const usdValue = (availableBase * pct / 100) * curPrice;
+        setAmountInput(usdValue.toFixed(2));
+      }
     }
+  };
+
+  // Calculate coin quantity from USD amount
+  const calculateCoinQuantity = () => {
+    const usdAmount = parseFloat(amountInput) || 0;
+    const price = parseFloat(priceInput) || ticker.price;
+    return price > 0 ? (usdAmount / price).toFixed(6) : '0';
   };
 
   // Submit Order
@@ -254,12 +275,13 @@ export default function TradingDesk() {
     if (submitting) return;
     setSubmitting(true);
     try {
+      const coinQuantity = calculateCoinQuantity();
       const res = await api.placeSpotOrder(token, {
         symbol,
         side: orderSide,
         type: orderType,
         price: priceInput,
-        amount: amountInput
+        amount: coinQuantity
       });
 
       if (res.error) {
@@ -304,15 +326,15 @@ export default function TradingDesk() {
     setQtPlacing(true);
     setQtResult(null);
     try {
-      const res = await api.placeQuickTrade(token, { symbol, direction: qtDirection, amount: amt });
+      const res = await api.placeQuickTrade(token, { symbol, direction: qtDirection, amount: amt, cycle: qtCycle.label });
       if (res.error) { showToast('error', res.error); return; }
 
       setQtActive(res);
-      setQtTimeLeft(30);
+      setQtTimeLeft(qtCycle.duration);
       refreshData();
 
       // Countdown timer
-      let t = 30;
+      let t = qtCycle.duration;
       qtTimerRef.current = setInterval(() => {
         t -= 1;
         setQtTimeLeft(t);
@@ -523,11 +545,15 @@ export default function TradingDesk() {
             )}
 
             <div className="form-group">
-              <label>Amount</label>
+              <label>Amount (USD)</label>
               <div className="input-box">
-                <input type="number" step="0.0001" placeholder="0.00" value={amountInput} onChange={(e) => setAmountInput(e.target.value)} required />
-                <span className="unit">{baseAsset}</span>
+                <input type="number" step="0.01" placeholder="0.00" value={amountInput} onChange={(e) => setAmountInput(e.target.value)} required />
               </div>
+              {amountInput && parseFloat(amountInput) > 0 && (
+                <div className="coin-value-preview">
+                  ≈ {calculateCoinQuantity()} {baseAsset}
+                </div>
+              )}
             </div>
 
             <div className="pct-slider">
@@ -538,7 +564,7 @@ export default function TradingDesk() {
 
             <div className="order-summary">
               <span>Order Total:</span>
-              <span className="mono">${((parseFloat(amountInput) || 0) * (parseFloat(priceInput) || ticker.price)).toFixed(2)} USDT</span>
+              <span className="mono">${parseFloat(amountInput || 0).toFixed(2)}</span>
             </div>
 
             <button type="submit" className={`submit-order-btn ${orderSide.toLowerCase()}`} disabled={submitting}>
@@ -553,8 +579,8 @@ export default function TradingDesk() {
               <div className="qt-info-banner">
                 <span className="qt-info-icon">⚡</span>
                 <div>
-                  <div className="qt-info-title">30-Second Trade</div>
-                  <div className="qt-info-sub">Place a trade and earn <b>+20% profit</b> in 30 seconds</div>
+                  <div className="qt-info-title">Quick Trade</div>
+                  <div className="qt-info-sub">Place a trade and earn <b>+{qtCycle.profit}% profit</b> in {qtCycle.label}</div>
                 </div>
               </div>
 
@@ -571,6 +597,25 @@ export default function TradingDesk() {
                 <button className={`qt-dir-btn down ${qtDirection === 'SELL' ? 'active' : ''}`} onClick={() => setQtDirection('SELL')} disabled={!!qtActive}>
                   <span className="qt-arrow">▼</span> DOWN
                 </button>
+              </div>
+
+              {/* Cycle Selection */}
+              <div className="form-group">
+                <label>Cycle</label>
+                <div className="cycle-options">
+                  {CYCLE_OPTIONS.map(cycle => (
+                    <button
+                      key={cycle.label}
+                      type="button"
+                      className={`cycle-btn ${qtCycle.label === cycle.label ? 'active' : ''}`}
+                      onClick={() => setQtCycle(cycle)}
+                      disabled={!!qtActive}
+                    >
+                      <span className="cycle-label">{cycle.label}</span>
+                      <span className="cycle-profit">+{cycle.profit}%</span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Amount */}
@@ -591,8 +636,8 @@ export default function TradingDesk() {
               {qtAmount && parseFloat(qtAmount) > 0 && (
                 <div className="qt-payout-preview">
                   <div className="qt-payout-row"><span>Invest</span><b>${parseFloat(qtAmount || 0).toFixed(2)}</b></div>
-                  <div className="qt-payout-row profit"><span>Profit (20%)</span><b>+${(parseFloat(qtAmount || 0) * 0.20).toFixed(2)}</b></div>
-                  <div className="qt-payout-row total"><span>Total Payout</span><b>${(parseFloat(qtAmount || 0) * 1.20).toFixed(2)}</b></div>
+                  <div className="qt-payout-row profit"><span>Profit ({qtCycle.profit}%)</span><b>+${(parseFloat(qtAmount || 0) * (qtCycle.profit / 100)).toFixed(2)}</b></div>
+                  <div className="qt-payout-row total"><span>Total Payout</span><b>${(parseFloat(qtAmount || 0) * (1 + qtCycle.profit / 100)).toFixed(2)}</b></div>
                 </div>
               )}
 
@@ -611,7 +656,7 @@ export default function TradingDesk() {
                     <svg className="qt-countdown-ring" viewBox="0 0 44 44">
                       <circle cx="22" cy="22" r="18" fill="none" stroke="#1E2D40" strokeWidth="4"/>
                       <circle cx="22" cy="22" r="18" fill="none" stroke={qtDirection === 'BUY' ? '#10B981' : '#EF4444'}
-                        strokeWidth="4" strokeDasharray="113" strokeDashoffset={113 - (113 * qtTimeLeft / 30)}
+                        strokeWidth="4" strokeDasharray="113" strokeDashoffset={113 - (113 * qtTimeLeft / qtCycle.duration)}
                         strokeLinecap="round" transform="rotate(-90 22 22)" style={{transition:'stroke-dashoffset 1s linear'}}/>
                     </svg>
                     <span className="qt-countdown-num">{qtTimeLeft}s</span>

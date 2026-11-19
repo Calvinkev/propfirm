@@ -333,6 +333,35 @@
   color: #fff;
 }
 
+/* Order Type Selector */
+.order-type-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.order-type-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 4px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  background: var(--surface-raised);
+  color: var(--text-muted);
+  transition: all 0.15s;
+}
+
+.order-type-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+}
+
+.order-type-btn.active {
+  background-color: var(--brass);
+  color: #fff;
+}
+
 .type-toggle {
   display: flex;
   gap: 12px;

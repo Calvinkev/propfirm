@@ -29,7 +29,7 @@ export default function TradingDesk() {
   const [orderSide, setOrderSide] = useState('BUY'); // BUY or SELL
   const [orderType, setOrderType] = useState('LIMIT'); // LIMIT or MARKET
   const [priceInput, setPriceInput] = useState('');
-  const [amountInput, setAmountInput = useState(''); // USD amount
+  const [amountInput, setAmountInput] = useState(''); // USD amount
   const [calculatedValue, setCalculatedValue] = useState(''); // Calculated coin quantity
   const [percentage, setPercentage] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -300,7 +300,6 @@ export default function TradingDesk() {
       if (res.error) {
         showToast('error', res.error);
       } else {
-        showToast('success', res.message || 'Order placed successfully');
         setAmountInput('');
         setPercentage(0);
         refreshData();
@@ -532,6 +531,12 @@ export default function TradingDesk() {
             <button className={`side-tab sell ${orderSide === 'SELL' ? 'active' : ''}`} onClick={() => setOrderSide('SELL')}>Sell {baseAsset}</button>
           </div>
 
+          {/* Order Type Selector */}
+          <div className="order-type-selector">
+            <button className={`order-type-btn ${orderType === 'LIMIT' ? 'active' : ''}`} onClick={() => setOrderType('LIMIT')}>Limit</button>
+            <button className={`order-type-btn ${orderType === 'MARKET' ? 'active' : ''}`} onClick={() => setOrderType('MARKET')}>Market</button>
+          </div>
+
           <form className="spot-order-form" onSubmit={handlePlaceOrder}>
             <div className="avail-balance">
               <span>Avail:</span>
@@ -556,11 +561,6 @@ export default function TradingDesk() {
               </div>
             </div>
 
-            <div className="pct-slider">
-              {[25, 50, 75, 100].map(pct => (
-                <button type="button" key={pct} className={`pct-btn ${percentage === pct ? 'active' : ''}`} onClick={() => handlePercentageChange(pct)}>{pct}%</button>
-              ))}
-            </div>
 
             <div className="order-summary">
               <span>Order Total:</span>

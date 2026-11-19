@@ -766,8 +766,9 @@ export default function TradingDesk() {
                     const pnl = pos.unrealizedPnl;
                     const pnlPct = pos.unrealizedPnlPct;
                     const pnlClass = pnl === null ? '' : pnl >= 0 ? 'pos' : 'neg';
+                    const rowClass = pnl === null ? '' : pnl > 0 ? 'row-profit' : pnl < 0 ? 'row-loss' : '';
                     return (
-                      <tr key={pos.asset}>
+                      <tr key={pos.asset} className={rowClass}>
                         <td><b>{pos.asset}</b></td>
                         <td className="mono">{parseFloat(pos.quantity).toFixed(6)}</td>
                         <td className="mono">

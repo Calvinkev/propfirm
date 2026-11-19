@@ -537,6 +537,14 @@
 .neg { color: var(--red); }
 .gold { color: var(--brass); }
 
+/* Position row highlighting based on PnL */
+.row-profit {
+  background: rgba(16, 185, 129, 0.08);
+}
+.row-loss {
+  background: rgba(244, 63, 94, 0.08);
+}
+
 /* ── Positions Table ─────────────────────────────────────────────────────── */
 .positions-total-row td {
   border-top: 1px solid var(--border);

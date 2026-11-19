@@ -29,7 +29,8 @@ export default function TradingDesk() {
   const [orderSide, setOrderSide] = useState('BUY'); // BUY or SELL
   const [orderType, setOrderType] = useState('LIMIT'); // LIMIT or MARKET
   const [priceInput, setPriceInput] = useState('');
-  const [amountInput, setAmountInput] = useState(''); // USD amount
+  const [amountInput, setAmountInput = useState(''); // USD amount
+  const [calculatedValue, setCalculatedValue] = useState(''); // Calculated coin quantity
   const [percentage, setPercentage] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -268,6 +269,18 @@ export default function TradingDesk() {
     const price = parseFloat(priceInput) || ticker.price;
     return price > 0 ? (usdAmount / price).toFixed(6) : '0';
   };
+
+  // Update calculatedValue when amount, symbol, or price changes
+  useEffect(() => {
+    setCalculatedValue(calculateCoinQuantity());
+  }, [amountInput, symbol, ticker.price, priceInput]);
+
+  // Update priceInput when symbol changes for LIMIT orders
+  useEffect(() => {
+    if (orderType === 'LIMIT' && ticker.price) {
+      setPriceInput(ticker.price.toString());
+    }
+  }, [symbol, orderType, ticker.price]);
 
   // Submit Order
   const handlePlaceOrder = async (e) => {
@@ -519,11 +532,6 @@ export default function TradingDesk() {
             <button className={`side-tab sell ${orderSide === 'SELL' ? 'active' : ''}`} onClick={() => setOrderSide('SELL')}>Sell {baseAsset}</button>
           </div>
 
-          <div className="type-toggle">
-            <button className={`type-btn ${orderType === 'LIMIT' ? 'active' : ''}`} onClick={() => setOrderType('LIMIT')}>Limit</button>
-            <button className={`type-btn ${orderType === 'MARKET' ? 'active' : ''}`} onClick={() => setOrderType('MARKET')}>Market</button>
-          </div>
-
           <form className="spot-order-form" onSubmit={handlePlaceOrder}>
             <div className="avail-balance">
               <span>Avail:</span>
@@ -534,26 +542,18 @@ export default function TradingDesk() {
               </span>
             </div>
 
-            {orderType === 'LIMIT' && (
-              <div className="form-group">
-                <label>Price</label>
-                <div className="input-box">
-                  <input type="number" step="0.01" value={priceInput} onChange={(e) => setPriceInput(e.target.value)} required />
-                  <span className="unit">USDT</span>
-                </div>
-              </div>
-            )}
-
             <div className="form-group">
-              <label>Amount (USD)</label>
+              <label>Amount</label>
               <div className="input-box">
                 <input type="number" step="0.01" placeholder="0.00" value={amountInput} onChange={(e) => setAmountInput(e.target.value)} required />
               </div>
-              {amountInput && parseFloat(amountInput) > 0 && (
-                <div className="coin-value-preview">
-                  ≈ {calculateCoinQuantity()} {baseAsset}
-                </div>
-              )}
+            </div>
+
+            <div className="form-group">
+              <label>Value</label>
+              <div className="input-box">
+                <input type="text" value={calculatedValue} readOnly />
+              </div>
             </div>
 
             <div className="pct-slider">

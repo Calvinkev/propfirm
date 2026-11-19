@@ -7,8 +7,18 @@ import CryptoIcon from '../components/CryptoIcon';
 import './QuickTrade.css';
 
 const PAIRS = ['BTCUSDT','ETHUSDT','SOLUSDT','BNBUSDT','XRPUSDT','DOGEUSDT','ADAUSDT','LTCUSDT','AVAXUSDT','LINKUSDT','MATICUSDT','DOTUSDT','TRXUSDT','UNIUSDT','ATOMUSDT'];
-const PROFIT_RATE = 0.20;
-const DURATION = 30;
+
+const CYCLE_OPTIONS = [
+  { duration: 30, profit: 0.20, label: '30s' },
+  { duration: 60, profit: 0.25, label: '60s' },
+  { duration: 120, profit: 0.35, label: '120s' },
+  { duration: 3600, profit: 0.45, label: '1hr' },
+  { duration: 86400, profit: 0.60, label: '24hr' },
+  { duration: 604800, profit: 0.70, label: '7d' },
+  { duration: 2592000, profit: 0.80, label: '30d' },
+];
+
+const DEFAULT_CYCLE = CYCLE_OPTIONS[0];
 const QUICK_AMOUNTS = [10, 25, 50, 100, 250, 500];
 
 export default function QuickTrade() {
@@ -20,9 +30,10 @@ export default function QuickTrade() {
   const [balanceUSDT, setBalanceUSDT] = useState(0);
   const [direction, setDirection] = useState('BUY');
   const [amount, setAmount] = useState('');
+  const [cycle, setCycle] = useState(DEFAULT_CYCLE);
   const [placing, setPlacing] = useState(false);
   const [active, setActive] = useState(null);
-  const [timeLeft, setTimeLeft] = useState(DURATION);
+  const [timeLeft, setTimeLeft] = useState(DEFAULT_CYCLE.duration);
   const [result, setResult] = useState(null);
   const [history, setHistory] = useState([]);
   const [toast, setToast] = useState(null);
@@ -89,7 +100,7 @@ export default function QuickTrade() {
     };
   }, [symbol, token]);
 
-  const profit = parseFloat(amount || 0) * PROFIT_RATE;
+  const profit = parseFloat(amount || 0) * cycle.profit;
   const payout = parseFloat(amount || 0) + profit;
 
   const handleTrade = async () => {
@@ -99,7 +110,7 @@ export default function QuickTrade() {
     setPlacing(true);
     setResult(null);
     try {
-      const res = await api.placeQuickTrade(token, { symbol, direction, amount: amt });
+      const res = await api.placeQuickTrade(token, { symbol, direction, amount: amt, cycle: cycle.label });
       if (res.error) {
         // Handle daily limit
         if (res.nextTradeAt) {
@@ -110,10 +121,10 @@ export default function QuickTrade() {
         return;
       }
       setActive(res);
-      setTimeLeft(DURATION);
+      setTimeLeft(cycle.duration);
       loadData();
 
-      let t = DURATION;
+      let t = cycle.duration;
       timerRef.current = setInterval(() => {
         t -= 1;
         setTimeLeft(t);
@@ -146,7 +157,7 @@ export default function QuickTrade() {
   // Progress arc for countdown
   const radius = 54;
   const circ = 2 * Math.PI * radius;
-  const arcOffset = circ - (circ * (DURATION - timeLeft) / DURATION);
+  const arcOffset = circ - (circ * (cycle.duration - timeLeft) / cycle.duration);
 
   return (
     <div className="qt-page">
@@ -156,7 +167,7 @@ export default function QuickTrade() {
       <div className="qt-page-header">
         <div>
           <h1 className="qt-page-title">⚡ Quick Trade</h1>
-        <p className="qt-page-sub">Predict UP or DOWN in 30 seconds and earn <b>+20% profit</b></p>
+        <p className="qt-page-sub">Predict UP or DOWN in <b>{cycle.label}</b> and earn <b>+{(cycle.profit * 100).toFixed(0)}% profit</b></p>
         </div>
         <div className="qt-balance-pill">
           <span>Available</span>
@@ -211,6 +222,24 @@ export default function QuickTrade() {
             </button>
           </div>
 
+          {/* Cycle Selection */}
+          <div className="qt-cycle-section">
+            <label className="qt-label">Cycle</label>
+            <div className="qt-cycle-grid">
+              {CYCLE_OPTIONS.map(c => (
+                <button
+                  key={c.label}
+                  type="button"
+                  className={`qt-cycle-btn ${cycle.label === c.label ? 'active' : ''}`}
+                  onClick={() => setCycle(c)}
+                  disabled={!!active}>
+                  <span className="qt-cycle-label">{c.label}</span>
+                  <span className="qt-cycle-profit">+{(c.profit * 100).toFixed(0)}%</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Amount input */}
           <div className="qt-amount-section">
             <label className="qt-label">Trade Amount (USD)</label>
@@ -246,7 +275,7 @@ export default function QuickTrade() {
                 <span>${parseFloat(amount).toFixed(2)}</span>
               </div>
               <div className="qt-payout-row profit">
-                <span>Profit (+20%)</span>
+                <span>Profit (+{(cycle.profit * 100).toFixed(0)}%)</span>
                 <span>+${profit.toFixed(2)}</span>
               </div>
               <div className="qt-payout-divider" />

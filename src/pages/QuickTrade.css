@@ -80,6 +80,35 @@
 .qt-dir-card.up:not(.active):hover   { border-color: rgba(16,185,129,.5); }
 .qt-dir-card.down:not(.active):hover { border-color: rgba(239,68,68,.5); }
 
+/* Cycle Selection */
+.qt-cycle-section { margin-bottom: 20px; }
+.qt-cycle-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.qt-cycle-btn {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s;
+}
+.qt-cycle-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.qt-cycle-btn:hover:not(:disabled) { border-color: var(--brass); }
+.qt-cycle-btn.active {
+  border-color: #10B981;
+  background: rgba(16, 185, 129, 0.1);
+}
+.qt-cycle-label { font-size: 12px; font-weight: 600; color: var(--text); }
+.qt-cycle-profit { font-size: 11px; color: #10B981; font-weight: 700; }
+.qt-cycle-btn.active .qt-cycle-profit { color: #10B981; }
+
 /* Amount */
 .qt-label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; display: block; margin-bottom: 8px; }
 .qt-amount-input-wrap {

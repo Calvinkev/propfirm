@@ -47,6 +47,17 @@ async function ensureTable() {
       INDEX idx_user_status (user_id, status)
     )
   `);
+
+  // Add missing columns for existing tables (MySQL doesn't support IF NOT EXISTS in ALTER)
+  try {
+    await pool.query(`ALTER TABLE quick_trades ADD COLUMN cycle VARCHAR(10) NOT NULL DEFAULT '30s'`);
+  } catch (e) { /* Column may already exist */ }
+  try {
+    await pool.query(`ALTER TABLE quick_trades ADD COLUMN cycle_duration INT NOT NULL DEFAULT 30`);
+  } catch (e) { /* Column may already exist */ }
+  try {
+    await pool.query(`ALTER TABLE quick_trades ADD COLUMN cycle_profit DECIMAL(5,2) NOT NULL DEFAULT 0.20`);
+  } catch (e) { /* Column may already exist */ }
 }
 
 // POST /api/quick-trade/place

@@ -293,9 +293,9 @@
     position: fixed;
     top: 64px;
     left: 0;
-    right: 0;
+    width: 280px;
     background-color: var(--surface);
-    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     padding: 16px;

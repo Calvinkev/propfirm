@@ -189,7 +189,10 @@
 .admin-sidebar.mobile-open {
   display: flex;
   position: fixed;
-  inset: 0;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 260px;
   z-index: 1000;
   background: var(--surface);
   padding: 20px;

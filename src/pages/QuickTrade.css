@@ -261,8 +261,10 @@
   display: flex; align-items: center; justify-content: space-between;
   padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border-soft);
   background: var(--surface-raised); transition: background .15s;
+  cursor: pointer;
 }
 .qt-history-item:hover { background: rgba(255,255,255,.03); }
+.qt-history-item:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
 .qt-h-left  { display: flex; align-items: center; gap: 10px; flex: 1; }
 .qt-h-pair  { font-size: 13px; font-weight: 700; }
 .qt-h-time  { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
@@ -288,6 +290,7 @@
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 16px; padding: 24px; max-width: 480px; width: 90%;
   max-height: 80vh; overflow-y: auto;
+  color: var(--text);
   animation: scaleIn .2s cubic-bezier(.34,1.56,.64,1);
 }
 @keyframes scaleIn { from { opacity:0; transform:scale(.9) } to { opacity:1; transform:scale(1) } }
@@ -307,16 +310,17 @@
 .qt-modal-row {
   display: flex; justify-content: space-between; align-items: center;
   font-size: 13px; padding: 8px 0;
+  gap: 16px;
 }
 .qt-modal-label { color: var(--text-muted); }
-.qt-modal-value { font-weight: 600; font-family: var(--mono); }
-.qt-modal-value.mono { font-family: var(--mono; }
+.qt-modal-value { font-weight: 600; font-family: var(--mono); text-align: right; }
+.qt-modal-value.mono { font-family: var(--mono); }
 .qt-modal-value.up { color: #10B981; }
-.qt-modal-value.down { color: #EF444; }
+.qt-modal-value.down { color: #EF4444; }
 .qt-modal-value.pos { color: #10B981; }
-.qt-modal-value.neg { color: #EF444; }
+.qt-modal-value.neg { color: #EF4444; }
 .qt-modal-value.won { color: #10B981; }
-.qt-modal-value.lost { color: #EF444; }
+.qt-modal-value.lost { color: #EF4444; }
 .qt-modal-value.open { color: var(--text-muted); }
 .qt-modal-divider { height: 1px; background: var(--border-soft); margin: 4px 0; }
 
@@ -352,4 +356,6 @@
   .qt-stats-row { grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .qt-stat-box { padding: 10px 8px; }
   .qt-stat-box b { font-size: 15px; }
+  .qt-modal-card { padding: 18px; }
+  .qt-modal-row { font-size: 12px; }
 }

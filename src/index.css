@@ -1,4 +1,9 @@
 :root {
+  /* Keep browser-native controls and automatic color-scheme handling aligned
+     with this app's intentionally dark palette. `only` prevents browsers from
+     applying an automatic dark-mode transformation to the page. */
+  color-scheme: only dark;
+
   /* ── Backgrounds ── */
   --base:           #080b17;
   --surface:        #101526;

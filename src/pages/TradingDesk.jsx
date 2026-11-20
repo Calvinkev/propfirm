@@ -592,10 +592,10 @@ export default function TradingDesk() {
               {/* Direction */}
               <div className="qt-direction-row">
                 <button className={`qt-dir-btn up ${qtDirection === 'BUY' ? 'active' : ''}`} onClick={() => setQtDirection('BUY')} disabled={!!qtActive}>
-                  <span className="qt-arrow">▲</span> UP
+                  <span className="qt-arrow">▲</span> BUY
                 </button>
                 <button className={`qt-dir-btn down ${qtDirection === 'SELL' ? 'active' : ''}`} onClick={() => setQtDirection('SELL')} disabled={!!qtActive}>
-                  <span className="qt-arrow">▼</span> DOWN
+                  <span className="qt-arrow">▼</span> SELL
                 </button>
               </div>
 
@@ -663,7 +663,7 @@ export default function TradingDesk() {
                   </div>
                   <div className="qt-active-info">
                     <div className="qt-active-dir" style={{color: qtDirection === 'BUY' ? '#10B981' : '#EF4444'}}>
-                      {qtDirection === 'BUY' ? '▲ UP' : '▼ DOWN'} · {symbol.replace('USDT','/USDT')}
+                      {qtDirection === 'BUY' ? '▲ BUY' : '▼ SELL'} · {symbol.replace('USDT','/USDT')}
                     </div>
                     <div className="qt-active-amt">
                       ${qtActive.amount} → <b style={{color:'#10B981'}}>+${qtActive.profitIfWin}</b>
@@ -690,7 +690,7 @@ export default function TradingDesk() {
 
               <button className={`submit-order-btn ${qtDirection === 'BUY' ? 'buy' : 'sell'} qt-trade-btn`}
                 onClick={handleQuickTrade} disabled={!!qtActive || qtPlacing || !qtAmount}>
-                {qtActive ? `Trading… ${qtTimeLeft}s` : qtPlacing ? 'Placing…' : `⚡ Trade ${qtDirection === 'BUY' ? '▲ UP' : '▼ DOWN'}`}
+                {qtActive ? `Trading… ${qtTimeLeft}s` : qtPlacing ? 'Placing…' : `⚡ Trade ${qtDirection === 'BUY' ? '▲ BUY' : '▼ SELL'}`}
               </button>
 
               {/* Recent history */}

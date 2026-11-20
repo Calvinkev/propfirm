@@ -182,14 +182,14 @@ export default function QuickTrade() {
               className={`qt-dir-card up ${direction === 'BUY' ? 'active' : ''}`}
               onClick={() => setDirection('BUY')} disabled={!!active}>
               <span className="qt-dir-arrow">▲</span>
-              <span className="qt-dir-label">UP</span>
+              <span className="qt-dir-label">BUY</span>
               <span className="qt-dir-hint">Price goes up</span>
             </button>
             <button
               className={`qt-dir-card down ${direction === 'SELL' ? 'active' : ''}`}
               onClick={() => setDirection('SELL')} disabled={!!active}>
               <span className="qt-dir-arrow">▼</span>
-              <span className="qt-dir-label">DOWN</span>
+              <span className="qt-dir-label">SELL</span>
               <span className="qt-dir-hint">Price goes down</span>
             </button>
           </div>
@@ -274,7 +274,7 @@ export default function QuickTrade() {
               </svg>
               <div className="qt-active-info">
                 <div className="qt-active-dir" style={{ color: direction === 'BUY' ? '#10B981' : '#EF4444' }}>
-                  {direction === 'BUY' ? '▲ UP' : '▼ DOWN'} · {symbol.replace('USDT', '/USDT')}
+                  {direction === 'BUY' ? '▲ BUY' : '▼ SELL'} · {symbol.replace('USDT', '/USDT')}
                 </div>
                 <div className="qt-active-row"><span>Invested</span><b>${parseFloat(active.amount).toFixed(2)}</b></div>
                 <div className="qt-active-row"><span>Win payout</span><b style={{ color:'#10B981' }}>${(parseFloat(active.amount) * 1.20).toFixed(2)}</b></div>
@@ -347,7 +347,7 @@ export default function QuickTrade() {
               ? <><span className="qt-cta-spinner"/> Trading… {timeLeft}s</>
               : placing
                 ? 'Placing…'
-                : `⚡ Trade ${direction === 'BUY' ? '▲ UP' : '▼ DOWN'} · ${symbol.replace('USDT','')}`
+                : `⚡ Trade ${direction === 'BUY' ? '▲ BUY' : '▼ SELL'} · ${symbol.replace('USDT','')}`
             }
           </button>
 
@@ -395,7 +395,7 @@ export default function QuickTrade() {
                     </div>
                     <div className="qt-h-mid">
                       <span className={`qt-h-dir ${t.direction === 'BUY' ? 'up' : 'down'}`}>
-                        {t.direction === 'BUY' ? '▲ UP' : '▼ DOWN'}
+                        {t.direction === 'BUY' ? '▲ BUY' : '▼ SELL'}
                       </span>
                       <span className="qt-h-amount">${parseFloat(t.amount).toFixed(2)}</span>
                     </div>
@@ -430,7 +430,7 @@ export default function QuickTrade() {
               <div className="qt-modal-row">
                 <span className="qt-modal-label">Direction</span>
                 <span className={`qt-modal-value ${selectedTrade.direction === 'BUY' ? 'up' : 'down'}`}>
-                  {selectedTrade.direction === 'BUY' ? '▲ UP' : '▼ DOWN'}
+                  {selectedTrade.direction === 'BUY' ? '▲ BUY' : '▼ SELL'}
                 </span>
               </div>
               <div className="qt-modal-row">

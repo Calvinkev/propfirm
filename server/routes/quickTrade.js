@@ -36,6 +36,7 @@ async function ensureTable() {
       entry_price   DECIMAL(18,8) NOT NULL,
       exit_price    DECIMAL(18,8),
       profit        DECIMAL(18,2),
+      handling_fee  DECIMAL(18,2) DEFAULT 0,
       status        ENUM('open','won','lost') NOT NULL DEFAULT 'open',
       cycle         VARCHAR(10) NOT NULL DEFAULT '30s',
       cycle_duration INT NOT NULL DEFAULT 30,
@@ -58,6 +59,9 @@ async function ensureTable() {
   try {
     await pool.query(`ALTER TABLE quick_trades ADD COLUMN cycle_profit DECIMAL(5,2) NOT NULL DEFAULT 0.20`);
   } catch (e) { /* Column may already exist */ }
+  try {
+    await pool.query(`ALTER TABLE quick_trades ADD COLUMN handling_fee DECIMAL(18,2) DEFAULT 0`);
+  } catch (e) { /* Column may already exist */ }
 }
 
 // POST /api/quick-trade/place
@@ -78,27 +82,6 @@ router.post('/place', auth, async (req, res) => {
       return res.status(400).json({ error: 'Minimum trade amount is $1 USDT' });
     if (!CYCLE_OPTIONS[cycle])
       return res.status(400).json({ error: 'Invalid cycle option' });
-
-    // ── One trade per day check ───────────────────────────────────────────
-    const [[todayCount]] = await pool.query(
-      `SELECT COUNT(*) AS count FROM quick_trades
-       WHERE user_id = ? AND DATE(created_at) = CURDATE()`,
-      [userId]
-    );
-    if (todayCount.count >= 1) {
-      // Find when today's trade was placed so we can tell the user when they can trade again
-      const [[lastTrade]] = await pool.query(
-        `SELECT created_at FROM quick_trades WHERE user_id = ? AND DATE(created_at) = CURDATE() ORDER BY created_at DESC LIMIT 1`,
-        [userId]
-      );
-      const nextReset = new Date();
-      nextReset.setUTCHours(24, 0, 0, 0); // midnight UTC
-      return res.status(429).json({
-        error: 'You have already used your free trade for today.',
-        nextTradeAt: nextReset.toISOString(),
-        lastTradeAt: lastTrade?.created_at,
-      });
-    }
 
     // Check USDT balance
     const [bal] = await pool.query(
@@ -129,6 +112,9 @@ router.post('/place', auth, async (req, res) => {
     // Schedule settlement after cycle duration
     setTimeout(() => settleTrade(result.insertId, userId, sym, dir, num, entryPrice, cycleConfig.profit), cycleConfig.duration * 1000);
 
+    const handlingFee = parseFloat((num * 0.001).toFixed(2));
+    const netProfitIfWin = parseFloat((num * cycleConfig.profit - handlingFee).toFixed(2));
+    
     res.json({
       message: 'Quick trade placed',
       tradeId:    result.insertId,
@@ -140,7 +126,8 @@ router.post('/place', auth, async (req, res) => {
       cycle,
       cycleDuration: cycleConfig.duration,
       cycleProfit: cycleConfig.profit,
-      profitIfWin: parseFloat((num * cycleConfig.profit).toFixed(2)),
+      handlingFee,
+      profitIfWin: netProfitIfWin,
     });
   } catch (err) {
     console.error('Quick trade place error:', err);
@@ -154,17 +141,19 @@ async function settleTrade(tradeId, userId, symbol, direction, amount, entryPric
     const lp = getLatestPrice(symbol);
     const exitPrice = lp ? (lp.bid + lp.ask) / 2 : entryPrice;
     const profit    = parseFloat((amount * profitRate).toFixed(2));
-    const payout    = amount + profit;  // return stake + profit
+    const handlingFee = parseFloat((amount * 0.001).toFixed(2)); // 0.1% handling fee
+    const netProfit = profit - handlingFee;
+    const payout    = amount + netProfit;  // return stake + net profit
 
     // Always mark as WON and credit payout
     await pool.query(
       `UPDATE quick_trades
        SET status = 'won', exit_price = ?, profit = ?, settled_at = NOW()
        WHERE id = ?`,
-      [exitPrice, profit, tradeId]
+      [exitPrice, netProfit, tradeId]
     );
 
-    // Release locked + credit profit
+    // Release locked + credit payout
     await pool.query(
       `UPDATE user_balances
        SET locked = locked - ?, free = free + ?
@@ -172,29 +161,11 @@ async function settleTrade(tradeId, userId, symbol, direction, amount, entryPric
       [amount, payout, userId]
     );
 
-    console.log(`✅ Quick trade #${tradeId} settled: +$${profit} (${symbol} ${direction})`);
+    console.log(`✅ Quick trade #${tradeId} settled: +$${netProfit} (${symbol} ${direction})`);
   } catch (err) {
     console.error(`Quick trade settle error (#${tradeId}):`, err.message);
   }
 }
-
-// GET /api/quick-trade/status  — check if user can trade today
-router.get('/status', auth, async (req, res) => {
-  try {
-    await ensureTable();
-    const [[row]] = await pool.query(
-      `SELECT COUNT(*) AS count, MAX(created_at) AS last_trade_at
-       FROM quick_trades WHERE user_id = ? AND DATE(created_at) = CURDATE()`,
-      [req.user.userId]
-    );
-    const canTrade = row.count === 0;
-    const nextReset = new Date();
-    nextReset.setUTCHours(24, 0, 0, 0);
-    res.json({ canTrade, tradesUsedToday: row.count, nextTradeAt: nextReset.toISOString(), lastTradeAt: row.last_trade_at || null });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch status' });
-  }
-});
 
 // GET /api/quick-trade/history
 router.get('/history', auth, async (req, res) => {  try {

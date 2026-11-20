@@ -37,54 +37,27 @@ export default function QuickTrade() {
   const [result, setResult] = useState(null);
   const [history, setHistory] = useState([]);
   const [toast, setToast] = useState(null);
-  // Daily limit state
-  const [canTrade, setCanTrade] = useState(true);
-  const [nextTradeAt, setNextTradeAt] = useState(null);
-  const [timeUntilNext, setTimeUntilNext] = useState('');
   const timerRef = useRef(null);
-  const countdownRef = useRef(null);
+  const [selectedTrade, setSelectedTrade] = useState(null);
 
   const baseAsset = symbol.replace('USDT', '');
 
   const showToast = (type, msg) => { setToast({ type, msg }); setTimeout(() => setToast(null), 3500); };
 
-  // Load balance + history + daily status
+  // Load balance + history
   const loadData = useCallback(async () => {
-    const [balRes, histRes, statusRes] = await Promise.all([
+    const [balRes, histRes] = await Promise.all([
       api.getWalletBalances(token),
       api.getQuickTradeHistory(token),
-      api.getQuickTradeStatus(token),
     ]);
     if (balRes.balances) {
       const usdt = balRes.balances.find(b => b.asset === 'USDT');
       setBalanceUSDT(parseFloat(usdt?.free || 0));
     }
     if (histRes.trades) setHistory(histRes.trades);
-    if (statusRes.canTrade !== undefined) {
-      setCanTrade(statusRes.canTrade);
-      if (!statusRes.canTrade && statusRes.nextTradeAt) {
-        setNextTradeAt(new Date(statusRes.nextTradeAt));
-      }
-    }
   }, [token]);
 
   useEffect(() => { loadData(); }, [loadData]);
-
-  // Countdown to next trade unlock
-  useEffect(() => {
-    if (!nextTradeAt) return;
-    const tick = () => {
-      const diff = nextTradeAt - Date.now();
-      if (diff <= 0) { setCanTrade(true); setNextTradeAt(null); setTimeUntilNext(''); return; }
-      const h = Math.floor(diff / 3600000);
-      const m = Math.floor((diff % 3600000) / 60000);
-      const s = Math.floor((diff % 60000) / 1000);
-      setTimeUntilNext(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`);
-    };
-    tick();
-    countdownRef.current = setInterval(tick, 1000);
-    return () => clearInterval(countdownRef.current);
-  }, [nextTradeAt]);
 
   // Live price via WebSocket
   useEffect(() => {
@@ -112,11 +85,6 @@ export default function QuickTrade() {
     try {
       const res = await api.placeQuickTrade(token, { symbol, direction, amount: amt, cycle: cycle.label });
       if (res.error) {
-        // Handle daily limit
-        if (res.nextTradeAt) {
-          setCanTrade(false);
-          setNextTradeAt(new Date(res.nextTradeAt));
-        }
         showToast('error', res.error);
         return;
       }
@@ -140,9 +108,13 @@ export default function QuickTrade() {
                 profit:     parseFloat(r.trade.profit),
                 payout:     parseFloat(r.trade.amount) + parseFloat(r.trade.profit),
                 entryPrice: parseFloat(r.trade.entry_price),
-                exitPrice:  parseFloat(r.trade.exit_price),
+                exitPrice: parseFloat(r.trade.exit_price),
                 amount:     parseFloat(r.trade.amount),
                 direction:  direction,
+                handlingFee: parseFloat(r.trade.handling_fee || 0),
+                cycle:      r.trade.cycle,
+                cycleDuration: r.trade.cycle_duration,
+                cycleProfit: r.trade.cycle_profit,
               });
               setActive(null);
               loadData();
@@ -354,7 +326,7 @@ export default function QuickTrade() {
           )}
 
           {/* Daily limit locked state */}
-          {!canTrade && !active && (
+          {false && !active && (
             <div className="qt-locked-card">
               <div className="qt-locked-icon">🔒</div>
               <div className="qt-locked-body">
@@ -370,7 +342,7 @@ export default function QuickTrade() {
           <button
             className={`qt-cta-btn ${direction === 'BUY' ? 'up' : 'down'}`}
             onClick={handleTrade}
-            disabled={!!active || placing || !amount || parseFloat(amount) < 1 || !canTrade}>
+            disabled={!!active || placing || !amount || parseFloat(amount) < 1}>
             {active
               ? <><span className="qt-cta-spinner"/> Trading… {timeLeft}s</>
               : placing
@@ -379,7 +351,7 @@ export default function QuickTrade() {
             }
           </button>
 
-          <p className="qt-disclaimer">30-second trade · Minimum $1 USDT · One trade per day</p>
+          <p className="qt-disclaimer">Quick trade · Minimum $1 USDT · 0.1% handling fee</p>
         </div>
 
         {/* ── RIGHT: History ── */}
@@ -413,7 +385,7 @@ export default function QuickTrade() {
 
               <div className="qt-history-list">
                 {history.map(t => (
-                  <div key={t.id} className={`qt-history-item ${t.status}`}>
+                  <div key={t.id} className={`qt-history-item ${t.status}`} onClick={() => setSelectedTrade(t)}>
                     <div className="qt-h-left">
                       <CryptoIcon symbol={t.symbol.replace('USDT','')} size={24} />
                       <div>
@@ -441,6 +413,81 @@ export default function QuickTrade() {
           )}
         </div>
       </div>
+
+      {/* Trade Details Modal */}
+      {selectedTrade && (
+        <div className="qt-modal-overlay" onClick={() => setSelectedTrade(null)}>
+          <div className="qt-modal-card" onClick={e => e.stopPropagation()}>
+            <div className="qt-modal-header">
+              <h3>Trade Details</h3>
+              <button className="qt-modal-close" onClick={() => setSelectedTrade(null)}>×</button>
+            </div>
+            <div className="qt-modal-body">
+              <div className="qt-modal-row">
+                <span className="qt-modal-label">Product</span>
+                <span className="qt-modal-value">{selectedTrade.symbol.replace('USDT','/USDT')}</span>
+              </div>
+              <div className="qt-modal-row">
+                <span className="qt-modal-label">Direction</span>
+                <span className={`qt-modal-value ${selectedTrade.direction === 'BUY' ? 'up' : 'down'}`}>
+                  {selectedTrade.direction === 'BUY' ? '▲ UP' : '▼ DOWN'}
+                </span>
+              </div>
+              <div className="qt-modal-row">
+                <span className="qt-modal-label">Cycle</span>
+                <span className="qt-modal-value">{selectedTrade.cycle} ({selectedTrade.cycle_duration}s)</span>
+              </div>
+              <div className="qt-modal-row">
+                <span className="qt-modal-label">Cycle Profit Rate</span>
+                <span className="qt-modal-value">+{(selectedTrade.cycle_profit * 100).toFixed(0)}%</span>
+              </div>
+              <div className="qt-modal-divider" />
+              <div className="qt-modal-row">
+                <span className="qt-modal-label">Time to Open</span>
+                <span className="qt-modal-value">{new Date(selectedTrade.created_at).toLocaleString()}</span>
+              </div>
+              <div className="qt-modal-row">
+                <span className="qt-modal-label">Time to Close</span>
+                <span className="qt-modal-value">{selectedTrade.settled_at ? new Date(selectedTrade.settled_at).toLocaleString() : '—'}</span>
+              </div>
+              <div className="qt-modal-divider" />
+              <div className="qt-modal-row">
+                <span className="qt-modal-label">Open Price</span>
+                <span className="qt-modal-value mono">${parseFloat(selectedTrade.entry_price).toLocaleString(undefined,{minimumFractionDigits:2})}</span>
+              </div>
+              <div className="qt-modal-row">
+                <span className="qt-modal-label">Close Price</span>
+                <span className="qt-modal-value mono">{selectedTrade.exit_price ? `$${parseFloat(selectedTrade.exit_price).toLocaleString(undefined,{minimumFractionDigits:2})}` : '—'}</span>
+              </div>
+              <div className="qt-modal-divider" />
+              <div className="qt-modal-row">
+                <span className="qt-modal-label">Amount</span>
+                <span className="qt-modal-value mono">${parseFloat(selectedTrade.amount).toFixed(2)}</span>
+              </div>
+              <div className="qt-modal-row">
+                <span className="qt-modal-label">Profit/Loss</span>
+                <span className={`qt-modal-value ${selectedTrade.status === 'won' ? 'pos' : 'neg'}`}>
+                  {selectedTrade.status === 'won' ? `+$${parseFloat(selectedTrade.profit).toFixed(2)}` : selectedTrade.status === 'lost' ? `-$${parseFloat(selectedTrade.amount).toFixed(2)}` : '—'}
+                </span>
+              </div>
+              <div className="qt-modal-row">
+                <span className="qt-modal-label">Handling Fee</span>
+                <span className="qt-modal-value mono">${parseFloat(selectedTrade.handling_fee || 0).toFixed(2)}</span>
+              </div>
+              <div className="qt-modal-row">
+                <span className="qt-modal-label">Account Type</span>
+                <span className="qt-modal-value">Real Account</span>
+              </div>
+              <div className="qt-modal-row">
+                <span className="qt-modal-label">Status</span>
+                <span className={`qt-modal-value ${selectedTrade.status}`}>
+                  {selectedTrade.status.toUpperCase()}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

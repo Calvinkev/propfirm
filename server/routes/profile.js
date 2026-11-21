@@ -4,10 +4,30 @@ import bcrypt from 'bcryptjs';
 import { auth } from '../middleware/auth.js';
 
 const router = express.Router();
+let profileSchemaReady;
+
+// Referral fields are added by the referral feature on some installs, so make
+// sure the profile endpoint can also initialize its optional profile column.
+async function ensureProfileSchema() {
+  if (!profileSchemaReady) {
+    profileSchemaReady = pool.query(
+      'ALTER TABLE users ADD COLUMN referral_code VARCHAR(20) UNIQUE'
+    ).catch((err) => {
+      // MySQL error 1060 means another request or the referral route already
+      // created the column. Other errors should be surfaced to the caller.
+      if (err.code !== 'ER_DUP_FIELDNAME' && err.errno !== 1060) {
+        profileSchemaReady = null;
+        throw err;
+      }
+    });
+  }
+  await profileSchemaReady;
+}
 
 // GET /api/profile
 router.get('/', auth, async (req, res) => {
   try {
+    await ensureProfileSchema();
     const userId = req.user.id || req.user.userId;
     const [users] = await pool.query(
       'SELECT id, email, first_name, last_name, role, created_at, referral_code FROM users WHERE id = ?',
@@ -16,12 +36,12 @@ router.get('/', auth, async (req, res) => {
     if (!users.length) return res.status(404).json({ error: 'User not found' });
     const u = users[0];
 
-    // Trade stats
+    // Trade stats (COALESCE keeps empty accounts at zero instead of null).
     const [stats] = await pool.query(
       `SELECT COUNT(*) as total_trades,
-              SUM(CASE WHEN ct.side='BUY' THEN 1 ELSE 0 END) as buys,
-              SUM(ct.amount * ct.price) as total_volume,
-              SUM(ct.fee) as total_fees
+              COALESCE(SUM(CASE WHEN ct.side='BUY' THEN 1 ELSE 0 END), 0) as buys,
+              COALESCE(SUM(ct.amount * ct.price), 0) as total_volume,
+              COALESCE(SUM(ct.fee), 0) as total_fees
        FROM crypto_trades ct WHERE ct.user_id = ?`,
       [userId]
     );
@@ -58,6 +78,7 @@ router.put('/update', auth, async (req, res) => {
     );
     res.json({ message: 'Profile updated successfully' });
   } catch (err) {
+    console.error('Profile update error:', err);
     res.status(500).json({ error: 'Failed to update profile' });
   }
 });
@@ -76,6 +97,7 @@ router.put('/change-password', auth, async (req, res) => {
     }
 
     const [users] = await pool.query('SELECT password FROM users WHERE id = ?', [userId]);
+    if (!users.length) return res.status(404).json({ error: 'User not found' });
     const isMatch = await bcrypt.compare(currentPassword, users[0].password);
     if (!isMatch) return res.status(400).json({ error: 'Current password is incorrect' });
 
@@ -83,6 +105,7 @@ router.put('/change-password', auth, async (req, res) => {
     await pool.query('UPDATE users SET password = ? WHERE id = ?', [hashed, userId]);
     res.json({ message: 'Password changed successfully' });
   } catch (err) {
+    console.error('Password change error:', err);
     res.status(500).json({ error: 'Failed to change password' });
   }
 });

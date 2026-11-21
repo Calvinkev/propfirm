@@ -9,34 +9,41 @@ const router = express.Router();
 // Register
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, firstName, lastName } = req.body;
+    const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+    const password = typeof req.body.password === 'string' ? req.body.password : '';
+    const firstName = typeof req.body.firstName === 'string' ? req.body.firstName.trim() : '';
+    const lastName = typeof req.body.lastName === 'string' ? req.body.lastName.trim() : '';
 
     if (!email || !password || !firstName || !lastName) {
       return res.status(400).json({ error: 'All fields are required' });
     }
-
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: 'Enter a valid email address' });
+    }
     if (password.length < 6) {
       return res.status(400).json({ error: 'Password must be at least 6 characters' });
     }
+    if (!process.env.JWT_SECRET) {
+      console.error('Registration unavailable: JWT_SECRET is not configured');
+      return res.status(500).json({ error: 'Registration is temporarily unavailable. Please try again later.' });
+    }
 
     const [existingUsers] = await pool.query(
-      'SELECT id FROM users WHERE email = ?',
-      [email.toLowerCase()]
+      'SELECT id FROM users WHERE email = ? LIMIT 1',
+      [email]
     );
-
     if (existingUsers.length > 0) {
-      return res.status(400).json({ error: 'An account with that email already exists' });
+      return res.status(409).json({ error: 'An account with that email already exists' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
     const [result] = await pool.query(
       'INSERT INTO users (email, password, first_name, last_name, role) VALUES (?, ?, ?, ?, ?)',
-      [email.toLowerCase(), hashedPassword, firstName, lastName, 'user']
+      [email, hashedPassword, firstName, lastName, 'user']
     );
 
     const token = jwt.sign(
-      { userId: result.insertId, email: email.toLowerCase(), role: 'user' },
+      { userId: result.insertId, email, role: 'user' },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -46,15 +53,19 @@ router.post('/register', async (req, res) => {
       token,
       user: {
         id: result.insertId,
-        email: email.toLowerCase(),
+        email,
         firstName,
         lastName,
         role: 'user',
       },
     });
   } catch (error) {
+    // The unique email constraint also protects against simultaneous signups.
+    if (error.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ error: 'An account with that email already exists' });
+    }
     console.error('Registration error:', error);
-    res.status(500).json({ error: 'Server error during registration' });
+    res.status(500).json({ error: 'Registration failed. Please try again.' });
   }
 });
 

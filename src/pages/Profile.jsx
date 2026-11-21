@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import Icon from '../components/Icon';
@@ -7,6 +7,8 @@ import './Profile.css';
 export default function Profile() {
   const { token, user, updateUser } = useAuth();
   const [profile, setProfile]     = useState(null);
+  const [loading, setLoading]     = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [tab, setTab]             = useState('profile');
   const [toast, setToast]         = useState(null);
 
@@ -21,15 +23,23 @@ export default function Profile() {
 
   const showToast = (type, msg) => { setToast({ type, msg }); setTimeout(() => setToast(null), 3500); };
 
-  useEffect(() => {
-    api.getProfile(token).then(res => {
-      if (res.user) {
-        setProfile(res);
-        setFirstName(res.user.firstName || '');
-        setLastName(res.user.lastName || '');
-      }
-    });
+  const loadProfile = useCallback(async () => {
+    setLoading(true);
+    setLoadError('');
+    try {
+      const res = await api.getProfile(token);
+      if (!res.user) throw new Error(res.error || 'Unable to load your profile.');
+      setProfile(res);
+      setFirstName(res.user.firstName || '');
+      setLastName(res.user.lastName || '');
+    } catch (error) {
+      setLoadError(error.message || 'Could not load your profile. Check your connection and try again.');
+    } finally {
+      setLoading(false);
+    }
   }, [token]);
+
+  useEffect(() => { loadProfile(); }, [loadProfile]);
 
   const handleProfileSave = async (e) => {
     e.preventDefault();
@@ -49,7 +59,16 @@ export default function Profile() {
     else { showToast('success', 'Password changed successfully'); setCurPwd(''); setNewPwd(''); setConfPwd(''); }
   };
 
-  if (!profile) return <div className="profile-page"><div className="pr-loading">Loading...</div></div>;
+  if (loading) return <div className="profile-page"><div className="pr-loading">Loading...</div></div>;
+
+  if (!profile) return (
+    <div className="profile-page">
+      <div className="pr-loading" role="alert">
+        <p>{loadError || 'Could not load your profile.'}</p>
+        <button type="button" className="pr-save-btn" onClick={loadProfile}>Try again</button>
+      </div>
+    </div>
+  );
 
   const u = profile.user;
   const s = profile.stats;

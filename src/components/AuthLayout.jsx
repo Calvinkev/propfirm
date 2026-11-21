@@ -8,6 +8,7 @@ import CustomerCareButton from './CustomerCareButton'
 import MobileBottomNav from './MobileBottomNav'
 import './AuthLayout.css'
 import './AppPolish.css'
+import './MobileMenu.css'
 
 const NAV_GROUPS = [
   { label: 'Markets', path: '/markets', single: true },

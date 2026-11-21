@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation, Navigate } from 'react-router-dom'
-import { useState, useRef, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useAuth } from '../context/AuthContext'
 import Logo from './Logo'
 import Icon from './Icon'
@@ -39,7 +39,7 @@ const USER_MENU = [
 const MOBILE_TRADE = [
   { to: '/markets',     iconName: 'trendingDown', label: 'Markets' },
   { to: '/trade',       iconName: 'chartBar',     label: 'Spot Trade' },
-  { to: '/quick-trade', iconName: 'trendingUp',   label: '⚡ Quick Trade' },
+  { to: '/quick-trade', iconName: 'trendingUp',   label: 'Quick Trade' },
   { to: '/futures',     iconName: 'trendingUp',   label: 'Futures' },
   { to: '/p2p',         iconName: 'arrowsSwap',   label: 'P2P' },
   { to: '/convert',     iconName: 'arrowsSwap',   label: 'Convert' },
@@ -49,7 +49,7 @@ const MOBILE_ACCOUNT = [
   { to: '/portfolio',     iconName: 'chartBar',     label: 'Portfolio' },
   { to: '/wallet',        iconName: 'wallet',        label: 'Wallet' },
   { to: '/earn',          iconName: 'sparkles',      label: 'Earn' },
-  { to: '/orders',        iconName: 'clipboardList', label: 'Order History' },
+  { to: '/orders',        iconName: 'clipboardList', label: 'Orders' },
   { to: '/notifications', iconName: 'bell',          label: 'Notifications' },
   { to: '/referral',      iconName: 'gift',          label: 'Referral' },
   { to: '/profile',       iconName: 'user',          label: 'Profile' },
@@ -63,6 +63,11 @@ export default function AuthLayout() {
   const [openDropdown, setOpenDropdown] = useState(null)
   const closeTimer = useRef(null)
 
+  useEffect(() => {
+    document.body.classList.toggle('mobile-menu-open', mobileOpen)
+    return () => document.body.classList.remove('mobile-menu-open')
+  }, [mobileOpen])
+
   const handleMouseEnter = useCallback((key) => {
     if (closeTimer.current) clearTimeout(closeTimer.current)
     setOpenDropdown(key)
@@ -74,7 +79,6 @@ export default function AuthLayout() {
 
   if (loading) return null
   if (!isAuthenticated) return <Navigate to="/login" state={{ from: location }} replace />
-  // Admins always land on the admin dashboard
   if (isAdmin) return <Navigate to="/admin/dashboard" replace />
 
   const close = () => { setMobileOpen(false); setOpenDropdown(null) }
@@ -90,50 +94,33 @@ export default function AuthLayout() {
             <Logo size="small" />
             <span className="brand-title">STAKEUP <span className="spot-tag">PRO</span></span>
           </Link>
-
           <nav className="nav-links desktop-only">
-            {NAV_GROUPS.map(group => (
-              group.single ? (
-                <Link key={group.path} to={group.path}
-                  className={`nav-link ${isActive(group.path) ? 'active' : ''}`}>
-                  {group.label}
-                </Link>
-              ) : (
-                <div key={group.label} className="nav-dropdown-wrap"
-                  onMouseEnter={() => handleMouseEnter(group.label)}
-                  onMouseLeave={handleMouseLeave}>
-                  <button className={`nav-link nav-dropdown-trigger ${isGroupActive(group) ? 'active' : ''}`}>
-                    {group.label}
-                    <Icon name="chevronDown" size={12} className="nav-caret-icon" />
-                  </button>
-                  {openDropdown === group.label && (
-                    <div className="nav-dropdown-menu">
-                      {group.children.map(item => (
-                        <Link key={item.path} to={item.path}
-                          className={`nav-dropdown-item ${isActive(item.path) ? 'active' : ''}`}
-                          onClick={clearAndClose}>
-                          <span className="ndi-icon"><Icon name={item.iconName} size={18} /></span>
-                          <div className="ndi-text"><b>{item.label}</b><span>{item.desc}</span></div>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )
+            {NAV_GROUPS.map(group => group.single ? (
+              <Link key={group.path} to={group.path} className={`nav-link ${isActive(group.path) ? 'active' : ''}`}>{group.label}</Link>
+            ) : (
+              <div key={group.label} className="nav-dropdown-wrap" onMouseEnter={() => handleMouseEnter(group.label)} onMouseLeave={handleMouseLeave}>
+                <button className={`nav-link nav-dropdown-trigger ${isGroupActive(group) ? 'active' : ''}`}>
+                  {group.label}<Icon name="chevronDown" size={12} className="nav-caret-icon" />
+                </button>
+                {openDropdown === group.label && (
+                  <div className="nav-dropdown-menu">
+                    {group.children.map(item => (
+                      <Link key={item.path} to={item.path} className={`nav-dropdown-item ${isActive(item.path) ? 'active' : ''}`} onClick={clearAndClose}>
+                        <span className="ndi-icon"><Icon name={item.iconName} size={18} /></span>
+                        <div className="ndi-text"><b>{item.label}</b><span>{item.desc}</span></div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
           </nav>
         </div>
 
         <div className="nav-right desktop-only">
           <Link to="/wallet" className="deposit-btn">Deposit</Link>
-
-          <Link to="/notifications" className="notif-bell" title="Notifications">
-            <Icon name="bell" size={18} />
-          </Link>
-
-          <div className="nav-dropdown-wrap"
-            onMouseEnter={() => handleMouseEnter('user')}
-            onMouseLeave={handleMouseLeave}>
+          <Link to="/notifications" className="notif-bell" title="Notifications"><Icon name="bell" size={18} /></Link>
+          <div className="nav-dropdown-wrap" onMouseEnter={() => handleMouseEnter('user')} onMouseLeave={handleMouseLeave}>
             <div className="user-profile-menu" style={{ cursor: 'pointer' }}>
               <span className="user-name">{user?.firstName} {user?.lastName}</span>
               <span className="user-email">{user?.email}</span>
@@ -146,74 +133,73 @@ export default function AuthLayout() {
                     <div className="ndi-text"><b>{item.label}</b><span>{item.desc}</span></div>
                   </Link>
                 ))}
-                {user?.role === 'admin' && (
-                  <Link to="/admin/dashboard" className="nav-dropdown-item" onClick={clearAndClose}>
-                    <span className="ndi-icon"><Icon name="crown" size={18} /></span>
-                    <div className="ndi-text"><b>Admin Console</b><span>Manage platform</span></div>
-                  </Link>
-                )}
+                {user?.role === 'admin' && <Link to="/admin/dashboard" className="nav-dropdown-item" onClick={clearAndClose}><span className="ndi-icon"><Icon name="crown" size={18} /></span><div className="ndi-text"><b>Admin Console</b><span>Manage platform</span></div></Link>}
                 <div className="nav-dropdown-divider" />
-                <button className="nav-dropdown-logout" onClick={() => { logout(); clearAndClose() }}>
-                  <Icon name="powerOff" size={15} />
-                  Log Out
-                </button>
+                <button className="nav-dropdown-logout" onClick={() => { logout(); clearAndClose() }}><Icon name="powerOff" size={15} />Log Out</button>
               </div>
             )}
           </div>
         </div>
 
-        <button className="mobile-hamburger" onClick={() => setMobileOpen(v => !v)} aria-label="Toggle Navigation">
+        <button className="mobile-hamburger" onClick={() => setMobileOpen(v => !v)} aria-expanded={mobileOpen} aria-label="Toggle navigation">
           <Icon name={mobileOpen ? 'close' : 'menu'} size={22} />
         </button>
       </header>
 
       {mobileOpen && (
-        <div className="mobile-dropdown">
-          <div className="mobile-section-label">Markets & Trade</div>
-          {MOBILE_TRADE.map(item => (
-            <Link key={item.to} to={item.to}
-              className={`mobile-nav-link ${isActive(item.to) ? 'active' : ''}`}
-              onClick={close}>
-              <Icon name={item.iconName} size={16} className="mobile-nav-icon" />
-              {item.label}
-            </Link>
-          ))}
+        <>
+          <button className="mobile-menu-backdrop" aria-label="Close navigation" onClick={close} />
+          <aside className="mobile-dropdown" aria-label="Mobile navigation">
+            <div className="mobile-menu-user">
+              <div className="mobile-menu-avatar">{user?.firstName?.[0] || 'U'}{user?.lastName?.[0] || ''}</div>
+              <div><strong>{user?.firstName} {user?.lastName}</strong><span>{user?.email}</span></div>
+            </div>
 
-          <div className="mobile-section-label">My Account</div>
-          {MOBILE_ACCOUNT.map(item => (
-            <Link key={item.to} to={item.to}
-              className={`mobile-nav-link ${isActive(item.to) ? 'active' : ''}`}
-              onClick={close}>
-              <Icon name={item.iconName} size={16} className="mobile-nav-icon" />
-              {item.label}
-            </Link>
-          ))}
+            <div className="mobile-menu-scroll">
+              <div className="mobile-menu-section">
+                <div className="mobile-section-label">Trade</div>
+                <div className="mobile-menu-grid">
+                  {MOBILE_TRADE.map(item => (
+                    <Link key={item.to} to={item.to} className={`mobile-menu-grid-item ${isActive(item.to) ? 'active' : ''}`} onClick={close}>
+                      <span><Icon name={item.iconName} size={17} /></span>{item.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
 
-          <Link to="/wallet" className="mobile-nav-link deposit" onClick={close}>
-            <Icon name="deposit" size={16} className="mobile-nav-icon" />
-            Deposit Crypto
-          </Link>
+              <div className="mobile-menu-section">
+                <div className="mobile-section-label">Account</div>
+                <div className="mobile-menu-list">
+                  {MOBILE_ACCOUNT.map(item => (
+                    <Link key={item.to} to={item.to} className={`mobile-nav-link ${isActive(item.to) ? 'active' : ''}`} onClick={close}>
+                      <Icon name={item.iconName} size={17} className="mobile-nav-icon" />
+                      <span>{item.label}</span>
+                      <Icon name="chevronRight" size={14} className="mobile-nav-chevron" />
+                    </Link>
+                  ))}
+                  {user?.role === 'admin' && (
+                    <Link to="/admin/dashboard" className="mobile-nav-link admin" onClick={close}>
+                      <Icon name="crown" size={17} className="mobile-nav-icon" /><span>Admin Console</span><Icon name="chevronRight" size={14} className="mobile-nav-chevron" />
+                    </Link>
+                  )}
+                </div>
+              </div>
 
-          {user?.role === 'admin' && (
-            <Link to="/admin/dashboard" className="mobile-nav-link admin" onClick={close}>
-              <Icon name="crown" size={16} className="mobile-nav-icon" />
-              Admin Console
-            </Link>
-          )}
-          <button onClick={() => { logout(); close() }} className="mobile-logout">
-            <Icon name="powerOff" size={15} className="mobile-nav-icon" />
-            Log Out
-          </button>
-        </div>
+              <Link to="/wallet" className="mobile-nav-link deposit" onClick={close}>
+                <Icon name="deposit" size={17} className="mobile-nav-icon" />Deposit Crypto
+              </Link>
+            </div>
+
+            <div className="mobile-menu-footer">
+              <button onClick={() => { logout(); close() }} className="mobile-logout">
+                <Icon name="powerOff" size={16} />Log Out
+              </button>
+            </div>
+          </aside>
+        </>
       )}
 
-      <main className="binance-main">
-        <ErrorBoundary>
-          <Outlet />
-        </ErrorBoundary>
-        <CustomerCareButton />
-      </main>
-
+      <main className="binance-main"><ErrorBoundary><Outlet /></ErrorBoundary><CustomerCareButton /></main>
       <MobileBottomNav />
     </div>
   )

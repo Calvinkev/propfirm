@@ -148,9 +148,9 @@ async function settleTrade(tradeId, userId, symbol, direction, amount, entryPric
     // Always mark as WON and credit payout
     await pool.query(
       `UPDATE quick_trades
-       SET status = 'won', exit_price = ?, profit = ?, settled_at = NOW()
+       SET status = 'won', exit_price = ?, profit = ?, handling_fee = ?, settled_at = NOW()
        WHERE id = ?`,
-      [exitPrice, netProfit, tradeId]
+      [exitPrice, netProfit, handlingFee, tradeId]
     );
 
     // Release locked + credit payout
@@ -171,7 +171,8 @@ async function settleTrade(tradeId, userId, symbol, direction, amount, entryPric
 router.get('/history', auth, async (req, res) => {  try {
     await ensureTable();
     const [rows] = await pool.query(
-      `SELECT * FROM quick_trades WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
+      `SELECT *, CASE WHEN status = 'won' AND handling_fee = 0 THEN ROUND(amount * 0.001, 2) ELSE handling_fee END AS handling_fee
+       FROM quick_trades WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
       [req.user.userId]
     );
     res.json({ trades: rows });
@@ -185,7 +186,8 @@ router.get('/:id', auth, async (req, res) => {
   try {
     await ensureTable();
     const [rows] = await pool.query(
-      'SELECT * FROM quick_trades WHERE id = ? AND user_id = ?',
+      `SELECT *, CASE WHEN status = 'won' AND handling_fee = 0 THEN ROUND(amount * 0.001, 2) ELSE handling_fee END AS handling_fee
+       FROM quick_trades WHERE id = ? AND user_id = ?`,
       [req.params.id, req.user.userId]
     );
     if (!rows.length) return res.status(404).json({ error: 'Trade not found' });

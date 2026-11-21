@@ -18,6 +18,7 @@ import referralRoutes from './routes/referral.js';
 import notificationsRoutes from './routes/notifications.js';
 import profileRoutes from './routes/profile.js';
 import futuresRoutes from './routes/futures.js';
+import demoRoutes from './routes/demo.js';
 import { setupWebSocket } from './websocket/server.js';
 import { priceFeed } from './services/priceFeed.js';
 import { startAIEngine } from './services/aiTradingEngine.js';
@@ -36,13 +37,10 @@ const PORT = process.env.PORT || 5000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const isProd = NODE_ENV === 'production';
 
-// Trust Render's proxy so express-rate-limit can read the real client IP
-// from X-Forwarded-For without throwing a validation error.
 if (isProd) {
   app.set('trust proxy', 1);
 }
 
-// ── Security Middleware ──────────────────────────────────────────────────────
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
   contentSecurityPolicy: false,
@@ -54,7 +52,7 @@ const allowedOrigins = process.env.CORS_ORIGINS
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin && !isProd) return callback(null, true);
+    if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
     if (!isProd) return callback(null, true);
     callback(new Error('Not allowed by CORS'));
@@ -65,20 +63,12 @@ app.use(cors({
 }));
 
 app.use(compression());
-
-if (isProd) {
-  app.use(morgan('combined'));
-} else {
-  app.use(morgan('dev'));
-}
-
+app.use(isProd ? morgan('combined') : morgan('dev'));
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(sanitiseInput);
-
 app.use('/api/', apiLimiter);
 
-// ── Startup ──────────────────────────────────────────────────────────────────
 console.log('='.repeat(50));
 console.log('STAKEUP CRYPTO EXCHANGE SERVER STARTING...');
 console.log('='.repeat(50));
@@ -86,7 +76,6 @@ console.log('='.repeat(50));
 initDatabase()
   .then(() => {
     console.log('✅ Database connected & initialized');
-    // ── Price ticks cleanup — keep only last 2 hours of ticks ──────────────
     setInterval(async () => {
       try {
         await pool.query(`DELETE FROM price_ticks WHERE timestamp < DATE_SUB(NOW(), INTERVAL 2 HOUR)`);
@@ -95,8 +84,6 @@ initDatabase()
       }
     }, 10 * 60 * 1000);
 
-    // ── Spot limit order matcher — runs every 5 seconds ────────────────────
-    // Guard flag prevents overlapping runs if the previous tick is still processing
     let limitMatcherRunning = false;
     setInterval(async () => {
       if (limitMatcherRunning) return;
@@ -108,57 +95,34 @@ initDatabase()
            FROM crypto_orders o
            JOIN instruments i ON o.symbol = i.symbol
            WHERE o.status IN ('NEW','PARTIALLY_FILLED') AND o.type = 'LIMIT'
-           LIMIT 50`   /* cap per tick to avoid DB overload */
+           LIMIT 50`
         );
         for (const order of orders) {
           const lp = getLatestPrice(order.symbol);
           if (!lp) continue;
-          const shouldFill =
-            order.side === 'BUY'
-              ? lp.ask <= parseFloat(order.price)
-              : lp.bid >= parseFloat(order.price);
+          const shouldFill = order.side === 'BUY'
+            ? lp.ask <= parseFloat(order.price)
+            : lp.bid >= parseFloat(order.price);
           if (!shouldFill) continue;
 
-          const fillPrice  = parseFloat(order.price);
-          const fillAmt    = parseFloat(order.amount) - parseFloat(order.filled_amount);
+          const fillPrice = parseFloat(order.price);
+          const fillAmt = parseFloat(order.amount) - parseFloat(order.filled_amount);
           if (fillAmt <= 0) continue;
           const totalValue = fillPrice * fillAmt;
-          const fee        = totalValue * 0.001;
+          const fee = totalValue * 0.001;
 
-          // Use a transaction to prevent race conditions on balance updates
           const conn = await pool.getConnection();
           try {
             await conn.beginTransaction();
             if (order.side === 'BUY') {
-              await conn.query(
-                'UPDATE user_balances SET locked = locked - ? WHERE user_id = ? AND asset = ?',
-                [totalValue, order.user_id, order.quote_asset]
-              );
-              await conn.query(
-                `INSERT INTO user_balances (user_id, asset, free) VALUES (?,?,?)
-                 ON DUPLICATE KEY UPDATE free = free + ?`,
-                [order.user_id, order.base_asset, fillAmt, fillAmt]
-              );
+              await conn.query('UPDATE user_balances SET locked = locked - ? WHERE user_id = ? AND asset = ?', [totalValue, order.user_id, order.quote_asset]);
+              await conn.query(`INSERT INTO user_balances (user_id, asset, free) VALUES (?,?,?) ON DUPLICATE KEY UPDATE free = free + ?`, [order.user_id, order.base_asset, fillAmt, fillAmt]);
             } else {
-              await conn.query(
-                'UPDATE user_balances SET locked = locked - ? WHERE user_id = ? AND asset = ?',
-                [fillAmt, order.user_id, order.base_asset]
-              );
-              await conn.query(
-                `INSERT INTO user_balances (user_id, asset, free) VALUES (?,?,?)
-                 ON DUPLICATE KEY UPDATE free = free + ?`,
-                [order.user_id, order.quote_asset, totalValue - fee, totalValue - fee]
-              );
+              await conn.query('UPDATE user_balances SET locked = locked - ? WHERE user_id = ? AND asset = ?', [fillAmt, order.user_id, order.base_asset]);
+              await conn.query(`INSERT INTO user_balances (user_id, asset, free) VALUES (?,?,?) ON DUPLICATE KEY UPDATE free = free + ?`, [order.user_id, order.quote_asset, totalValue - fee, totalValue - fee]);
             }
-            await conn.query(
-              `INSERT INTO crypto_trades (order_id, user_id, symbol, side, price, amount, fee)
-               VALUES (?,?,?,?,?,?,?)`,
-              [order.id, order.user_id, order.symbol, order.side, fillPrice, fillAmt, fee]
-            );
-            await conn.query(
-              `UPDATE crypto_orders SET status = 'FILLED', filled_amount = amount WHERE id = ?`,
-              [order.id]
-            );
+            await conn.query(`INSERT INTO crypto_trades (order_id, user_id, symbol, side, price, amount, fee) VALUES (?,?,?,?,?,?,?)`, [order.id, order.user_id, order.symbol, order.side, fillPrice, fillAmt, fee]);
+            await conn.query(`UPDATE crypto_orders SET status = 'FILLED', filled_amount = amount WHERE id = ?`, [order.id]);
             await conn.commit();
           } catch (err) {
             await conn.rollback();
@@ -187,26 +151,15 @@ initDatabase()
 
 setupWebSocket(server);
 
-// ── Health Check ─────────────────────────────────────────────────────────────
 app.get('/health', async (req, res) => {
   try {
     await pool.query('SELECT 1');
-    res.json({
-      status: 'healthy',
-      uptime: process.uptime(),
-      timestamp: new Date().toISOString(),
-      database: 'connected',
-      environment: NODE_ENV,
-    });
+    res.json({ status: 'healthy', uptime: process.uptime(), timestamp: new Date().toISOString(), database: 'connected', environment: NODE_ENV });
   } catch (error) {
-    res.status(503).json({
-      status: 'unhealthy',
-      error: error.message,
-    });
+    res.status(503).json({ status: 'unhealthy', error: error.message });
   }
 });
 
-// ── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/spot', spotRoutes);
@@ -222,8 +175,8 @@ app.use('/api/futures', futuresRoutes);
 app.use('/api/ai', aiAgentRoutes);
 app.use('/api/p2p', p2pRoutes);
 app.use('/api/quick-trade', quickTradeRoutes);
+app.use('/api/demo', demoRoutes);
 
-// ── Static frontend (must be after API routes) ───────────────────────────────
 import { existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -240,7 +193,6 @@ if (existsSync(distPath)) {
     res.sendFile(join(distPath, 'index.html'));
   });
 } else {
-  // No dist built — return JSON for all non-API routes (dev/API-only mode)
   app.get('/', (req, res) => {
     res.json({ message: 'STAKEUP Crypto Exchange API', status: 'running', version: '2.0.0' });
   });
@@ -251,12 +203,10 @@ server.listen(PORT, () => {
 });
 
 const gracefulShutdown = async (signal) => {
-  console.log(`\n${signal} received. Shutting down...`);
+  console.log(`${signal} received. Shutting down...`);
   server.close();
   cache.destroy();
-  try {
-    await pool.end();
-  } catch (err) {}
+  try { await pool.end(); } catch (err) {}
   process.exit(0);
 };
 

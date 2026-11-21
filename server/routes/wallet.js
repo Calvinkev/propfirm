@@ -8,13 +8,12 @@ const router = express.Router();
 
 const SUPPORTED_ASSETS = ['USDT', 'BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'ADA', 'LTC', 'AVAX', 'LINK', 'MATIC', 'DOT', 'TRX', 'UNI', 'ATOM'];
 
-// Initialize default zero balances for user if missing
+// Live wallet balances are zero until a deposit or successful trade adds funds.
 export async function ensureUserBalances(userId) {
   for (const asset of SUPPORTED_ASSETS) {
-    const defaultFree = asset === 'USDT' ? 10000.00 : 0.00; // auto-grant 10k USDT demo balance
     await pool.query(
-      `INSERT IGNORE INTO user_balances (user_id, asset, free, locked) VALUES (?, ?, ?, 0.00)`,
-      [userId, asset, defaultFree]
+      `INSERT IGNORE INTO user_balances (user_id, asset, free, locked) VALUES (?, ?, 0.00, 0.00)`,
+      [userId, asset]
     );
   }
 }
@@ -99,7 +98,6 @@ router.post('/withdraw', auth, withdrawLimiter, async (req, res) => {
 
     await ensureUserBalances(userId);
 
-    // Check user available free balance
     const [balanceRow] = await pool.query(
       'SELECT free FROM user_balances WHERE user_id = ? AND asset = ?',
       [userId, coin]
@@ -111,12 +109,10 @@ router.post('/withdraw', auth, withdrawLimiter, async (req, res) => {
 
     const fee = coin === 'USDT' ? 1.0 : 0.0005;
 
-    // Lock funds atomically using a transaction
     const conn = await pool.getConnection();
     try {
       await conn.beginTransaction();
 
-      // Re-check balance inside transaction to prevent race condition
       const [locked] = await conn.query(
         'SELECT free FROM user_balances WHERE user_id = ? AND asset = ? FOR UPDATE',
         [userId, coin]
@@ -141,7 +137,6 @@ router.post('/withdraw', auth, withdrawLimiter, async (req, res) => {
       await conn.commit();
       conn.release();
 
-      // Notify all admins about the new withdrawal request
       const [admins] = await pool.query("SELECT id FROM users WHERE role = 'admin'");
       const [user] = await pool.query('SELECT first_name, last_name, email FROM users WHERE id = ?', [userId]);
       const userName = user[0] ? `${user[0].first_name} ${user[0].last_name}` : 'A user';

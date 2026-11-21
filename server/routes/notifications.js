@@ -1,6 +1,6 @@
 import express from 'express';
 import pool from '../config/database.js';
-import { auth } from '../middleware/auth.js';
+import { auth, adminOnly } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -20,7 +20,6 @@ async function ensureTable() {
   `);
 }
 
-// GET /api/notifications
 router.get('/', auth, async (req, res) => {
   try {
     const userId = req.user.id || req.user.userId;
@@ -40,7 +39,6 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-// PUT /api/notifications/read-all
 router.put('/read-all', auth, async (req, res) => {
   try {
     const userId = req.user.id || req.user.userId;
@@ -52,34 +50,36 @@ router.put('/read-all', auth, async (req, res) => {
   }
 });
 
-// PUT /api/notifications/:id/read
 router.put('/:id/read', auth, async (req, res) => {
   try {
     const userId = req.user.id || req.user.userId;
     await ensureTable();
-    await pool.query(
+    const [result] = await pool.query(
       'UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?',
       [req.params.id, userId]
     );
+    if (result.affectedRows === 0) return res.status(404).json({ error: 'Notification not found' });
     res.json({ message: 'Notification marked as read' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to mark notification as read' });
   }
 });
 
-// DELETE /api/notifications/:id
 router.delete('/:id', auth, async (req, res) => {
   try {
     const userId = req.user.id || req.user.userId;
     await ensureTable();
-    await pool.query('DELETE FROM notifications WHERE id = ? AND user_id = ?', [req.params.id, userId]);
+    const [result] = await pool.query(
+      'DELETE FROM notifications WHERE id = ? AND user_id = ?',
+      [req.params.id, userId]
+    );
+    if (result.affectedRows === 0) return res.status(404).json({ error: 'Notification not found' });
     res.json({ message: 'Notification deleted' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete notification' });
   }
 });
 
-// Helper — used internally to push a notification to a user
 export async function pushNotification(userId, type, title, message, link = null) {
   try {
     await ensureTable();
@@ -92,32 +92,50 @@ export async function pushNotification(userId, type, title, message, link = null
   }
 }
 
-// POST /api/notifications/admin/send  — admin sends notification to one or all users
-// Body: { userId?: number, all?: boolean, type, title, message, link? }
-import { auth as authMiddleware, adminOnly } from '../middleware/auth.js';
-router.post('/admin/send', authMiddleware, adminOnly, async (req, res) => {
+router.post('/admin/send', auth, adminOnly, async (req, res) => {
   try {
     const { userId, all, type = 'info', title, message, link } = req.body;
-    if (!title || !message) return res.status(400).json({ error: 'title and message are required' });
+    const cleanTitle = typeof title === 'string' ? title.trim() : '';
+    const cleanMessage = typeof message === 'string' ? message.trim() : '';
+    const cleanType = ['info', 'success', 'warning', 'error'].includes(type) ? type : 'info';
+
+    if (!cleanTitle || !cleanMessage) {
+      return res.status(400).json({ error: 'Title and message are required' });
+    }
+    if (cleanTitle.length > 255) return res.status(400).json({ error: 'Title is too long' });
 
     await ensureTable();
 
-    if (all) {
-      // Broadcast to every non-admin user
+    if (all === true) {
       const [users] = await pool.query("SELECT id FROM users WHERE role = 'user'");
-      for (const u of users) {
-        await pool.query(
-          'INSERT INTO notifications (user_id, type, title, message, link) VALUES (?,?,?,?,?)',
-          [u.id, type, title, message, link || null]
+      if (!users.length) return res.json({ message: 'Notification sent to 0 users' });
+      const conn = await pool.getConnection();
+      try {
+        await conn.beginTransaction();
+        await conn.query(
+          'INSERT INTO notifications (user_id, type, title, message, link) SELECT id, ?, ?, ?, ? FROM users WHERE role = ?',
+          [cleanType, cleanTitle, cleanMessage, link || null, 'user']
         );
+        await conn.commit();
+      } catch (err) {
+        await conn.rollback();
+        throw err;
+      } finally {
+        conn.release();
       }
       return res.json({ message: `Notification sent to ${users.length} users` });
     }
 
-    if (!userId) return res.status(400).json({ error: 'userId or all=true is required' });
+    const numericUserId = Number(userId);
+    if (!Number.isInteger(numericUserId) || numericUserId <= 0) {
+      return res.status(400).json({ error: 'A valid userId or all=true is required' });
+    }
+    const [users] = await pool.query('SELECT id FROM users WHERE id = ? AND role = ?', [numericUserId, 'user']);
+    if (!users.length) return res.status(404).json({ error: 'User not found' });
+
     await pool.query(
       'INSERT INTO notifications (user_id, type, title, message, link) VALUES (?,?,?,?,?)',
-      [userId, type, title, message, link || null]
+      [numericUserId, cleanType, cleanTitle, cleanMessage, link || null]
     );
     res.json({ message: 'Notification sent' });
   } catch (err) {

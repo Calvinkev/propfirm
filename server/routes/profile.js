@@ -6,15 +6,13 @@ import { auth } from '../middleware/auth.js';
 const router = express.Router();
 let profileSchemaReady;
 
-// Referral fields are added by the referral feature on some installs, so make
-// sure the profile endpoint can also initialize its optional profile column.
+// Referral fields are optional on older installations. Initialize the column
+// once so profile reads work both before and after the referral feature rollout.
 async function ensureProfileSchema() {
   if (!profileSchemaReady) {
     profileSchemaReady = pool.query(
       'ALTER TABLE users ADD COLUMN referral_code VARCHAR(20) UNIQUE'
     ).catch((err) => {
-      // MySQL error 1060 means another request or the referral route already
-      // created the column. Other errors should be surfaced to the caller.
       if (err.code !== 'ER_DUP_FIELDNAME' && err.errno !== 1060) {
         profileSchemaReady = null;
         throw err;
@@ -24,7 +22,7 @@ async function ensureProfileSchema() {
   await profileSchemaReady;
 }
 
-// GET /api/profile
+// GET /api/profile — current user information, wallet balances, and activity.
 router.get('/', auth, async (req, res) => {
   try {
     await ensureProfileSchema();
@@ -36,15 +34,29 @@ router.get('/', auth, async (req, res) => {
     if (!users.length) return res.status(404).json({ error: 'User not found' });
     const u = users[0];
 
-    // Trade stats (COALESCE keeps empty accounts at zero instead of null).
-    const [stats] = await pool.query(
-      `SELECT COUNT(*) as total_trades,
-              COALESCE(SUM(CASE WHEN ct.side='BUY' THEN 1 ELSE 0 END), 0) as buys,
-              COALESCE(SUM(ct.amount * ct.price), 0) as total_volume,
-              COALESCE(SUM(ct.fee), 0) as total_fees
+    const [[stats]] = await pool.query(
+      `SELECT COUNT(*) AS total_trades,
+              COALESCE(SUM(CASE WHEN ct.side = 'BUY' THEN 1 ELSE 0 END), 0) AS buys,
+              COALESCE(SUM(CASE WHEN ct.side = 'SELL' THEN 1 ELSE 0 END), 0) AS sells,
+              COALESCE(SUM(ct.amount * ct.price), 0) AS total_volume,
+              COALESCE(SUM(ct.fee), 0) AS total_fees
        FROM crypto_trades ct WHERE ct.user_id = ?`,
       [userId]
     );
+
+    const [[balances], [activity]] = await Promise.all([
+      pool.query(
+        'SELECT asset, free, locked FROM user_balances WHERE user_id = ? ORDER BY asset',
+        [userId]
+      ),
+      pool.query(
+        `SELECT
+           (SELECT COUNT(*) FROM crypto_deposits WHERE user_id = ?) AS deposits,
+           (SELECT COUNT(*) FROM crypto_withdrawals WHERE user_id = ?) AS withdrawals,
+           (SELECT COUNT(*) FROM crypto_orders WHERE user_id = ?) AS spot_orders`,
+        [userId, userId, userId]
+      ),
+    ]);
 
     res.json({
       user: {
@@ -56,7 +68,9 @@ router.get('/', auth, async (req, res) => {
         createdAt: u.created_at,
         referralCode: u.referral_code,
       },
-      stats: stats[0],
+      stats,
+      balances,
+      activity: activity[0],
     });
   } catch (err) {
     console.error('Profile fetch error:', err);
@@ -68,15 +82,16 @@ router.get('/', auth, async (req, res) => {
 router.put('/update', auth, async (req, res) => {
   try {
     const userId = req.user.id || req.user.userId;
-    const { firstName, lastName } = req.body;
-    if (!firstName?.trim() || !lastName?.trim()) {
+    const firstName = typeof req.body.firstName === 'string' ? req.body.firstName.trim() : '';
+    const lastName = typeof req.body.lastName === 'string' ? req.body.lastName.trim() : '';
+    if (!firstName || !lastName) {
       return res.status(400).json({ error: 'First and last name are required' });
     }
     await pool.query(
       'UPDATE users SET first_name = ?, last_name = ? WHERE id = ?',
-      [firstName.trim(), lastName.trim(), userId]
+      [firstName, lastName, userId]
     );
-    res.json({ message: 'Profile updated successfully' });
+    res.json({ message: 'Profile updated successfully', user: { firstName, lastName } });
   } catch (err) {
     console.error('Profile update error:', err);
     res.status(500).json({ error: 'Failed to update profile' });
@@ -89,7 +104,7 @@ router.put('/change-password', auth, async (req, res) => {
     const userId = req.user.id || req.user.userId;
     const { currentPassword, newPassword } = req.body;
 
-    if (!currentPassword || !newPassword) {
+    if (typeof currentPassword !== 'string' || typeof newPassword !== 'string' || !currentPassword || !newPassword) {
       return res.status(400).json({ error: 'Both current and new password are required' });
     }
     if (newPassword.length < 6) {
